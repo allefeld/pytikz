@@ -251,7 +251,7 @@ def demo(pic):
 
 
 demo_template = '''
-<div style="background-color:#e0e0e0">
+<div style="background-color:#e0e0e0;margin:0">
   <div>
     <img style="max-width:50%;padding:10px;float:left"
       src="data:image/png;base64,{}">
@@ -259,6 +259,6 @@ demo_template = '''
         style="width:50%;margin:0;padding:10px;float:right;white-space:pre-wrap"
         >{}</pre>
   </div>
-  <div style="clear:both">
+  <div style="clear:both"></div>
 </div>
 '''
