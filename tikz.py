@@ -21,9 +21,11 @@ class cfg:
     file_dpi = 300
 
 
+# units in cm
 inch = 2.54
 pt = inch / 72.27
 bp = inch / 72
+mm = 0.1
 
 
 def _point(point):
@@ -74,6 +76,12 @@ def circle(options=None, **kwoptions):
     return code
 
 
+def arc(options=None, **kwoptions):
+    "arc"
+    code = 'arc' + _options(options=options, **kwoptions)
+    return code
+
+
 def rectangle(point2):
     "rectangle"
     code = 'rectangle ' + _point(point2)
@@ -90,8 +98,9 @@ def grid(point2, options=None, **kwoptions):
 class Scope:
     "representation of `scope` environment"
 
-    def __init__(self):
+    def __init__(self, options=None, **kwoptions):
         self.elements = []
+        self.options = _options(options=options, **kwoptions)
 
     def add(self, el):
         "add element (may be string)"
@@ -129,7 +138,7 @@ class Scope:
 
     def __str__(self):
         "create LaTeX code"
-        code = r'\begin{scope}' + '\n'
+        code = r'\begin{scope}' + self.options + '\n'
         code += '\n'.join(map(str, self.elements)) + '\n'
         code += r'\end{scope}'
         return code
@@ -138,8 +147,8 @@ class Scope:
 class Picture(Scope):
     "representation of `tikzpicture` environment"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, options=None, **kwoptions):
+        super().__init__(options=options, **kwoptions)
         # create temporary directory for pdflatex etc.
         self.tempdir = mkdtemp(prefix='tikz-')
         # make sure it gets deleted
@@ -149,7 +158,7 @@ class Picture(Scope):
         "create LaTeX code"
         # We use `str` to create the LaTeX code so that we can directly include
         # strings in `self.elements`, for which `str()` is idempotent.
-        code = r'\begin{tikzpicture}' + '\n'
+        code = r'\begin{tikzpicture}' + self.options + '\n'
         code += '\n'.join(map(str, self.elements)) + '\n'
         code += r'\end{tikzpicture}'
         return code
