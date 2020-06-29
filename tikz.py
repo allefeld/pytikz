@@ -41,6 +41,9 @@ def _points(points):
     return ' '.join([_point(p) for p in points])
 
 
+# path operations
+
+
 def line(points, op='--'):
     "sequence of points with line operation"
     return f' {op} '.join([_point(p) for p in points])
@@ -82,17 +85,39 @@ def arc(options=None, **kwoptions):
     return code
 
 
-def rectangle(point2):
+def rectangle(options=None, **kwoptions):
     "rectangle"
-    code = 'rectangle ' + _point(point2)
+    code = 'rectangle' + _options(options=options, **kwoptions)
     return code
 
 
-def grid(point2, options=None, **kwoptions):
+def grid(options=None, **kwoptions):
     "grid"
     code = 'grid' + _options(options=options, **kwoptions)
-    code += ' ' + _point(point2)
     return code
+
+
+def parabola(bend=None, options=None, **kwoptions):
+    "parabola"
+    code = 'parabola' + _options(options=options, **kwoptions)
+    if bend is not None:
+        code += ' bend ' + _point(bend)
+    return code
+
+
+def sin(options=None, **kwoptions):
+    "sin"
+    code = 'sin' + _options(options=options, **kwoptions)
+    return code
+
+
+def cos(options=None, **kwoptions):
+    "cos"
+    code = 'cos' + _options(options=options, **kwoptions)
+    return code
+
+
+# environments
 
 
 class Scope:
@@ -105,6 +130,21 @@ class Scope:
     def add(self, el):
         "add element (may be string)"
         self.elements.append(el)
+
+    def scope(self):
+        "scope environment"
+        s = Scope()
+        self.add(s)
+        return s
+
+    def __str__(self):
+        "create LaTeX code"
+        code = r'\begin{scope}' + self.options + '\n'
+        code += '\n'.join(map(str, self.elements)) + '\n'
+        code += r'\end{scope}'
+        return code
+
+    # commands
 
     def path(self, *spec, options=None, **kwoptions):
         "path command"
@@ -130,18 +170,11 @@ class Scope:
                  + _options(options=options, **kwoptions) + ' '
                  + _points(spec) + ';')
 
-    def scope(self):
-        "scope environment"
-        s = Scope()
-        self.add(s)
-        return s
-
-    def __str__(self):
-        "create LaTeX code"
-        code = r'\begin{scope}' + self.options + '\n'
-        code += '\n'.join(map(str, self.elements)) + '\n'
-        code += r'\end{scope}'
-        return code
+    def clip(self, *spec, options=None, **kwoptions):
+        "clip command"
+        self.add(r'\clip'
+                 + _options(options=options, **kwoptions) + ' '
+                 + _points(spec) + ';')
 
 
 class Picture(Scope):
@@ -207,8 +240,8 @@ class Picture(Scope):
             cwd=self.tempdir,
             capture_output=True,
             text=True)
-        assert completed.returncode == 0, (
-            'pdflatex call failed\n\n' + completed.stdout)
+        if completed.returncode != 0:
+            raise LatexException('pdflatex has failed\n' + completed.stdout)
 
         # rename created PDF file
         rename(self.tempdir + sep + 'tikz-figure0.pdf', self.temp_pdf)
@@ -252,9 +285,21 @@ class Picture(Scope):
         return pix.getPNGdata()
 
 
+class LatexException(Exception):
+    pass
+
+
 def demo(pic):
-    "convenience function for demo notebook"
-    png_base64 = base64.b64encode(pic._repr_png_()).decode('ascii')
+    "convenience function to test & debug picture"
+    png_base64 = ''
+    try:
+        png_base64 = base64.b64encode(pic._repr_png_()).decode('ascii')
+    except LatexException as le:
+        message = le.args[0]
+        tikz_error = message.find('! Package tikz Error:')
+        if tikz_error != -1:
+            message = message[tikz_error:]
+        print(message)
     code_escaped = escape(str(pic))
     return HTML(demo_template.format(png_base64, code_escaped))
 
@@ -262,10 +307,10 @@ def demo(pic):
 demo_template = '''
 <div style="background-color:#e0e0e0;margin:0">
   <div>
-    <img style="max-width:50%;padding:10px;float:left"
+    <img style="max-width:47%;padding:10px;float:left"
       src="data:image/png;base64,{}">
     <pre
-        style="width:50%;margin:0;padding:10px;float:right;white-space:pre-wrap"
+        style="width:47%;margin:0;padding:10px;float:right;white-space:pre-wrap"
         >{}</pre>
   </div>
   <div style="clear:both"></div>
