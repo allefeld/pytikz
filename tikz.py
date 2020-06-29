@@ -284,24 +284,19 @@ class Picture(Scope):
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
 
-
-class LatexException(Exception):
-    pass
-
-
-def demo(pic):
-    "convenience function to test & debug picture"
-    png_base64 = ''
-    try:
-        png_base64 = base64.b64encode(pic._repr_png_()).decode('ascii')
-    except LatexException as le:
-        message = le.args[0]
-        tikz_error = message.find('! Package tikz Error:')
-        if tikz_error != -1:
-            message = message[tikz_error:]
-        print(message)
-    code_escaped = escape(str(pic))
-    return HTML(demo_template.format(png_base64, code_escaped))
+    def demo(self):
+        "convenience function to test & debug picture"
+        png_base64 = ''
+        try:
+            png_base64 = base64.b64encode(self._repr_png_()).decode('ascii')
+        except LatexException as le:
+            message = le.args[0]
+            tikz_error = message.find('! Package tikz Error:')
+            if tikz_error != -1:
+                message = message[tikz_error:]
+            print(message)
+        code_escaped = escape(str(self))
+        return HTML(demo_template.format(png_base64, code_escaped))
 
 
 demo_template = '''
@@ -316,3 +311,8 @@ demo_template = '''
   <div style="clear:both"></div>
 </div>
 '''
+
+
+class LatexException(Exception):
+    "problem with external latex process"
+    pass
