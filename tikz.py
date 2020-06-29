@@ -41,24 +41,11 @@ def _points(points):
     return ' '.join([_point(p) for p in points])
 
 
-# path operations
-
-
-def line(points, op='--'):
-    "sequence of points with line operation"
-    return f' {op} '.join([_point(p) for p in points])
-
-
-def controls(point1, point2):
-    "control points line operation"
-    return '.. controls ' + _point(point1) + ' and ' + _point(point2) + ' ..'
-
-
 def _option(key, val):
+    key = str(key).replace('_', ' ')
     if val is True:
-        return str(key)
+        return key
     else:
-        key = str(key).replace('_', ' ')
         return f'{key}={str(val)}'
 
 
@@ -71,6 +58,19 @@ def _options(options=None, **kwoptions):
     if code == '[]':
         code = ''
     return code
+
+
+# path operations
+
+
+def line(points, op='--'):
+    "sequence of points with line operation"
+    return f' {op} '.join([_point(p) for p in points])
+
+
+def controls(point1, point2):
+    "control points line operation"
+    return '.. controls ' + _point(point1) + ' and ' + _point(point2) + ' ..'
 
 
 def circle(options=None, **kwoptions):
@@ -173,6 +173,18 @@ class Scope:
     def clip(self, *spec, options=None, **kwoptions):
         "clip command"
         self.add(r'\clip'
+                 + _options(options=options, **kwoptions) + ' '
+                 + _points(spec) + ';')
+
+    def shade(self, *spec, options=None, **kwoptions):
+        "shade command"
+        self.add(r'\shade'
+                 + _options(options=options, **kwoptions) + ' '
+                 + _points(spec) + ';')
+
+    def shadedraw(self, *spec, options=None, **kwoptions):
+        "shadedraw command"
+        self.add(r'\shadedraw'
                  + _options(options=options, **kwoptions) + ' '
                  + _points(spec) + ';')
 
@@ -298,8 +310,8 @@ class Picture(Scope):
                 message = message[tikz_error:]
             print(message)
         code_escaped = html.escape(str(self))
-        return IPython.display.HTML(
-            demo_template.format(png_base64, code_escaped))
+        IPython.display.display(IPython.display.HTML(
+            demo_template.format(png_base64, code_escaped)))
 
 
 demo_template = '''
