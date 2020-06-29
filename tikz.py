@@ -1,16 +1,16 @@
 "tikz, a Python interface to TikZ"
 
 import subprocess
-from inspect import cleandoc
-from tempfile import mkdtemp
-from shutil import copyfile, rmtree
-from atexit import register
-from os.path import sep, isfile, splitext
-from os import rename
-from hashlib import sha1
+import inspect
+import tempfile
+import shutil
+import atexit
+import os.path
+import os
+import hashlib
 import fitz
-from IPython.display import HTML
-from html import escape
+import IPython.display
+import html
 import base64
 
 
@@ -183,9 +183,9 @@ class Picture(Scope):
     def __init__(self, options=None, **kwoptions):
         super().__init__(options=options, **kwoptions)
         # create temporary directory for pdflatex etc.
-        self.tempdir = mkdtemp(prefix='tikz-')
+        self.tempdir = tempfile.mkdtemp(prefix='tikz-')
         # make sure it gets deleted
-        register(rmtree, self.tempdir, ignore_errors=True)
+        atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
 
     def __str__(self):
         "create LaTeX code"
@@ -206,8 +206,10 @@ class Picture(Scope):
         # pdflatex again with special arguments. We use these special
         # arguments directly. See section 53 of the PGF/TikZ manual.
 
+        sep = os.path.sep
+
         # create LaTeX code
-        code = (cleandoc(r"""
+        code = (inspect.cleandoc(r"""
                     \documentclass{article}
                     \usepackage{tikz}
                     \usetikzlibrary{external}
@@ -221,9 +223,9 @@ class Picture(Scope):
         # does the PDF file have to be created?
         #  This check is implemented by using the SHA1 digest of the LaTeX code
         # in the PDF filename, and to skip creation if that file exists.
-        hash = sha1(code.encode()).hexdigest()
+        hash = hashlib.sha1(code.encode()).hexdigest()
         self.temp_pdf = self.tempdir + sep + 'tikz-' + hash + '.pdf'
-        if isfile(self.temp_pdf):
+        if os.path.isfile(self.temp_pdf):
             return
 
         # create LaTeX file
@@ -244,7 +246,7 @@ class Picture(Scope):
             raise LatexException('pdflatex has failed\n' + completed.stdout)
 
         # rename created PDF file
-        rename(self.tempdir + sep + 'tikz-figure0.pdf', self.temp_pdf)
+        os.rename(self.tempdir + sep + 'tikz-figure0.pdf', self.temp_pdf)
 
     def write_image(self, filename, dpi=None):
         "write picture to image file (PDF, PNG, or SVG)"
@@ -252,11 +254,11 @@ class Picture(Scope):
             dpi = cfg.file_dpi
         self._create_pdf()
         # determine extension
-        _, ext = splitext(filename)
+        _, ext = os.path.splitext(filename)
         # if a PDF is requested,
         if ext.lower() == '.pdf':
             # just copy the file
-            copyfile(self.temp_pdf, filename)
+            shutil.copyfile(self.temp_pdf, filename)
         elif ext.lower() == '.png':
             # render PDF as PNG using PyMuPDF
             zoom = dpi / 72
@@ -295,8 +297,9 @@ class Picture(Scope):
             if tikz_error != -1:
                 message = message[tikz_error:]
             print(message)
-        code_escaped = escape(str(self))
-        return HTML(demo_template.format(png_base64, code_escaped))
+        code_escaped = html.escape(str(self))
+        return IPython.display.HTML(
+            demo_template.format(png_base64, code_escaped))
 
 
 demo_template = '''
