@@ -336,3 +336,10 @@ class Picture(Scope):
 class LatexException(Exception):
     "problem with external LaTeX process"
     pass
+
+
+# create pytikz logo
+if __name__ == "__main__":
+    pic = Picture()
+    pic.add(r'\draw[darkgray] (0,0) node[scale=2] {\textsf{py}Ti\emph{k}Z};')
+    pic.write_image('pytikz.png')
