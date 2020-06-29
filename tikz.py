@@ -20,6 +20,25 @@ class cfg:
     display_dpi = 96    # standard monitor dpi
     file_dpi = 300
 
+    # executable name, possibly including path
+    # pdflatex is fastest, lualatex + 50%, xelatex + 100%
+    latex = 'pdflatex'
+
+    # {0} is replaced by a Base64-encoded PNG image,
+    # {1} by TikZ-LaTeX code
+    demo_template = '\n'.join([
+        '<div style="background-color:#e0e0e0;margin:0">',
+        '  <div>',
+        '    <img style="max-width:47%;padding:10px;float:left"',
+        '      src="data:image/png;base64,{0}">',
+        '    <pre',
+        '        style="width:47%;margin:0;padding:10px;float:right;'
+        + 'white-space:pre-wrap"',
+        '        >{1}</pre>',
+        '  </div>',
+        '  <div style="clear:both"></div>',
+        '</div>'])
+
 
 # units in cm
 inch = 2.54
@@ -247,10 +266,10 @@ class Picture(Scope):
 
         # process LaTeX file into PDF
         completed = subprocess.run(
-            ['pdflatex',
-                '-jobname',
-                'tikz-figure0',
-                r'\def\tikzexternalrealjob{tikz}\input{tikz}'],
+            [cfg.latex,
+             '-jobname',
+             'tikz-figure0',
+             r'\def\tikzexternalrealjob{tikz}\input{tikz}'],
             cwd=self.tempdir,
             capture_output=True,
             text=True)
@@ -311,23 +330,9 @@ class Picture(Scope):
             print(message)
         code_escaped = html.escape(str(self))
         IPython.display.display(IPython.display.HTML(
-            demo_template.format(png_base64, code_escaped)))
-
-
-demo_template = '''
-<div style="background-color:#e0e0e0;margin:0">
-  <div>
-    <img style="max-width:47%;padding:10px;float:left"
-      src="data:image/png;base64,{}">
-    <pre
-        style="width:47%;margin:0;padding:10px;float:right;white-space:pre-wrap"
-        >{}</pre>
-  </div>
-  <div style="clear:both"></div>
-</div>
-'''
+            cfg.demo_template.format(png_base64, code_escaped)))
 
 
 class LatexException(Exception):
-    "problem with external latex process"
+    "problem with external LaTeX process"
     pass
