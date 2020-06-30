@@ -11,6 +11,7 @@ import fitz
 import IPython.display
 import html
 import base64
+import numbers
 
 
 class cfg:
@@ -47,7 +48,11 @@ mm = 0.1
 
 
 def _option(key, val):
-    "helper function for _options"
+    """
+    helper function for _options
+    Transforms single `key=value` pair into string. A value of `True` is
+    omitted, an underscore in a key is transformed into a space.
+    """
     key = str(key).replace('_', ' ')
     if val is True:
         return key
@@ -56,7 +61,12 @@ def _option(key, val):
 
 
 def _options(options=None, **kwoptions):
-    "helper function to format options in various functions"
+    """
+    helper function to format options in various functions
+    Transforms dictionary from Python dictionary / **kwargs into TikZ string,
+    e.g. `(options='red', thick=True, rounded_corners='4pt')`
+    returns `'[thick,rounded corners=4pt,red]'`.
+    """
     o = [_option(key, val) for key, val in kwoptions.items()]
     if options is not None:
         o.insert(0, options)
@@ -71,12 +81,19 @@ def _options(options=None, **kwoptions):
 def _point(point):
     """
     helper function for _points and others
-    (Cartesian) coordinates or freeform string, incl. node
+    Enables specification of a point as a tuple, list, or np.array of numbers,
+    as well as a string like '(a)' or '(3mm,0mm)'.
     """
+    # Haven't found a good solution for prefixes, '+', '++'.
     if isinstance(point, str):
         return point
     else:
         return '(' + ','.join(map(str, point)) + ')'
+
+
+def cycle():
+    "cycle 'coordinate'"
+    return 'cycle'
 
 
 def polar(angle, radius, y_radius=None):
@@ -101,97 +118,115 @@ def vertical(point1, point2):
     return code
 
 
-# sequences
-
-# TODO: Change such that TikZ' logic is preserved:
-# (Almost) all path operations take an "end coordinate" as an argument.
-#
-# → For operations where simple repetition makes sense, accept a sequence of
-# coordinates.
-#   pic.draw(line([(-1.5, 0), (1.5, 0)]))
-# becomes
-#   pic.draw((-1.5, 0), lineto((1.5, 0)))
-# and
-#   '-- cycle'
-# becomes
-#   lineto('cycle')
-#
-# Trickiness: distinguish between iterable argument which specifies a sequence
-# of coordinate values, or a sequence of coordinates (points). Check whether
-# first element is an iterable itself (other than a string).
-#
-# `point` can be a string or an iterable with at most 3 elements.
-# `points` is an arbitrary-length sequence of points, i.e. also an iterable.
-
-
-def _points(points):
-    """
-    helper function for draw and friends
-    sequence of points with move-to operation between
-    """
-    return ' '.join([_point(p) for p in points])
-
-
-def line(points, op='--'):
-    """
-    sequence of points with line-to operation between
-    op can be '--' for straight lines (default)
-    '-|' for first horizontal, then vertical
-    '|-' for first vertical, then horizontal
-    """
-    return f' {op} '.join([_point(p) for p in points])
+def horizontal(point1, point2):
+    "perpendicular coordinates, horizontal"
+    coord = _point(point1)
+    if coord.startswith('(') and coord.endswith(')'):
+        coord = coord[1:-1]
+    code = '(' + coord + ' -| '
+    coord = _point(point2)
+    if coord.startswith('(') and coord.endswith(')'):
+        coord = coord[1:-1]
+    code += coord + ')'
+    return code
 
 
 # path operations
 
 
-def controls(point1, point2):
+def _points(points):
+    "helper function for path operations"
+    # detect if only a single point was given
+    if isinstance(points, str) or isinstance(points[0], numbers.Number):
+        # transform into one-element sequence of points
+        points = [points]
+    # ensure correct representation of points
+    points = [_point(p) for p in points]
+    return points
+
+
+def moveto(points):
+    "move-to operation"
+    # put move-to operation before each point
+    # (implicit at the beginning)
+    return f' '.join(_points(points))
+
+
+def lineto(points, op='--'):
+    """
+    line-to operation
+    op can be
+    '--' for straight lines (default),
+    '-|' for first horizontal, then vertical, or
+    '|-' for first vertical, then horizontal
+    """
+    # put line-to operation before each point
+    return f'{op} ' + f' {op} '.join(_points(points))
+
+
+def line(points, op='--'):
+    """
+    convenience version of lineto
+    starts with move-to instead of line-to operation
+    """
+    return f' {op} '.join(_points(points))
+
+
+def curveto(point, control1, control2=None):
     "curve-to operation"
-    return '.. controls ' + _point(point1) + ' and ' + _point(point2) + ' ..'
+    code = '.. controls ' + _point(control1)
+    if control2 is not None:
+        code += ' and ' + _point(control2)
+    code += ' ..' + ' ' + _point(point)
+    return code
 
 
-def rectangle(options=None, **kwoptions):
+def rectangle(point, options=None, **kwoptions):
     "rectangle operation"
     code = 'rectangle' + _options(options=options, **kwoptions)
+    code += ' ' + _point(point)
     return code
 
 
 def circle(options=None, **kwoptions):
     "circle operation (also for ellipses)"
-    code = 'circle' + _options(options=options, **kwoptions)
-    return code
+    return 'circle' + _options(options=options, **kwoptions)
 
 
 def arc(options=None, **kwoptions):
     "arc operation"
-    code = 'arc' + _options(options=options, **kwoptions)
-    return code
+    return 'arc' + _options(options=options, **kwoptions)
 
 
-def grid(options=None, **kwoptions):
+def grid(point, options=None, **kwoptions):
     "grid operation"
     code = 'grid' + _options(options=options, **kwoptions)
+    code += ' ' + _point(point)
     return code
 
 
-def parabola(bend=None, options=None, **kwoptions):
+def parabola(point, bend=None, options=None, **kwoptions):
     "parabola operation"
     code = 'parabola' + _options(options=options, **kwoptions)
     if bend is not None:
         code += ' bend ' + _point(bend)
+    code += ' ' + _point(point)
     return code
 
 
-def sin(options=None, **kwoptions):
+def sin(point, options=None, **kwoptions):
     "sine operation"
     code = 'sin' + _options(options=options, **kwoptions)
+    code += ' ' + _point(point)
     return code
 
 
-def cos(options=None, **kwoptions):
+def cos(point, options=None, **kwoptions):
     "cosine operation"
     code = 'cos' + _options(options=options, **kwoptions)
+    code += ' ' + _point(point)
     return code
+
 
 # more operations to follow
 
@@ -229,43 +264,43 @@ class Scope:
         "path command"
         self.add(r'\path'
                  + _options(options=options, **kwoptions) + ' '
-                 + _points(spec) + ';')
+                 + moveto(spec) + ';')
 
     def draw(self, *spec, options=None, **kwoptions):
         "draw command"
         self.add(r'\draw'
                  + _options(options=options, **kwoptions) + ' '
-                 + _points(spec) + ';')
+                 + moveto(spec) + ';')
 
     def fill(self, *spec, options=None, **kwoptions):
         "fill command"
         self.add(r'\fill'
                  + _options(options=options, **kwoptions) + ' '
-                 + _points(spec) + ';')
+                 + moveto(spec) + ';')
 
     def filldraw(self, *spec, options=None, **kwoptions):
         "filldraw command"
         self.add(r'\filldraw'
                  + _options(options=options, **kwoptions) + ' '
-                 + _points(spec) + ';')
+                 + moveto(spec) + ';')
 
     def clip(self, *spec, options=None, **kwoptions):
         "clip command"
         self.add(r'\clip'
                  + _options(options=options, **kwoptions) + ' '
-                 + _points(spec) + ';')
+                 + moveto(spec) + ';')
 
     def shade(self, *spec, options=None, **kwoptions):
         "shade command"
         self.add(r'\shade'
                  + _options(options=options, **kwoptions) + ' '
-                 + _points(spec) + ';')
+                 + moveto(spec) + ';')
 
     def shadedraw(self, *spec, options=None, **kwoptions):
         "shadedraw command"
         self.add(r'\shadedraw'
                  + _options(options=options, **kwoptions) + ' '
-                 + _points(spec) + ';')
+                 + moveto(spec) + ';')
 
     # more commands to follow
 
