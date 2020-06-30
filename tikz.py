@@ -1,7 +1,6 @@
 "tikz, a Python interface to TikZ"
 
 import subprocess
-import inspect
 import tempfile
 import shutil
 import atexit
@@ -47,20 +46,8 @@ bp = inch / 72
 mm = 0.1
 
 
-def _point(point):
-    "point (or something else)"
-    if isinstance(point, str):
-        return point
-    else:
-        return '(' + ','.join(map(str, point)) + ')'
-
-
-def _points(points):
-    "helper function for draw and friends"
-    return ' '.join([_point(p) for p in points])
-
-
 def _option(key, val):
+    "helper function for _options"
     key = str(key).replace('_', ' ')
     if val is True:
         return key
@@ -79,45 +66,116 @@ def _options(options=None, **kwoptions):
     return code
 
 
-# path operations
+# coordinates
+
+def _point(point):
+    """
+    helper function for _points and others
+    (Cartesian) coordinates or freeform string, incl. node
+    """
+    if isinstance(point, str):
+        return point
+    else:
+        return '(' + ','.join(map(str, point)) + ')'
+
+
+def polar(angle, radius, y_radius=None):
+    "polar coordinates"
+    code = '(' + str(angle) + ':' + str(radius)
+    if y_radius is not None:
+        code += ' and ' + str(y_radius)
+    code += ')'
+    return code
+
+
+def vertical(point1, point2):
+    "perpendicular coordinates, vertical"
+    coord = _point(point1)
+    if coord.startswith('(') and coord.endswith(')'):
+        coord = coord[1:-1]
+    code = '(' + coord + ' |- '
+    coord = _point(point2)
+    if coord.startswith('(') and coord.endswith(')'):
+        coord = coord[1:-1]
+    code += coord + ')'
+    return code
+
+
+# sequences
+
+# TODO: Change such that TikZ' logic is preserved:
+# (Almost) all path operations take an "end coordinate" as an argument.
+#
+# → For operations where simple repetition makes sense, accept a sequence of
+# coordinates.
+#   pic.draw(line([(-1.5, 0), (1.5, 0)]))
+# becomes
+#   pic.draw((-1.5, 0), lineto((1.5, 0)))
+# and
+#   '-- cycle'
+# becomes
+#   lineto('cycle')
+#
+# Trickiness: distinguish between iterable argument which specifies a sequence
+# of coordinate values, or a sequence of coordinates (points). Check whether
+# first element is an iterable itself (other than a string).
+#
+# `point` can be a string or an iterable with at most 3 elements.
+# `points` is an arbitrary-length sequence of points, i.e. also an iterable.
+
+
+def _points(points):
+    """
+    helper function for draw and friends
+    sequence of points with move-to operation between
+    """
+    return ' '.join([_point(p) for p in points])
 
 
 def line(points, op='--'):
-    "sequence of points with line operation"
+    """
+    sequence of points with line-to operation between
+    op can be '--' for straight lines (default)
+    '-|' for first horizontal, then vertical
+    '|-' for first vertical, then horizontal
+    """
     return f' {op} '.join([_point(p) for p in points])
 
 
+# path operations
+
+
 def controls(point1, point2):
-    "control points line operation"
+    "curve-to operation"
     return '.. controls ' + _point(point1) + ' and ' + _point(point2) + ' ..'
 
 
+def rectangle(options=None, **kwoptions):
+    "rectangle operation"
+    code = 'rectangle' + _options(options=options, **kwoptions)
+    return code
+
+
 def circle(options=None, **kwoptions):
-    "circle"
+    "circle operation (also for ellipses)"
     code = 'circle' + _options(options=options, **kwoptions)
     return code
 
 
 def arc(options=None, **kwoptions):
-    "arc"
+    "arc operation"
     code = 'arc' + _options(options=options, **kwoptions)
     return code
 
 
-def rectangle(options=None, **kwoptions):
-    "rectangle"
-    code = 'rectangle' + _options(options=options, **kwoptions)
-    return code
-
-
 def grid(options=None, **kwoptions):
-    "grid"
+    "grid operation"
     code = 'grid' + _options(options=options, **kwoptions)
     return code
 
 
 def parabola(bend=None, options=None, **kwoptions):
-    "parabola"
+    "parabola operation"
     code = 'parabola' + _options(options=options, **kwoptions)
     if bend is not None:
         code += ' bend ' + _point(bend)
@@ -125,15 +183,17 @@ def parabola(bend=None, options=None, **kwoptions):
 
 
 def sin(options=None, **kwoptions):
-    "sin"
+    "sine operation"
     code = 'sin' + _options(options=options, **kwoptions)
     return code
 
 
 def cos(options=None, **kwoptions):
-    "cos"
+    "cosine operation"
     code = 'cos' + _options(options=options, **kwoptions)
     return code
+
+# more operations to follow
 
 
 # environments
@@ -207,16 +267,24 @@ class Scope:
                  + _options(options=options, **kwoptions) + ' '
                  + _points(spec) + ';')
 
+    # more commands to follow
+
 
 class Picture(Scope):
     "representation of `tikzpicture` environment"
 
     def __init__(self, options=None, **kwoptions):
         super().__init__(options=options, **kwoptions)
+        # additional preamble entries
+        self.preamble = []
         # create temporary directory for pdflatex etc.
         self.tempdir = tempfile.mkdtemp(prefix='tikz-')
         # make sure it gets deleted
         atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
+
+    def usetikzlibrary(self, library):
+        "usetikzlibrary"
+        self.preamble.append(r'\usetikzlibrary{' + library + '}')
 
     def __str__(self):
         "create LaTeX code"
@@ -230,6 +298,8 @@ class Picture(Scope):
     def _create_pdf(self):
         "ensure that an up-to-date PDF file exists"
 
+        sep = os.path.sep
+
         # We don't want a PDF file of the whole LaTeX document, but only of the
         # contents of the `tikzpicture` environment. This is achieved using
         # TikZ' `external` library, which makes TikZ write out pictures as
@@ -237,18 +307,17 @@ class Picture(Scope):
         # pdflatex again with special arguments. We use these special
         # arguments directly. See section 53 of the PGF/TikZ manual.
 
-        sep = os.path.sep
-
         # create LaTeX code
-        code = (inspect.cleandoc(r"""
-                    \documentclass{article}
-                    \usepackage{tikz}
-                    \usetikzlibrary{external}
-                    \tikzexternalize
-                    \begin{document}
-                    """) + '\n'
-                + str(self) + '\n'
-                + r'\end{document}' + '\n')
+        code = (
+            '\n'.join([
+                r'\documentclass{article}',
+                r'\usepackage{tikz}',
+                r'\usetikzlibrary{external}',
+                r'\tikzexternalize'])
+            + '\n'.join(self.preamble) + '\n'
+            + r'\begin{document}' + '\n'
+            + str(self) + '\n'
+            + r'\end{document}' + '\n')
         # print(code)
 
         # does the PDF file have to be created?
@@ -324,7 +393,7 @@ class Picture(Scope):
             png_base64 = base64.b64encode(self._repr_png_()).decode('ascii')
         except LatexException as le:
             message = le.args[0]
-            tikz_error = message.find('! Package tikz Error:')
+            tikz_error = message.find('! ')
             if tikz_error != -1:
                 message = message[tikz_error:]
             print(message)
