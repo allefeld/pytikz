@@ -267,6 +267,17 @@ def node(contents, opt=None, **kwoptions):
     return code
 
 
+def coordinate(opt=None, **kwoptions):
+    "coordinate operation"
+    # Name and at-coordinate can be specified through options.
+    # Animation is not supported because it does not make sense for static
+    # image generation.
+    # The foreach statement for nodes is not supported because it can be
+    # replaced by a Python loop.
+    code = 'coordinate' + options(opt=opt, **kwoptions)
+    return code
+
+
 # more operations to follow
 
 
@@ -340,6 +351,30 @@ class Scope:
         self.add(r'\shadedraw'
                  + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
+
+    def definecolor(self, name, colormodel, colorspec):
+        """
+        xcolor definecolor command
+
+        Define new color from color model and specification.
+
+        - core models: rgb, cmy, cmyk, hsb, gray
+        - integer models: RGB, HTML, HSB, Gray
+        - decimal models: Hsb, tHsb, wave
+        - pseudo models: names, ps
+        """
+        if not isinstance(colorspec, str):
+            colorspec = ','.join(colorspec)
+        self.add(r'\definecolor' + '{' + name + '}{'
+                 + colormodel + '}{' + colorspec + '}')
+
+    def colorlet(self, name, colorexpr):
+        """
+        xcolor colorlet command
+
+        Define new color from color expression, e.g. 'blue!20!white'.
+        """
+        self.add(r'\colorlet' + '{' + name + '}{' + colorexpr + '}')
 
     # more commands to follow
     # The foreach command is not implemented, because it can be replaced by
