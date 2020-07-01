@@ -134,10 +134,37 @@ def horizontal(point1, point2):
 # path operations
 
 
+def _ispoint(obj):
+    """
+    helper function to determine if an object specifies a point
+    (instead of a sequence of points)
+    A point is a string or an iterable of 2 or 3 elements that contains only
+    strings and numbers. A sequence is an iterable that contains only strings
+    and points. There is therefore an ambiguity for an iterable of 2 or 3
+    elements that contains only strings – it could be both a point and a
+    sequence. We decide that such an iterable is interpreted as a sequence of
+    points. If intended otherwise, the user has to either wrap the point in
+    another iterable (e.g. list), or join the strings themselves into a simple
+    string representation of a point.
+    """
+    # A string can only be a point.
+    if isinstance(obj, str):
+        return True
+    # Something with less than 2 or more than 3 elements cannot be a point.
+    if len(obj) < 2 or len(obj) > 3:
+        return False
+    # examine elements
+    for x in obj:
+        # Something that contains a number must be a point.
+        if isinstance(x, numbers.Number):
+            return True
+    return False
+
+
 def _points(points):
     "helper function for path operations"
     # detect if only a single point was given
-    if isinstance(points, str) or isinstance(points[0], numbers.Number):
+    if _ispoint(points):
         # transform into one-element sequence of points
         points = [points]
     # ensure correct representation of points
@@ -303,6 +330,8 @@ class Scope:
                  + moveto(spec) + ';')
 
     # more commands to follow
+    # The foreach command is not implemented, because it can be replaced by
+    # a Python loop.
 
 
 class Picture(Scope):
