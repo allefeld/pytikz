@@ -255,6 +255,18 @@ def cos(point, opt=None, **kwoptions):
     return code
 
 
+def node(contents, opt=None, **kwoptions):
+    "node operation"
+    # Name and at-coordinate can be specified through options.
+    # Animation is not supported because it does not make sense for static
+    # image generation.
+    # The foreach statement for nodes is not supported because it can be
+    # replaced by a Python loop.
+    code = 'node' + options(opt=opt, **kwoptions)
+    code += ' {' + contents + '}'
+    return code
+
+
 # more operations to follow
 
 
@@ -474,5 +486,5 @@ class LatexException(Exception):
 # create pytikz logo
 if __name__ == "__main__":
     pic = Picture()
-    pic.add(r'\draw[darkgray] (0,0) node[scale=2] {\textsf{py}Ti\emph{k}Z};')
+    pic.draw((0, 0), node(r'\textsf{py}Ti\emph{k}Z', scale=2), darkgray=True)
     pic.write_image('pytikz.png')
