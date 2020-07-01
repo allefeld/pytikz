@@ -17,7 +17,7 @@ import numbers
 class cfg:
     "configuration variables"
 
-    display_dpi = 96    # standard monitor dpi
+    display_dpi = 192    # standard monitor dpi × zoom 2
     file_dpi = 300
 
     # executable name, possibly including path
@@ -60,16 +60,16 @@ def _option(key, val):
         return f'{key}={str(val)}'
 
 
-def _options(options=None, **kwoptions):
+def options(opt=None, **kwoptions):
     """
     helper function to format options in various functions
     Transforms dictionary from Python dictionary / **kwargs into TikZ string,
-    e.g. `(options='red', thick=True, rounded_corners='4pt')`
+    e.g. `(opt='red', thick=True, rounded_corners='4pt')`
     returns `'[thick,rounded corners=4pt,red]'`.
     """
     o = [_option(key, val) for key, val in kwoptions.items()]
-    if options is not None:
-        o.insert(0, options)
+    if opt is not None:
+        o.insert(0, opt)
     code = '[' + ','.join(o) + ']'
     if code == '[]':
         code = ''
@@ -181,49 +181,49 @@ def curveto(point, control1, control2=None):
     return code
 
 
-def rectangle(point, options=None, **kwoptions):
+def rectangle(point, opt=None, **kwoptions):
     "rectangle operation"
-    code = 'rectangle' + _options(options=options, **kwoptions)
+    code = 'rectangle' + options(opt=opt, **kwoptions)
     code += ' ' + _point(point)
     return code
 
 
-def circle(options=None, **kwoptions):
+def circle(opt=None, **kwoptions):
     "circle operation (also for ellipses)"
-    return 'circle' + _options(options=options, **kwoptions)
+    return 'circle' + options(opt=opt, **kwoptions)
 
 
-def arc(options=None, **kwoptions):
+def arc(opt=None, **kwoptions):
     "arc operation"
-    return 'arc' + _options(options=options, **kwoptions)
+    return 'arc' + options(opt=opt, **kwoptions)
 
 
-def grid(point, options=None, **kwoptions):
+def grid(point, opt=None, **kwoptions):
     "grid operation"
-    code = 'grid' + _options(options=options, **kwoptions)
+    code = 'grid' + options(opt=opt, **kwoptions)
     code += ' ' + _point(point)
     return code
 
 
-def parabola(point, bend=None, options=None, **kwoptions):
+def parabola(point, bend=None, opt=None, **kwoptions):
     "parabola operation"
-    code = 'parabola' + _options(options=options, **kwoptions)
+    code = 'parabola' + options(opt=opt, **kwoptions)
     if bend is not None:
         code += ' bend ' + _point(bend)
     code += ' ' + _point(point)
     return code
 
 
-def sin(point, options=None, **kwoptions):
+def sin(point, opt=None, **kwoptions):
     "sine operation"
-    code = 'sin' + _options(options=options, **kwoptions)
+    code = 'sin' + options(opt=opt, **kwoptions)
     code += ' ' + _point(point)
     return code
 
 
-def cos(point, options=None, **kwoptions):
+def cos(point, opt=None, **kwoptions):
     "cosine operation"
-    code = 'cos' + _options(options=options, **kwoptions)
+    code = 'cos' + options(opt=opt, **kwoptions)
     code += ' ' + _point(point)
     return code
 
@@ -237,69 +237,69 @@ def cos(point, options=None, **kwoptions):
 class Scope:
     "representation of `scope` environment"
 
-    def __init__(self, options=None, **kwoptions):
+    def __init__(self, opt=None, **kwoptions):
         self.elements = []
-        self.options = _options(options=options, **kwoptions)
+        self.opt = options(opt=opt, **kwoptions)
 
     def add(self, el):
         "add element (may be string)"
         self.elements.append(el)
 
-    def scope(self):
+    def scope(self, opt=None, **kwoptions):
         "scope environment"
-        s = Scope()
+        s = Scope(opt=opt, **kwoptions)
         self.add(s)
         return s
 
     def __str__(self):
         "create LaTeX code"
-        code = r'\begin{scope}' + self.options + '\n'
+        code = r'\begin{scope}' + self.opt + '\n'
         code += '\n'.join(map(str, self.elements)) + '\n'
         code += r'\end{scope}'
         return code
 
     # commands
 
-    def path(self, *spec, options=None, **kwoptions):
+    def path(self, *spec, opt=None, **kwoptions):
         "path command"
         self.add(r'\path'
-                 + _options(options=options, **kwoptions) + ' '
+                 + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
 
-    def draw(self, *spec, options=None, **kwoptions):
+    def draw(self, *spec, opt=None, **kwoptions):
         "draw command"
         self.add(r'\draw'
-                 + _options(options=options, **kwoptions) + ' '
+                 + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
 
-    def fill(self, *spec, options=None, **kwoptions):
+    def fill(self, *spec, opt=None, **kwoptions):
         "fill command"
         self.add(r'\fill'
-                 + _options(options=options, **kwoptions) + ' '
+                 + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
 
-    def filldraw(self, *spec, options=None, **kwoptions):
+    def filldraw(self, *spec, opt=None, **kwoptions):
         "filldraw command"
         self.add(r'\filldraw'
-                 + _options(options=options, **kwoptions) + ' '
+                 + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
 
-    def clip(self, *spec, options=None, **kwoptions):
+    def clip(self, *spec, opt=None, **kwoptions):
         "clip command"
         self.add(r'\clip'
-                 + _options(options=options, **kwoptions) + ' '
+                 + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
 
-    def shade(self, *spec, options=None, **kwoptions):
+    def shade(self, *spec, opt=None, **kwoptions):
         "shade command"
         self.add(r'\shade'
-                 + _options(options=options, **kwoptions) + ' '
+                 + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
 
-    def shadedraw(self, *spec, options=None, **kwoptions):
+    def shadedraw(self, *spec, opt=None, **kwoptions):
         "shadedraw command"
         self.add(r'\shadedraw'
-                 + _options(options=options, **kwoptions) + ' '
+                 + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
 
     # more commands to follow
@@ -308,8 +308,8 @@ class Scope:
 class Picture(Scope):
     "representation of `tikzpicture` environment"
 
-    def __init__(self, options=None, **kwoptions):
-        super().__init__(options=options, **kwoptions)
+    def __init__(self, opt=None, **kwoptions):
+        super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
         # create temporary directory for pdflatex etc.
@@ -325,7 +325,7 @@ class Picture(Scope):
         "create LaTeX code"
         # We use `str` to create the LaTeX code so that we can directly include
         # strings in `self.elements`, for which `str()` is idempotent.
-        code = r'\begin{tikzpicture}' + self.options + '\n'
+        code = r'\begin{tikzpicture}' + self.opt + '\n'
         code += '\n'.join(map(str, self.elements)) + '\n'
         code += r'\end{tikzpicture}'
         return code
