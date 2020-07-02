@@ -376,6 +376,24 @@ class Scope:
         """
         self.add(r'\colorlet' + '{' + name + '}{' + colorexpr + '}')
 
+    def tikzset(self, opt=None, **kwoptions):
+        "tikzset command"
+        # create options string without brackets
+        opt = options(opt=opt, **kwoptions)
+        if opt.startswith('[') and opt.endswith(']'):
+            opt = opt[1:-1]
+        # because braces are needed
+        self.add(r'\tikzset{' + opt + '}')
+
+    def tikzstyle(self, name, opt=None, **kwoptions):
+        "emulates deprecated tikzstyle command using tikzset"
+        # create options string without brackets
+        opt = options(opt=opt, **kwoptions)
+        if opt.startswith('[') and opt.endswith(']'):
+            opt = opt[1:-1]
+        # because braces are needed
+        self.add(r'\tikzset{' + name + '/.style={' + opt + '}}')
+
     # more commands to follow
     # The foreach command is not implemented, because it can be replaced by
     # a Python loop.
