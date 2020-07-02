@@ -131,7 +131,7 @@ def horizontal(point1, point2):
     return code
 
 
-# path operations
+# path operations (§14)
 
 
 def _ispoint(obj):
@@ -205,6 +205,13 @@ def curveto(point, control1, control2=None):
     if control2 is not None:
         code += ' and ' + _point(control2)
     code += ' ..' + ' ' + _point(point)
+    return code
+
+
+def to(point, opt=None, **kwoptions):
+    "to path operation"
+    code = 'to' + options(opt=opt, **kwoptions)
+    code += ' ' + _point(point)
     return code
 
 
@@ -295,8 +302,8 @@ class Scope:
         "add element (may be string)"
         self.elements.append(el)
 
-    def scope(self, opt=None, **kwoptions):
-        "scope environment"
+    def add_scope(self, opt=None, **kwoptions):
+        "add scope environment"
         s = Scope(opt=opt, **kwoptions)
         self.add(s)
         return s
@@ -308,49 +315,52 @@ class Scope:
         code += r'\end{scope}'
         return code
 
-    # commands
+    # actions on paths (§15)
+
+    def _action(self, action_name, *spec, opt=None, **kwoptions):
+        "helper function for actions"
+        self.add('\\' + action_name
+                 + options(opt=opt, **kwoptions) + ' '
+                 + moveto(spec) + ';')
 
     def path(self, *spec, opt=None, **kwoptions):
-        "path command"
-        self.add(r'\path'
-                 + options(opt=opt, **kwoptions) + ' '
-                 + moveto(spec) + ';')
+        "path action"
+        self._action('path', *spec, opt=None, **kwoptions)
 
     def draw(self, *spec, opt=None, **kwoptions):
-        "draw command"
-        self.add(r'\draw'
-                 + options(opt=opt, **kwoptions) + ' '
-                 + moveto(spec) + ';')
+        "draw action"
+        self._action('draw', *spec, opt=None, **kwoptions)
 
     def fill(self, *spec, opt=None, **kwoptions):
-        "fill command"
-        self.add(r'\fill'
-                 + options(opt=opt, **kwoptions) + ' '
-                 + moveto(spec) + ';')
+        "fill action"
+        self._action('fill', *spec, opt=None, **kwoptions)
 
     def filldraw(self, *spec, opt=None, **kwoptions):
-        "filldraw command"
-        self.add(r'\filldraw'
-                 + options(opt=opt, **kwoptions) + ' '
-                 + moveto(spec) + ';')
+        "filldraw action"
+        self._action('filldraw', *spec, opt=None, **kwoptions)
 
-    def clip(self, *spec, opt=None, **kwoptions):
-        "clip command"
-        self.add(r'\clip'
-                 + options(opt=opt, **kwoptions) + ' '
-                 + moveto(spec) + ';')
+    def pattern(self, *spec, opt=None, **kwoptions):
+        "pattern action"
+        self._action('pattern', *spec, opt=None, **kwoptions)
 
     def shade(self, *spec, opt=None, **kwoptions):
-        "shade command"
-        self.add(r'\shade'
-                 + options(opt=opt, **kwoptions) + ' '
-                 + moveto(spec) + ';')
+        "shade action"
+        self._action('shade', *spec, opt=None, **kwoptions)
 
     def shadedraw(self, *spec, opt=None, **kwoptions):
-        "shadedraw command"
-        self.add(r'\shadedraw'
-                 + options(opt=opt, **kwoptions) + ' '
-                 + moveto(spec) + ';')
+        "shadedraw action"
+        self._action('shadedraw', *spec, opt=None, **kwoptions)
+
+    def clip(self, *spec, opt=None, **kwoptions):
+        "clip action"
+        self._action('clip', *spec, opt=None, **kwoptions)
+
+    def useasboundingbox(self, *spec, opt=None, **kwoptions):
+        "useasboundingbox action"
+        self._action('useasboundingbox', *spec, opt=None, **kwoptions)
+    # more actions to follow
+
+    # other commands
 
     def definecolor(self, name, colormodel, colorspec):
         """
@@ -393,10 +403,6 @@ class Scope:
             opt = opt[1:-1]
         # because braces are needed
         self.add(r'\tikzset{' + name + '/.style={' + opt + '}}')
-
-    # more commands to follow
-    # The foreach command is not implemented, because it can be replaced by
-    # a Python loop.
 
 
 class Picture(Scope):
