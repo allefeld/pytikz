@@ -176,7 +176,7 @@ def moveto(points):
     "move-to operation"
     # put move-to operation before each point
     # (implicit at the beginning)
-    return f' '.join(_points(points))
+    return ' '.join(_points(points))
 
 
 def lineto(points, op='--'):
@@ -285,6 +285,17 @@ def coordinate(opt=None, **kwoptions):
     return code
 
 
+def plot(points, to=False, opt=None, **kwoptions):
+    "plot operation"
+    # The 'file' variant may be used in the future as an alternative to
+    # coordinates when there are many points. Coordinate expressions and
+    # gnuplot formulas are not supported.
+    code = '--plot' if to else 'plot'
+    code += options(opt=opt, **kwoptions)
+    code += 'coordinates {' + moveto(points) + '}'
+    return code
+
+
 # more operations to follow
 
 
@@ -358,6 +369,7 @@ class Scope:
     def useasboundingbox(self, *spec, opt=None, **kwoptions):
         "useasboundingbox action"
         self._action('useasboundingbox', *spec, opt=None, **kwoptions)
+
     # more actions to follow
 
     # other commands
