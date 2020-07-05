@@ -12,7 +12,6 @@ import IPython.display
 import html
 import base64
 import numbers
-import numpy as np
 
 
 class cfg:
@@ -48,10 +47,9 @@ bp = inch / 72
 mm = 0.1
 
 
-def _option_code(key, val):
+def _option(key, val):
     """
     helper function for _options
-
     Transforms single `key=value` pair into string. A value of `True` is
     omitted, an underscore in a key is transformed into a space.
     """
@@ -62,17 +60,14 @@ def _option_code(key, val):
         return f'{key}={str(val)}'
 
 
-def _options_code(opt=None, **kwoptions):
+def options(opt=None, **kwoptions):
     """
     helper function to format options in various functions
-
     Transforms dictionary from Python dictionary / **kwargs into TikZ string,
     e.g. `(opt='red', thick=True, rounded_corners='4pt')`
-    returns `'[thick,rounded corners=4pt,red]'`. Options with value `None`
-    are omitted.
+    returns `'[thick,rounded corners=4pt,red]'`.
     """
-    o = [_option_code(key, val) for key, val in kwoptions.items()
-         if val is not None]
+    o = [_option(key, val) for key, val in kwoptions.items()]
     if opt is not None:
         o.insert(0, opt)
     code = '[' + ','.join(o) + ']'
@@ -94,94 +89,6 @@ def _point(point):
         return point
     else:
         return '(' + ','.join(map(str, point)) + ')'
-
-
-def _str(obj): return isinstance(obj, str)
-
-
-def _tuple(obj): return isinstance(obj, tuple)
-
-
-def _numeric(obj): return isinstance(obj, numbers.Real)
-
-
-def _str_or_numeric(obj): return _str(obj) or _numeric(obj)
-
-
-def _ndarray(obj): return isinstance(obj, np.ndarray)
-
-
-def _list(obj): return isinstance(obj, list)
-
-
-def _coordinate(coord):
-    "check and normalize coordinate"
-    # A coordinate can be a string containing enclosing parentheses or the
-    # string 'cycle'.
-    if _str(coord) and ((coord.startswith('(') and coord.endswith(')'))
-                        or coord == 'cycle'):
-        return coord
-    # A coordinate can be a 2/3-element tuple containing strings or numbers:
-    if (_tuple(coord) and len(coord) in [2, 3]
-            and all(_str_or_numeric(x) for x in coord)):
-        # If all strings, normalize to string.
-        if all(_str(x) for x in coord):
-            return '(' + ','.join(coord) + ')'
-        # If all numbers, normalize to ndarray.
-        if all(_numeric(x) for x in coord):
-            return np.array(coord)
-        # If mixed, keep.
-        return coord
-    # A coordinate can be a 2/3-element 1d-ndarray.
-    if (_ndarray(coord) and coord.ndim == 1 and coord.size in [2, 3]
-            and all(_numeric(x) for x in coord)):
-        return coord
-    # Otherwise, report error.
-    raise TypeError(f'{coord} is not a coordinate')
-
-
-def _sequence(seq, accept_coordinate=True):
-    "check and normalize sequence of coordinates"
-    # A sequence can be a list.
-    if _list(seq):
-        # Normalize contained coordinates.
-        seq = [_coordinate(coord) for coord in seq]
-        # If all coordinates are 1d-ndarrays, make the sequence a 2d-ndarray.
-        if (all(_ndarray(coord) for coord in seq)
-                and all(coord.size == seq[0].size for coord in seq)):
-            return np.array(seq)
-        return seq
-    # A sequence can be a numeric 2d-ndarray with 2 or 3 columns.
-    if (_ndarray(seq) and seq.ndim == 2 and seq.shape[1] in [2, 3]
-            and all(_numeric(x) for x in seq.flat)):
-        return seq
-    # Optionally accept a coordinate and turn it into a 1-element sequence.
-    if accept_coordinate:
-        return _sequence([seq])
-    # Otherwise, report error.
-    raise TypeError(f'{seq} is not a sequence of coordinates')
-
-
-def _str_or_numeric_code(x):
-    """
-    transform element of coordinate into TikZ representation
-
-    Restricts numbers to 5-digit fixed-point representation (TikZ precision:
-    ±16383.99999) without trailing '0' or '.'
-    """
-    if _str(x):
-        return x
-    else:
-        return '{:.5f}'.format(x).rstrip('0').rstrip('.')
-
-
-def _coordinate_code(coord):
-    "transform coordinate into TikZ representation"
-    # assumes the argument has already been normalized
-    if _str(coord):
-        return coord
-    else:
-        return '(' + ','.join(map(_str_or_numeric_code, coord)) + ')'
 
 
 def cycle():
@@ -223,185 +130,118 @@ def horizontal(point1, point2):
     code += coord + ')'
     return code
 
-# relative coordinates should be added
-
 
 # path operations (§14)
 
 
-class moveto:
-    "one or several move-to operations"
-    def __init__(self, coords):
-        self.coords = _sequence(coords)
-
-    def code(self):
-        # put move-to operation before each coordinate,
-        # for the first one implicitly
-        return ' '.join(_coordinate_code(coord) for coord in self.coords)
-
-
-class lineto:
+def _ispoint(obj):
     """
-    one or several line-to operations of the same type
-
-    `op` can be
-    -   '--' for straight lines (default),
-    -   '-|' for first horizontal, then vertical, or
-    -   '|-' for first vertical, then horizontal
+    helper function to determine if an object specifies a point
+    (instead of a sequence of points)
+    A point is a string or an iterable of 2 or 3 elements that contains only
+    strings and numbers. A sequence is an iterable that contains only strings
+    and points. There is therefore an ambiguity for an iterable of 2 or 3
+    elements that contains only strings – it could be both a point and a
+    sequence. We decide that such an iterable is interpreted as a sequence of
+    points. If intended otherwise, the user has to either wrap the point in
+    another iterable (e.g. list), or join the strings themselves into a simple
+    string representation of a point.
     """
-    def __init__(self, coords, op='--'):
-        self.coords = _sequence(coords)
-        self.op = op
+    # A string can only be a point.
+    if isinstance(obj, str):
+        return True
+    # Something with less than 2 or more than 3 elements cannot be a point.
+    if len(obj) < 2 or len(obj) > 3:
+        return False
+    # examine elements
+    for x in obj:
+        # Something that contains a number must be a point.
+        if isinstance(x, numbers.Number):
+            return True
+    return False
 
-    def code(self):
-        # put line-to operation before each coordinate
-        return f'{self.op} ' + f' {self.op} '.join(
-            _coordinate_code(coord) for coord in self.coords)
+
+def _points(points):
+    "helper function for path operations"
+    # detect if only a single point was given
+    if _ispoint(points):
+        # transform into one-element sequence of points
+        points = [points]
+    # ensure correct representation of points
+    points = [_point(p) for p in points]
+    return points
 
 
-class line:
+def moveto(points):
+    "move-to operation"
+    # put move-to operation before each point
+    # (implicit at the beginning)
+    return ' '.join(_points(points))
+
+
+def lineto(points, op='--'):
     """
-    convenience version of `lineto`
-
-    Starts with move-to instead of line-to operation.
+    line-to operation
+    op can be
+    '--' for straight lines (default),
+    '-|' for first horizontal, then vertical, or
+    '|-' for first vertical, then horizontal
     """
-    def __init__(self, coords, op='--'):
-        self.coords = _sequence(coords)
-        self.op = op
-
-    def code(self):
-        # put line-to operation between coordinates
-        # (implicit move-to before first)
-        return f' {self.op} '.join(
-            _coordinate_code(coord) for coord in self.coords)
+    # put line-to operation before each point
+    return f'{op} ' + f' {op} '.join(_points(points))
 
 
-class curveto:
+def line(points, op='--'):
+    """
+    convenience version of lineto
+    starts with move-to instead of line-to operation
+    """
+    return f' {op} '.join(_points(points))
+
+
+def curveto(point, control1, control2=None):
     "curve-to operation"
-    def __init__(self, coord, control1, control2=None):
-        self.coord = _coordinate(coord)
-        self.control1 = _coordinate(control1)
-        if control2 is not None:
-            self.control2 = _coordinate(control2)
-        else:
-            self.control2 = None
-
-    def code(self):
-        code = '.. controls ' + _coordinate_code(self.control1)
-        if self.control2 is not None:
-            code += ' and ' + _coordinate_code(self.control2)
-        code += ' ..' + ' ' + _coordinate_code(self.coord)
-        return code
+    code = '.. controls ' + _point(control1)
+    if control2 is not None:
+        code += ' and ' + _point(control2)
+    code += ' ..' + ' ' + _point(point)
+    return code
 
 
-class topath:
-    "to-path operation"
-    def __init__(self, coord, opt=None, **kwoptions):
-        self.coord = _coordinate(coord)
-        self.opt = opt
-        self.kwoptions = kwoptions
-
-    def code(self):
-        return ('to' + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + _coordinate_code(self.coord))
+def to(point, opt=None, **kwoptions):
+    "to path operation"
+    code = 'to' + options(opt=opt, **kwoptions)
+    code += ' ' + _point(point)
+    return code
 
 
-class rectangle:
+def rectangle(point, opt=None, **kwoptions):
     "rectangle operation"
-    def __init__(self, coord, opt=None, **kwoptions):
-        self.coord = _coordinate(coord)
-        self.opt = opt
-        self.kwoptions = kwoptions
-
-    def code(self):
-        return ('rectangle' + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + _coordinate_code(self.coord))
+    code = 'rectangle' + options(opt=opt, **kwoptions)
+    code += ' ' + _point(point)
+    return code
 
 
-class circle():
-    "circle operation"
-    def __init__(self, radius=None, x_radius=None, y_radius=None, at=None,
-                 opt=None, **kwoptions):
-        if radius is not None:
-            self.x_radius = radius
-            self.y_radius = radius
-        else:
-            self.x_radius = x_radius
-            self.y_radius = y_radius
-        if at is not None:
-            self.at = _coordinate(at)
-        else:
-            self.at = None
-        self.opt = opt
-        self.kwoptions = kwoptions
-
-    def code(self):
-        kwoptions = self.kwoptions
-        if self.x_radius == self.y_radius:
-            kwoptions['radius'] = self.x_radius
-        else:
-            kwoptions['x_radius'] = self.x_radius
-            kwoptions['y_radius'] = self.y_radius
-        if self.at is not None:
-            kwoptions['at'] = _coordinate_code(self.at)
-        return 'circle' + _options_code(opt=self.opt, **self.kwoptions)
+def circle(opt=None, **kwoptions):
+    "circle operation (also for ellipses)"
+    return 'circle' + options(opt=opt, **kwoptions)
 
 
-class arc():
+def arc(opt=None, **kwoptions):
     "arc operation"
-    def __init__(self, radius=None, x_radius=None, y_radius=None,
-                 opt=None, **kwoptions):
-        if radius is not None:
-            self.x_radius = radius
-            self.y_radius = radius
-        else:
-            self.x_radius = x_radius
-            self.y_radius = y_radius
-        self.opt = opt
-        self.kwoptions = kwoptions
-
-    def code(self):
-        kwoptions = self.kwoptions
-        if self.x_radius == self.y_radius:
-            kwoptions['radius'] = self.x_radius
-        else:
-            kwoptions['x_radius'] = self.x_radius
-            kwoptions['y_radius'] = self.y_radius
-        return 'arc' + _options_code(opt=self.opt, **kwoptions)
+    return 'arc' + options(opt=opt, **kwoptions)
 
 
-class grid():
-    """
-    grid operation
-
-    Specifying `step` as a coordinate is not supported.
-    """
-    def __init__(self, coord, step=None, xstep=None, ystep=None,
-                 opt=None, **kwoptions):
-        self.coord = coord
-        if step is not None:
-            self.xstep = step
-            self.ystep = step
-        else:
-            self.xstep = xstep
-            self.ystep = ystep
-        self.opt = opt
-        self.kwoptions = kwoptions
-
-    def code(self):
-        kwoptions = self.kwoptions
-        if self.xstep == self.ystep:
-            kwoptions['step'] = self.xstep
-        else:
-            kwoptions['xstep'] = self.xstep
-            kwoptions['ystep'] = self.ystep
-        return ('grid' + _options_code(opt=self.opt, **kwoptions)
-                + ' ' + _coordinate_code(self.coord))
+def grid(point, opt=None, **kwoptions):
+    "grid operation"
+    code = 'grid' + options(opt=opt, **kwoptions)
+    code += ' ' + _point(point)
+    return code
 
 
 def parabola(point, bend=None, opt=None, **kwoptions):
     "parabola operation"
-    code = 'parabola' + _options_code(opt=opt, **kwoptions)
+    code = 'parabola' + options(opt=opt, **kwoptions)
     if bend is not None:
         code += ' bend ' + _point(bend)
     code += ' ' + _point(point)
@@ -410,14 +250,14 @@ def parabola(point, bend=None, opt=None, **kwoptions):
 
 def sin(point, opt=None, **kwoptions):
     "sine operation"
-    code = 'sin' + _options_code(opt=opt, **kwoptions)
+    code = 'sin' + options(opt=opt, **kwoptions)
     code += ' ' + _point(point)
     return code
 
 
 def cos(point, opt=None, **kwoptions):
     "cosine operation"
-    code = 'cos' + _options_code(opt=opt, **kwoptions)
+    code = 'cos' + options(opt=opt, **kwoptions)
     code += ' ' + _point(point)
     return code
 
@@ -429,7 +269,7 @@ def node(contents, opt=None, **kwoptions):
     # image generation.
     # The foreach statement for nodes is not supported because it can be
     # replaced by a Python loop.
-    code = 'node' + _options_code(opt=opt, **kwoptions)
+    code = 'node' + options(opt=opt, **kwoptions)
     code += ' {' + contents + '}'
     return code
 
@@ -441,20 +281,17 @@ def coordinate(opt=None, **kwoptions):
     # image generation.
     # The foreach statement for nodes is not supported because it can be
     # replaced by a Python loop.
-    code = 'coordinate' + _options_code(opt=opt, **kwoptions)
+    code = 'coordinate' + options(opt=opt, **kwoptions)
     return code
 
 
 def plot(points, to=False, opt=None, **kwoptions):
-    """
-    plot operation
-
-    Coordinate expressions and gnuplot formulas are not supported.
-    """
+    "plot operation"
     # The 'file' variant may be used in the future as an alternative to
-    # coordinates when there are many points.
+    # coordinates when there are many points. Coordinate expressions and
+    # gnuplot formulas are not supported.
     code = '--plot' if to else 'plot'
-    code += _options_code(opt=opt, **kwoptions)
+    code += options(opt=opt, **kwoptions)
     code += 'coordinates {' + moveto(points) + '}'
     return code
 
@@ -470,7 +307,7 @@ class Scope:
 
     def __init__(self, opt=None, **kwoptions):
         self.elements = []
-        self.opt = _options_code(opt=opt, **kwoptions)
+        self.opt = options(opt=opt, **kwoptions)
 
     def add(self, el):
         "add element (may be string)"
@@ -494,7 +331,7 @@ class Scope:
     def _action(self, action_name, *spec, opt=None, **kwoptions):
         "helper function for actions"
         self.add('\\' + action_name
-                 + _options_code(opt=opt, **kwoptions) + ' '
+                 + options(opt=opt, **kwoptions) + ' '
                  + moveto(spec) + ';')
 
     def path(self, *spec, opt=None, **kwoptions):
@@ -564,7 +401,7 @@ class Scope:
     def tikzset(self, opt=None, **kwoptions):
         "tikzset command"
         # create options string without brackets
-        opt = _options_code(opt=opt, **kwoptions)
+        opt = options(opt=opt, **kwoptions)
         if opt.startswith('[') and opt.endswith(']'):
             opt = opt[1:-1]
         # because braces are needed
@@ -573,7 +410,7 @@ class Scope:
     def tikzstyle(self, name, opt=None, **kwoptions):
         "emulates deprecated tikzstyle command using tikzset"
         # create options string without brackets
-        opt = _options_code(opt=opt, **kwoptions)
+        opt = options(opt=opt, **kwoptions)
         if opt.startswith('[') and opt.endswith(']'):
             opt = opt[1:-1]
         # because braces are needed
