@@ -230,9 +230,13 @@ def horizontal(point1, point2):
 
 
 class moveto:
-    "one or several move-to operations"
+    """
+    one or several move-to operations
+
+    see §14.1
+    """
     def __init__(self, coords):
-        self.coords = _sequence(coords)
+        self.coords = _sequence(coords, accept_coordinate=True)
 
     def code(self):
         # put move-to operation before each coordinate,
@@ -248,9 +252,11 @@ class lineto:
     -   '--' for straight lines (default),
     -   '-|' for first horizontal, then vertical, or
     -   '|-' for first vertical, then horizontal
+
+    see §14.2
     """
     def __init__(self, coords, op='--'):
-        self.coords = _sequence(coords)
+        self.coords = _sequence(coords, accept_coordinate=True)
         self.op = op
 
     def code(self):
@@ -277,7 +283,11 @@ class line:
 
 
 class curveto:
-    "curve-to operation"
+    """
+    curve-to operation
+    
+    see §14.3
+    """
     def __init__(self, coord, control1, control2=None):
         self.coord = _coordinate(coord)
         self.control1 = _coordinate(control1)
@@ -294,20 +304,12 @@ class curveto:
         return code
 
 
-class topath:
-    "to-path operation"
-    def __init__(self, coord, opt=None, **kwoptions):
-        self.coord = _coordinate(coord)
-        self.opt = opt
-        self.kwoptions = kwoptions
-
-    def code(self):
-        return ('to' + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + _coordinate_code(self.coord))
-
-
 class rectangle:
-    "rectangle operation"
+    """
+    rectangle operation
+
+    see §14.4
+    """
     def __init__(self, coord, opt=None, **kwoptions):
         self.coord = _coordinate(coord)
         self.opt = opt
@@ -318,8 +320,12 @@ class rectangle:
                 + ' ' + _coordinate_code(self.coord))
 
 
-class circle():
-    "circle operation"
+class circle:
+    """
+    circle operation
+
+    see §14.6
+    """
     def __init__(self, radius=None, x_radius=None, y_radius=None, at=None,
                  opt=None, **kwoptions):
         if radius is not None:
@@ -347,8 +353,12 @@ class circle():
         return 'circle' + _options_code(opt=self.opt, **self.kwoptions)
 
 
-class arc():
-    "arc operation"
+class arc:
+    """
+    arc operation
+
+    see §14.7
+    """
     def __init__(self, radius=None, x_radius=None, y_radius=None,
                  opt=None, **kwoptions):
         if radius is not None:
@@ -370,15 +380,18 @@ class arc():
         return 'arc' + _options_code(opt=self.opt, **kwoptions)
 
 
-class grid():
+class grid:
     """
     grid operation
 
-    Specifying `step` as a coordinate is not supported.
+    Specifying `step` as a coordinate is not supported, use `xstep` and
+    `ystep` instead.
+    
+    see §14.8
     """
     def __init__(self, coord, step=None, xstep=None, ystep=None,
                  opt=None, **kwoptions):
-        self.coord = coord
+        self.coord = _coordinate(coord)
         if step is not None:
             self.xstep = step
             self.ystep = step
@@ -399,64 +412,160 @@ class grid():
                 + ' ' + _coordinate_code(self.coord))
 
 
-def parabola(point, bend=None, opt=None, **kwoptions):
-    "parabola operation"
-    code = 'parabola' + _options_code(opt=opt, **kwoptions)
-    if bend is not None:
-        code += ' bend ' + _point(bend)
-    code += ' ' + _point(point)
-    return code
+class parabola:
+    """
+    parabola operation
+
+    see §14.9
+    """
+    def __init__(self, coord, bend=None, opt=None, **kwoptions):
+        self.coord = _coordinate(coord)
+        if bend is not None:
+            self.bend = _coordinate(bend)
+        else:
+            self.bend = None
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        code = 'parabola' + _options_code(opt=self.opt, **self.kwoptions)
+        if self.bend is not None:
+            code += ' bend ' + _coordinate_code(self.bend)
+        code += ' ' + _coordinate_code(self.coord)
+        return code
 
 
-def sin(point, opt=None, **kwoptions):
-    "sine operation"
-    code = 'sin' + _options_code(opt=opt, **kwoptions)
-    code += ' ' + _point(point)
-    return code
+class sin:
+    """
+    sine operation
+
+    see §14.10
+    """
+    def __init__(self, coord, opt=None, **kwoptions):
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return ('sin' + _options_code(opt=self.opt, **self.kwoptions)
+                + ' ' + _coordinate_code(self.coord))
 
 
-def cos(point, opt=None, **kwoptions):
-    "cosine operation"
-    code = 'cos' + _options_code(opt=opt, **kwoptions)
-    code += ' ' + _point(point)
-    return code
+class cos:
+    """
+    cosine operation
+
+    see §14.10
+    """
+    def __init__(self, coord, opt=None, **kwoptions):
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return ('cos' + _options_code(opt=self.opt, **self.kwoptions)
+                + ' ' + _coordinate_code(self.coord))
 
 
-def node(contents, opt=None, **kwoptions):
-    "node operation"
-    # Name and at-coordinate can be specified through options.
-    # Animation is not supported because it does not make sense for static
-    # image generation.
-    # The foreach statement for nodes is not supported because it can be
-    # replaced by a Python loop.
-    code = 'node' + _options_code(opt=opt, **kwoptions)
-    code += ' {' + contents + '}'
-    return code
+class topath:
+    """
+    to-path operation
+
+    see §14.13
+    """
+    def __init__(self, coord, opt=None, **kwoptions):
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return ('to' + _options_code(opt=self.opt, **self.kwoptions)
+                + ' ' + _coordinate_code(self.coord))
 
 
-def coordinate(opt=None, **kwoptions):
-    "coordinate operation"
-    # Name and at-coordinate can be specified through options.
-    # Animation is not supported because it does not make sense for static
-    # image generation.
-    # The foreach statement for nodes is not supported because it can be
-    # replaced by a Python loop.
-    code = 'coordinate' + _options_code(opt=opt, **kwoptions)
-    return code
+class node:
+    """
+    node operation
+
+    `name` can be specified through options.
+
+    Animation is not supported because it does not make sense for static
+    image generation. The foreach statement for nodes is not supported because
+    it can be replaced by a Python loop.
+
+    see §17
+    """
+    def __init__(self, contents, at=None, opt=None, **kwoptions):
+        self.contents = contents
+        if at is not None:
+            self.at = _coordinate(at)
+        else:
+            self.at = None
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        code = 'node' + _options_code(opt=self.opt, **self.kwoptions)
+        if self.at is not None:
+            code += ' at ' + _coordinate_code(self.at)
+        code += ' {' + self.contents + '}'
+        return code
 
 
-def plot(points, to=False, opt=None, **kwoptions):
+class coordinate:
+    """
+    coordinate operation
+
+    `name` can be specified through options.
+
+    Animation is not supported because it does not make sense for static
+    image generation. The foreach statement for coordinates is not supported
+    because it can be replaced by a Python loop.
+
+    see §17.2.1
+    """
+    def __init__(self, at=None, opt=None, **kwoptions):
+        if at is not None:
+            self.at = _coordinate(at)
+        else:
+            self.at = None
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        code = 'coordinate' + _options_code(opt=self.opt, **self.kwoptions)
+        if self.at is not None:
+            code += ' at ' + _coordinate_code(self.at)
+        return code
+
+
+class plot:
     """
     plot operation
 
-    Coordinate expressions and gnuplot formulas are not supported.
+    The decision whether to directly specify coordinates or provide them
+    through a file is made internally. Coordinate expressions and gnuplot
+    formulas are not supported.
+
+    see §22
     """
-    # The 'file' variant may be used in the future as an alternative to
-    # coordinates when there are many points.
-    code = '--plot' if to else 'plot'
-    code += _options_code(opt=opt, **kwoptions)
-    code += 'coordinates {' + moveto(points) + '}'
-    return code
+    def __init__(self, coords, to=False, opt=None, **kwoptions):
+        self.coords = _sequence(coords, accept_coordinate=True)
+        self.to = to
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        # The 'file' variant may be used in the future as an alternative to
+        # coordinates when there are many points.
+        if self.to:
+            code = '--plot'
+        else:
+            code = 'plot'
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        code += ' coordinates {' + ' '.join(
+            _coordinate_code(coord) for coord in self.coords) + '}'
+        return code
 
 
 # more operations to follow
@@ -532,6 +641,9 @@ class Scope:
     def useasboundingbox(self, *spec, opt=None, **kwoptions):
         "useasboundingbox action"
         self._action('useasboundingbox', *spec, opt=None, **kwoptions)
+        
+    # \node → \path node
+    # \coordinate → \path coordinate
 
     # more actions to follow
 
