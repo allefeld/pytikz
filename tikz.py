@@ -91,19 +91,6 @@ def _options_code(opt=None, **kwoptions):
     return code
 
 
-def _point(point):
-    """
-    helper function for _points and others
-    Enables specification of a point as a tuple, list, or np.array of numbers,
-    as well as a string like '(a)' or '(3mm,0mm)'.
-    """
-    # Haven't found a good solution for prefixes, '+', '++'.
-    if isinstance(point, str):
-        return point
-    else:
-        return '(' + ','.join(map(str, point)) + ')'
-
-
 def _str(obj): return isinstance(obj, str)
 
 
@@ -130,8 +117,8 @@ def _coordinate(coord):
     a string, or a `tuple` or 1d-`ndarray` with 2 or 3 elements.
 
     Strings can be used e.g. to provide coordinates in TikZ' `canvas`
-    coordinate system. Coordinate-specifying strings start with `'('` and end
-    with `')'`.
+    coordinate system. Coordinate-specifying strings are enclosed in
+    parentheses, possibly prefixed by `+` or `++` (relative coordinates).
 
     Elements of `tuple`s can be numbers or strings. If all elements are
     numeric, it represents coordinates in TikZ' `xyz` coordinate system and is
@@ -142,10 +129,11 @@ def _coordinate(coord):
 
     `ndarray`s must be numeric.
     """
-    # A coordinate can be a string containing enclosing parentheses or the
-    # string 'cycle'.
-    if _str(coord) and ((coord.startswith('(') and coord.endswith(')'))
-                        or coord == 'cycle'):
+    # A coordinate can be a string with enclosing parentheses, possibly
+    # prefixed by `+` or `++`, or the string 'cycle'.
+    if _str(coord) and (
+            (coord.startswith(('(', '+(', '++(')) and coord.endswith(')'))
+            or coord == 'cycle'):
         return coord
     # A coordinate can be a 2/3-element tuple containing strings or numbers:
     if (_tuple(coord) and len(coord) in [2, 3]
@@ -238,45 +226,8 @@ def _operation(op):
 
 
 def cycle():
-    "cycle 'coordinate'"
+    "cycle coordinate"
     return 'cycle'
-
-
-def polar(angle, radius, y_radius=None):
-    "polar coordinates"
-    code = '(' + str(angle) + ':' + str(radius)
-    if y_radius is not None:
-        code += ' and ' + str(y_radius)
-    code += ')'
-    return code
-
-
-def vertical(point1, point2):
-    "perpendicular coordinates, vertical"
-    coord = _point(point1)
-    if coord.startswith('(') and coord.endswith(')'):
-        coord = coord[1:-1]
-    code = '(' + coord + ' |- '
-    coord = _point(point2)
-    if coord.startswith('(') and coord.endswith(')'):
-        coord = coord[1:-1]
-    code += coord + ')'
-    return code
-
-
-def horizontal(point1, point2):
-    "perpendicular coordinates, horizontal"
-    coord = _point(point1)
-    if coord.startswith('(') and coord.endswith(')'):
-        coord = coord[1:-1]
-    code = '(' + coord + ' -| '
-    coord = _point(point2)
-    if coord.startswith('(') and coord.endswith(')'):
-        coord = coord[1:-1]
-    code += coord + ')'
-    return code
-
-# relative coordinates should be added – how?
 
 
 # raw object
@@ -657,13 +608,25 @@ class plot(Operation):
         return code
 
 
-# more operations to follow
+def options(opt=None, **kwoptions):
+    """
+    in-path options
+
+    This is not a path operation, but can be specified at an arbitrary position
+    within a path specification. It sets options for the rest of the path.
+    """
+    # just a wrapper around _options_code
+    return _options_code(opt=opt, **kwoptions)
 
 
-# actions on paths (§15)
+# actions on paths
 
 class Action:
-    "action on path"
+    """
+    action on path
+
+    see §15
+    """
     def __init__(self, action_name, *spec, opt=None, **kwoptions):
         self.action_name = action_name
         self.spec = [_operation(op) for op in spec]
@@ -686,14 +649,20 @@ class Scope:
         self.elements = []
         self.opt = _options_code(opt=opt, **kwoptions)
 
-    def add(self, el):
-        "add element"
+    def _append(self, el):
+        """
+        append element
+
+        Elements of an environment object can be `Action` objects (for path
+        actions), `Raw` objects (for other commands), or other environment
+        objects.
+        """
         self.elements.append(el)
 
     def add_scope(self, opt=None, **kwoptions):
         "create and add scope environment"
         s = Scope(opt=opt, **kwoptions)
-        self.add(s)
+        self._append(s)
         return s
 
     def code(self):
@@ -707,50 +676,48 @@ class Scope:
 
     def path(self, *spec, opt=None, **kwoptions):
         "path action"
-        self.add(Action('path', *spec, opt=None, **kwoptions))
+        self._append(Action('path', *spec, opt=opt, **kwoptions))
 
     def draw(self, *spec, opt=None, **kwoptions):
         "draw action"
-        self.add(Action('draw', *spec, opt=None, **kwoptions))
+        self._append(Action('draw', *spec, opt=opt, **kwoptions))
 
     def fill(self, *spec, opt=None, **kwoptions):
         "fill action"
-        self.add(Action('fill', *spec, opt=None, **kwoptions))
+        self._append(Action('fill', *spec, opt=opt, **kwoptions))
 
     def filldraw(self, *spec, opt=None, **kwoptions):
         "filldraw action"
-        self.add(Action('filldraw', *spec, opt=None, **kwoptions))
+        self._append(Action('filldraw', *spec, opt=opt, **kwoptions))
 
     def pattern(self, *spec, opt=None, **kwoptions):
         "pattern action"
-        self.add(Action('pattern', *spec, opt=None, **kwoptions))
+        self._append(Action('pattern', *spec, opt=opt, **kwoptions))
 
     def shade(self, *spec, opt=None, **kwoptions):
         "shade action"
-        self.add(Action('shade', *spec, opt=None, **kwoptions))
+        self._append(Action('shade', *spec, opt=opt, **kwoptions))
 
     def shadedraw(self, *spec, opt=None, **kwoptions):
         "shadedraw action"
-        self.add(Action('shadedraw', *spec, opt=None, **kwoptions))
+        self._append(Action('shadedraw', *spec, opt=opt, **kwoptions))
 
     def clip(self, *spec, opt=None, **kwoptions):
         "clip action"
-        self.add(Action('clip', *spec, opt=None, **kwoptions))
+        self._append(Action('clip', *spec, opt=opt, **kwoptions))
 
     def useasboundingbox(self, *spec, opt=None, **kwoptions):
         "useasboundingbox action"
-        self.add(Action('useasboundingbox', *spec, opt=None, **kwoptions))
+        self._append(Action('useasboundingbox', *spec, opt=opt, **kwoptions))
 
     # \node → \path node
     # \coordinate → \path coordinate
-
-    # more actions to follow
 
     # other commands
 
     def definecolor(self, name, colormodel, colorspec):
         """
-        xcolor definecolor command
+        definecolor command (xcolor)
 
         Define new color from color model and specification.
 
@@ -761,34 +728,42 @@ class Scope:
         """
         if not isinstance(colorspec, str):
             colorspec = ','.join(colorspec)
-        self.add(Raw(r'\definecolor' + '{' + name + '}{'
-                 + colormodel + '}{' + colorspec + '}'))
+        self._append(Raw(r'\definecolor' + '{' + name + '}{'
+                     + colormodel + '}{' + colorspec + '}'))
 
     def colorlet(self, name, colorexpr):
         """
-        xcolor colorlet command
+        colorlet command (xcolor)
 
         Define new color from color expression, e.g. 'blue!20!white'.
         """
-        self.add(Raw(r'\colorlet' + '{' + name + '}{' + colorexpr + '}'))
+        self._append(Raw(r'\colorlet' + '{' + name + '}{' + colorexpr + '}'))
 
     def tikzset(self, opt=None, **kwoptions):
-        "tikzset command"
+        """
+        tikzset command
+
+        Sets options.
+        """
         # create options string without brackets
         opt = _options_code(opt=opt, **kwoptions)
         if opt.startswith('[') and opt.endswith(']'):
             opt = opt[1:-1]
         # because braces are needed
-        self.add(Raw(r'\tikzset{' + opt + '}'))
+        self._append(Raw(r'\tikzset{' + opt + '}'))
 
     def tikzstyle(self, name, opt=None, **kwoptions):
-        "emulates deprecated tikzstyle command using tikzset"
+        """
+        define style
+
+        Emulates deprecated tikzstyle command using tikzset.
+        """
         # create options string without brackets
         opt = _options_code(opt=opt, **kwoptions)
         if opt.startswith('[') and opt.endswith(']'):
             opt = opt[1:-1]
         # because braces are needed
-        self.add(Raw(r'\tikzset{' + name + '/.style={' + opt + '}}'))
+        self._append(Raw(r'\tikzset{' + name + '/.style={' + opt + '}}'))
 
 
 class Picture(Scope):
@@ -804,7 +779,7 @@ class Picture(Scope):
         atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
 
     def usetikzlibrary(self, library):
-        "usetikzlibrary"
+        "usetikzlibrary command"
         self.preamble.append(r'\usetikzlibrary{' + library + '}')
 
     def code(self):
@@ -869,7 +844,12 @@ class Picture(Scope):
         os.rename(self.tempdir + sep + 'tikz-figure0.pdf', self.temp_pdf)
 
     def write_image(self, filename, dpi=None):
-        "write picture to image file (PDF, PNG, or SVG)"
+        """
+        write picture to image file
+
+        The file type is determined from the file extension, and can be PDF,
+        PNG, or SVG.
+        """
         if dpi is None:
             dpi = cfg.file_dpi
         self._create_pdf()
