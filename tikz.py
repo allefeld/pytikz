@@ -48,12 +48,17 @@ bp = inch / 72
 mm = 0.1
 
 
+# helper functions and helper-helper functions
+
+
 def _option_code(key, val):
     """
-    helper function for _options
+    transform single `key=value` pair into TikZ string
 
-    Transforms single `key=value` pair into string. A value of `True` is
-    omitted, an underscore in a key is transformed into a space.
+    A value of `True` is omitted, an underscore in a key is transformed into
+    a space.
+
+    helper function for `_options`
     """
     key = str(key).replace('_', ' ')
     if val is True:
@@ -64,12 +69,17 @@ def _option_code(key, val):
 
 def _options_code(opt=None, **kwoptions):
     """
-    helper function to format options in various functions
+    transform options parameters into TikZ options string
 
-    Transforms dictionary from Python dictionary / **kwargs into TikZ string,
-    e.g. `(opt='red', thick=True, rounded_corners='4pt')`
-    returns `'[thick,rounded corners=4pt,red]'`. Options with value `None`
-    are omitted.
+    Transforms additional keyword parameters captured as a dictionary
+    (`**kwoptions`) into string. Options with value `None` are omitted. A
+    supplementary raw part of the options string can be provided
+    via the keyword parameter `opt`. Example:
+        (opt='red', thick=True, rounded_corners='4pt')
+    returns
+        '[thick,rounded corners=4pt,red]'
+
+    helper function to format `opt=None, **kwoptions` in various functions
     """
     o = [_option_code(key, val) for key, val in kwoptions.items()
          if val is not None]
@@ -80,8 +90,6 @@ def _options_code(opt=None, **kwoptions):
         code = ''
     return code
 
-
-# coordinates
 
 def _point(point):
     """
@@ -115,7 +123,25 @@ def _list(obj): return isinstance(obj, list)
 
 
 def _coordinate(coord):
-    "check and normalize coordinate"
+    """
+    check and normalize coordinate
+
+    A coordinate (in path specifications as well as as arguments elsewhere) is
+    a string, or a `tuple` or 1d-`ndarray` with 2 or 3 elements.
+
+    Strings can be used e.g. to provide coordinates in TikZ' `canvas`
+    coordinate system. Coordinate-specifying strings start with `'('` and end
+    with `')'`.
+
+    Elements of `tuple`s can be numbers or strings. If all elements are
+    numeric, it represents coordinates in TikZ' `xyz` coordinate system and is
+    converted into a 1d-`ndarray`. If all are strings it represents
+    coordinates in TikZ' `canvas` coordinate system, and is converted into a
+    simple string including parentheses. Otherwise it represents a mixed
+    `xyz`/`canvas` coordinate as described in §13.2.1 and is left as a tuple.
+
+    `ndarray`s must be numeric.
+    """
     # A coordinate can be a string containing enclosing parentheses or the
     # string 'cycle'.
     if _str(coord) and ((coord.startswith('(') and coord.endswith(')'))
@@ -141,7 +167,15 @@ def _coordinate(coord):
 
 
 def _sequence(seq, accept_coordinate=True):
-    "check and normalize sequence of coordinates"
+    """
+    check and normalize sequence of coordinates
+
+    A sequence of coordinates is a `list` of coordinates as described under
+    `_coordinate`, or a numeric 2d-`ndarray` with 2 or 3 columns,
+    representing `xyz` coordinates. If a list contains only
+    numeric 1d-`ndarray`s (after conversion) with the same number of elements,
+    it is converted into a 2d-`ndarray` itself.
+    """
     # A sequence can be a list.
     if _list(seq):
         # Normalize contained coordinates.
@@ -166,8 +200,9 @@ def _str_or_numeric_code(x):
     """
     transform element of coordinate into TikZ representation
 
-    Restricts numbers to 5-digit fixed-point representation (TikZ precision:
-    ±16383.99999) without trailing '0' or '.'
+    Leaves string  elements as is, and converts numeric elements to a
+    fixed-point representation with 5 decimals precision (TikZ: ±16383.99999)
+    without trailing '0's or '.'
     """
     if _str(x):
         return x
@@ -176,12 +211,30 @@ def _str_or_numeric_code(x):
 
 
 def _coordinate_code(coord):
-    "transform coordinate into TikZ representation"
+    "create TikZ code for coordinate"
     # assumes the argument has already been normalized
     if _str(coord):
         return coord
     else:
         return '(' + ','.join(map(_str_or_numeric_code, coord)) + ')'
+
+
+def _operation(op):
+    """
+    check and normalize path specification elements
+
+    The elements of a path specification argument (`*spec`) can be `Operation`
+    objects (left as is), (lists of) coordinates (converted to `moveto`
+    objects), and strings (converted to `Raw` objects).
+    """
+    if isinstance(op, Operation):
+        return op
+    if _str(op):
+        return Raw(op)
+    return moveto(op)
+
+
+# coordinates
 
 
 def cycle():
@@ -223,13 +276,49 @@ def horizontal(point1, point2):
     code += coord + ')'
     return code
 
-# relative coordinates should be added
+# relative coordinates should be added – how?
+
+
+# raw object
+
+class Raw:
+    """
+    raw TikZ code object
+
+    In order to support TikZ features that are not explicitly modelled, objects
+    of this class encapsulate a string which is copied as-is into the TikZ
+    code. `Raw` objects can be used in place of `Operation` and `Action`
+    objects.
+    """
+    def __init__(self, string):
+        self.string = string
+
+    def code(self):
+        return self.string
 
 
 # path operations (§14)
 
 
-class moveto:
+class Operation:
+    """
+    path operation
+
+    Path operations (§14) are modelled as `Operation` objects so that code
+    generation can (in the future) depend on the context. All code
+    generation beyond single coordinates is implemented by a method `code`
+    (which will in the future accept an optional transformation argument).
+
+    Names for `Operation` subclasses are lowercase, because from a user
+    perspective they act like functions; no method call or field access should
+    be performed on their instances.
+
+    This is an abstract superclass that is not to be instantiated.
+    """
+    pass
+
+
+class moveto(Operation):
     """
     one or several move-to operations
 
@@ -244,7 +333,7 @@ class moveto:
         return ' '.join(_coordinate_code(coord) for coord in self.coords)
 
 
-class lineto:
+class lineto(Operation):
     """
     one or several line-to operations of the same type
 
@@ -265,7 +354,7 @@ class lineto:
             _coordinate_code(coord) for coord in self.coords)
 
 
-class line:
+class line(Operation):
     """
     convenience version of `lineto`
 
@@ -282,10 +371,10 @@ class line:
             _coordinate_code(coord) for coord in self.coords)
 
 
-class curveto:
+class curveto(Operation):
     """
     curve-to operation
-    
+
     see §14.3
     """
     def __init__(self, coord, control1, control2=None):
@@ -304,7 +393,7 @@ class curveto:
         return code
 
 
-class rectangle:
+class rectangle(Operation):
     """
     rectangle operation
 
@@ -320,7 +409,7 @@ class rectangle:
                 + ' ' + _coordinate_code(self.coord))
 
 
-class circle:
+class circle(Operation):
     """
     circle operation
 
@@ -353,7 +442,7 @@ class circle:
         return 'circle' + _options_code(opt=self.opt, **self.kwoptions)
 
 
-class arc:
+class arc(Operation):
     """
     arc operation
 
@@ -380,13 +469,13 @@ class arc:
         return 'arc' + _options_code(opt=self.opt, **kwoptions)
 
 
-class grid:
+class grid(Operation):
     """
     grid operation
 
     Specifying `step` as a coordinate is not supported, use `xstep` and
     `ystep` instead.
-    
+
     see §14.8
     """
     def __init__(self, coord, step=None, xstep=None, ystep=None,
@@ -412,7 +501,7 @@ class grid:
                 + ' ' + _coordinate_code(self.coord))
 
 
-class parabola:
+class parabola(Operation):
     """
     parabola operation
 
@@ -435,7 +524,7 @@ class parabola:
         return code
 
 
-class sin:
+class sin(Operation):
     """
     sine operation
 
@@ -451,7 +540,7 @@ class sin:
                 + ' ' + _coordinate_code(self.coord))
 
 
-class cos:
+class cos(Operation):
     """
     cosine operation
 
@@ -467,7 +556,7 @@ class cos:
                 + ' ' + _coordinate_code(self.coord))
 
 
-class topath:
+class topath(Operation):
     """
     to-path operation
 
@@ -483,7 +572,7 @@ class topath:
                 + ' ' + _coordinate_code(self.coord))
 
 
-class node:
+class node(Operation):
     """
     node operation
 
@@ -512,7 +601,7 @@ class node:
         return code
 
 
-class coordinate:
+class coordinate(Operation):
     """
     coordinate operation
 
@@ -539,7 +628,7 @@ class coordinate:
         return code
 
 
-class plot:
+class plot(Operation):
     """
     plot operation
 
@@ -571,77 +660,87 @@ class plot:
 # more operations to follow
 
 
+# actions on paths (§15)
+
+class Action:
+    "action on path"
+    def __init__(self, action_name, *spec, opt=None, **kwoptions):
+        self.action_name = action_name
+        self.spec = [_operation(op) for op in spec]
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return ('\\' + self.action_name
+                + _options_code(opt=self.opt, **self.kwoptions)
+                + ' ' + ' '.join(op.code() for op in self.spec) + ';')
+
+
 # environments
 
 
 class Scope:
-    "representation of `scope` environment"
+    "scope environment"
 
     def __init__(self, opt=None, **kwoptions):
         self.elements = []
         self.opt = _options_code(opt=opt, **kwoptions)
 
     def add(self, el):
-        "add element (may be string)"
+        "add element"
         self.elements.append(el)
 
     def add_scope(self, opt=None, **kwoptions):
-        "add scope environment"
+        "create and add scope environment"
         s = Scope(opt=opt, **kwoptions)
         self.add(s)
         return s
 
-    def __str__(self):
-        "create LaTeX code"
+    def code(self):
+        "create TikZ code"
         code = r'\begin{scope}' + self.opt + '\n'
-        code += '\n'.join(map(str, self.elements)) + '\n'
+        code += '\n'.join(el.code() for el in self.elements) + '\n'
         code += r'\end{scope}'
         return code
 
-    # actions on paths (§15)
-
-    def _action(self, action_name, *spec, opt=None, **kwoptions):
-        "helper function for actions"
-        self.add('\\' + action_name
-                 + _options_code(opt=opt, **kwoptions) + ' '
-                 + moveto(spec) + ';')
+    # add actions on paths (§15)
 
     def path(self, *spec, opt=None, **kwoptions):
         "path action"
-        self._action('path', *spec, opt=None, **kwoptions)
+        self.add(Action('path', *spec, opt=None, **kwoptions))
 
     def draw(self, *spec, opt=None, **kwoptions):
         "draw action"
-        self._action('draw', *spec, opt=None, **kwoptions)
+        self.add(Action('draw', *spec, opt=None, **kwoptions))
 
     def fill(self, *spec, opt=None, **kwoptions):
         "fill action"
-        self._action('fill', *spec, opt=None, **kwoptions)
+        self.add(Action('fill', *spec, opt=None, **kwoptions))
 
     def filldraw(self, *spec, opt=None, **kwoptions):
         "filldraw action"
-        self._action('filldraw', *spec, opt=None, **kwoptions)
+        self.add(Action('filldraw', *spec, opt=None, **kwoptions))
 
     def pattern(self, *spec, opt=None, **kwoptions):
         "pattern action"
-        self._action('pattern', *spec, opt=None, **kwoptions)
+        self.add(Action('pattern', *spec, opt=None, **kwoptions))
 
     def shade(self, *spec, opt=None, **kwoptions):
         "shade action"
-        self._action('shade', *spec, opt=None, **kwoptions)
+        self.add(Action('shade', *spec, opt=None, **kwoptions))
 
     def shadedraw(self, *spec, opt=None, **kwoptions):
         "shadedraw action"
-        self._action('shadedraw', *spec, opt=None, **kwoptions)
+        self.add(Action('shadedraw', *spec, opt=None, **kwoptions))
 
     def clip(self, *spec, opt=None, **kwoptions):
         "clip action"
-        self._action('clip', *spec, opt=None, **kwoptions)
+        self.add(Action('clip', *spec, opt=None, **kwoptions))
 
     def useasboundingbox(self, *spec, opt=None, **kwoptions):
         "useasboundingbox action"
-        self._action('useasboundingbox', *spec, opt=None, **kwoptions)
-        
+        self.add(Action('useasboundingbox', *spec, opt=None, **kwoptions))
+
     # \node → \path node
     # \coordinate → \path coordinate
 
@@ -662,8 +761,8 @@ class Scope:
         """
         if not isinstance(colorspec, str):
             colorspec = ','.join(colorspec)
-        self.add(r'\definecolor' + '{' + name + '}{'
-                 + colormodel + '}{' + colorspec + '}')
+        self.add(Raw(r'\definecolor' + '{' + name + '}{'
+                 + colormodel + '}{' + colorspec + '}'))
 
     def colorlet(self, name, colorexpr):
         """
@@ -671,7 +770,7 @@ class Scope:
 
         Define new color from color expression, e.g. 'blue!20!white'.
         """
-        self.add(r'\colorlet' + '{' + name + '}{' + colorexpr + '}')
+        self.add(Raw(r'\colorlet' + '{' + name + '}{' + colorexpr + '}'))
 
     def tikzset(self, opt=None, **kwoptions):
         "tikzset command"
@@ -680,7 +779,7 @@ class Scope:
         if opt.startswith('[') and opt.endswith(']'):
             opt = opt[1:-1]
         # because braces are needed
-        self.add(r'\tikzset{' + opt + '}')
+        self.add(Raw(r'\tikzset{' + opt + '}'))
 
     def tikzstyle(self, name, opt=None, **kwoptions):
         "emulates deprecated tikzstyle command using tikzset"
@@ -689,11 +788,11 @@ class Scope:
         if opt.startswith('[') and opt.endswith(']'):
             opt = opt[1:-1]
         # because braces are needed
-        self.add(r'\tikzset{' + name + '/.style={' + opt + '}}')
+        self.add(Raw(r'\tikzset{' + name + '/.style={' + opt + '}}'))
 
 
 class Picture(Scope):
-    "representation of `tikzpicture` environment"
+    "tikzpicture environment"
 
     def __init__(self, opt=None, **kwoptions):
         super().__init__(opt=opt, **kwoptions)
@@ -708,12 +807,12 @@ class Picture(Scope):
         "usetikzlibrary"
         self.preamble.append(r'\usetikzlibrary{' + library + '}')
 
-    def __str__(self):
-        "create LaTeX code"
+    def code(self):
+        "create TikZ code"
         # We use `str` to create the LaTeX code so that we can directly include
         # strings in `self.elements`, for which `str()` is idempotent.
         code = r'\begin{tikzpicture}' + self.opt + '\n'
-        code += '\n'.join(map(str, self.elements)) + '\n'
+        code += '\n'.join(el.code() for el in self.elements) + '\n'
         code += r'\end{tikzpicture}'
         return code
 
@@ -738,9 +837,8 @@ class Picture(Scope):
                 r'\tikzexternalize'])
             + '\n'.join(self.preamble) + '\n'
             + r'\begin{document}' + '\n'
-            + str(self) + '\n'
+            + self.code() + '\n'
             + r'\end{document}' + '\n')
-        # print(code)
 
         # does the PDF file have to be created?
         #  This check is implemented by using the SHA1 digest of the LaTeX code
@@ -819,7 +917,7 @@ class Picture(Scope):
             if tikz_error != -1:
                 message = message[tikz_error:]
             print(message)
-        code_escaped = html.escape(str(self))
+        code_escaped = html.escape(self.code())
         IPython.display.display(IPython.display.HTML(
             cfg.demo_template.format(png_base64, code_escaped)))
 
