@@ -1,17 +1,18 @@
-"tikz, a Python interface to TikZ"
+"pytikz, a Python interface to TikZ"
 
+import atexit
+import base64
+import hashlib
+import html
+import numbers
+import os
+import os.path
+import shutil
 import subprocess
 import tempfile
-import shutil
-import atexit
-import os.path
-import os
-import hashlib
+
 import fitz
 import IPython.display
-import html
-import base64
-import numbers
 import numpy as np
 
 
@@ -39,13 +40,6 @@ class cfg:
         '  </div>',
         '  <div style="clear:both"></div>',
         '</div>'])
-
-
-# units in cm
-inch = 2.54
-pt = inch / 72.27
-bp = inch / 72
-mm = 0.1
 
 
 # helper functions and helper-helper functions
