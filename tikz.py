@@ -905,21 +905,23 @@ class Picture(Scope):
         else:
             print(f'format {ext[1:]} is not supported')
 
-    def _repr_png_(self):
+    def _repr_png_(self, dpi=None):
         "represent of picture as PNG for notebook"
         self._create_pdf()
-        # render PDF as PNG using PyMuPDF
-        zoom = cfg.display_dpi / 72
+        if dpi is None:
+            dpi = cfg.display_dpi
+        zoom = dpi / 72
         doc = fitz.open(self.temp_pdf)
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
 
-    def demo(self):
+    def demo(self, dpi=None):
         "convenience function to test & debug picture"
         png_base64 = ''
         try:
-            png_base64 = base64.b64encode(self._repr_png_()).decode('ascii')
+            png_base64 = base64.b64encode(
+                self._repr_png_(dpi=dpi)).decode('ascii')
         except LatexException as le:
             message = le.args[0]
             tikz_error = message.find('! ')
