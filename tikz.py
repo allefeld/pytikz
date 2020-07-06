@@ -527,28 +527,39 @@ class node(Operation):
     """
     node operation
 
-    `name` can be specified through options.
-
     Animation is not supported because it does not make sense for static
     image generation. The foreach statement for nodes is not supported because
     it can be replaced by a Python loop.
 
+    Provides 'headless' mode for node action.
+
     see §17
     """
-    def __init__(self, contents, at=None, opt=None, **kwoptions):
+    def __init__(self, contents, name=None, at=None, headless=False,
+                 opt=None, **kwoptions):
+        self.name = name
         self.contents = contents
         if at is not None:
             self.at = _coordinate(at)
         else:
             self.at = None
+        self.headless = headless
         self.opt = opt
         self.kwoptions = kwoptions
 
     def code(self):
-        code = 'node' + _options_code(opt=self.opt, **self.kwoptions)
+        if not self.headless:
+            code = 'node'
+        else:
+            code = ''
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        if self.name is not None:
+            code += f' ({self.name})'
         if self.at is not None:
             code += ' at ' + _coordinate_code(self.at)
         code += ' {' + self.contents + '}'
+        if self.headless:
+            code = code.lstrip()
         return code
 
 
@@ -556,26 +567,35 @@ class coordinate(Operation):
     """
     coordinate operation
 
-    `name` can be specified through options.
-
     Animation is not supported because it does not make sense for static
     image generation. The foreach statement for coordinates is not supported
     because it can be replaced by a Python loop.
 
+    Provides 'headless' mode for coordinate action.
+
     see §17.2.1
     """
-    def __init__(self, at=None, opt=None, **kwoptions):
+    def __init__(self, name, at=None, headless=False, opt=None, **kwoptions):
+        self.name = name
         if at is not None:
             self.at = _coordinate(at)
         else:
             self.at = None
+        self.headless = headless
         self.opt = opt
         self.kwoptions = kwoptions
 
     def code(self):
-        code = 'coordinate' + _options_code(opt=self.opt, **self.kwoptions)
+        if not self.headless:
+            code = 'coordinate'
+        else:
+            code = ''
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        code += f' ({self.name})'
         if self.at is not None:
             code += ' at ' + _coordinate_code(self.at)
+        if self.headless:
+            code = code.lstrip()
         return code
 
 
@@ -710,8 +730,17 @@ class Scope:
         "useasboundingbox action"
         self._append(Action('useasboundingbox', *spec, opt=opt, **kwoptions))
 
-    # \node → \path node
-    # \coordinate → \path coordinate
+    def node(self, contents, name=None, at=None, opt=None, **kwoptions):
+        "node action"
+        self._append(Action(
+            'node', node(contents, name=name, at=at, headless=True),
+            opt=opt, **kwoptions))
+
+    def coordinate(self, name, at=None, opt=None, **kwoptions):
+        "coordinate action"
+        self._append(Action(
+            'coordinate', coordinate(name=name, at=at, headless=True),
+            opt=opt, **kwoptions))
 
     # other commands
 
@@ -905,10 +934,3 @@ class Picture(Scope):
 class LatexException(Exception):
     "problem with external LaTeX process"
     pass
-
-
-# create pytikz logo
-if __name__ == "__main__":
-    pic = Picture()
-    pic.draw((0, 0), node(r'\textsf{py}Ti\emph{k}Z', scale=2), darkgray=True)
-    pic.write_image('pytikz.png')
