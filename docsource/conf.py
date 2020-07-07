@@ -4,6 +4,9 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import datetime
+import commonmark
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -17,12 +20,14 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'pytikz'
-copyright = '2020, Carsten Allefeld'
-author = 'Carsten Allefeld'
+# get information from `setup.py` or autogenerate
+from setup import name, author, version
+
+project = name
+copyright = str(datetime.date.today().year) + ', ' + author
 
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = version
 
 
 # -- General configuration ---------------------------------------------------
@@ -31,7 +36,7 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-'sphinx.ext.autodoc'
+    'sphinx.ext.autodoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -59,15 +64,17 @@ html_static_path = ['_static']
 # -- Additional settings -----------------------------------------------------
 
 # parse docstrings as CommonMark
-import commonmark
 def docstring(app, what, name, obj, options, lines):
-    md  = '\n'.join(lines)
+    md = '\n'.join(lines)
     ast = commonmark.Parser().parse(md)
     rst = commonmark.ReStructuredTextRenderer().render(ast)
     lines.clear()
     lines += rst.splitlines()
+
+
 def setup(app):
     app.connect('autodoc-process-docstring', docstring)
+
 
 # don't sort members
 autodoc_member_order = 'bysource'
