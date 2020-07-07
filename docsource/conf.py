@@ -4,6 +4,8 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import os
+import sys
 import datetime
 import commonmark
 
@@ -13,15 +15,13 @@ import commonmark
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
 
 # get information from `setup.py` or autogenerate
-from setup import name, author, version
+from setup import name, author, version                            # noqa: E402
 
 project = name
 copyright = str(datetime.date.today().year) + ', ' + author
@@ -70,6 +70,7 @@ def docstring(app, what, name, obj, options, lines):
     rst = commonmark.ReStructuredTextRenderer().render(ast)
     lines.clear()
     lines += rst.splitlines()
+    print(lines)
 
 
 def setup(app):

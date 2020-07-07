@@ -1,7 +1,14 @@
 """
-# pytikz
+# pytikz – A Python interface to Ti*k*Z
 
-A Python interface to TikZ
+This package provides a way to create, compile, view, and save figures based
+on the LaTeX package [Ti*k*Z & PGF](https://ctan.org/pkg/pgf). It makes the
+creation of Ti*k*Z figures easier when (part of) the underlying data is
+computed, and makes the preview and debugging of figures within a Jupyter
+notebook seamless.
+
+***
+
 """
 
 import atexit
