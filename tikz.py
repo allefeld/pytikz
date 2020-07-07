@@ -1,4 +1,8 @@
-"pytikz, a Python interface to TikZ"
+"""
+# pytikz
+
+A Python interface to TikZ
+"""
 
 import atexit
 import base64
@@ -282,10 +286,8 @@ class lineto(Operation):
     """
     one or several line-to operations of the same type
 
-    `op` can be
-    -   '--' for straight lines (default),
-    -   '-|' for first horizontal, then vertical, or
-    -   '|-' for first vertical, then horizontal
+    `op` can be `'--'` for straight lines (default), `'-|'` for first
+    horizontal, then vertical, or `'|-'` for first vertical, then horizontal.
 
     see §14.2
     """

@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pytikz &#8212; pytikz 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">pytikz 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pytikz</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-tikz"></span><div class="section" id="pytikz">
+<h1>pytikz<a class="headerlink" href="#pytikz" title="Permalink to this headline">¶</a></h1>
+<p>A Python interface to TikZ</p>
+<dl class="py class">
+<dt id="tikz.cfg">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">cfg</code><a class="headerlink" href="#tikz.cfg" title="Permalink to this definition">¶</a></dt>
+<dd><p>configuration variables</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tikz.cycle">
+<code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">cycle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tikz.cycle" title="Permalink to this definition">¶</a></dt>
+<dd><p>cycle coordinate</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.Raw">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">Raw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>raw TikZ code object</p>
+<p>In order to support TikZ features that are not explicitly modelled, objects
+of this class encapsulate a string which is copied as-is into the TikZ
+code. <code class="docutils literal notranslate"><span class="pre">Raw</span></code> objects can be used in place of <code class="docutils literal notranslate"><span class="pre">Operation</span></code> and <code class="docutils literal notranslate"><span class="pre">Action</span></code>
+objects.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.Operation">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">Operation</code><a class="headerlink" href="#tikz.Operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>path operation</p>
+<p>Path operations (§14) are modelled as <code class="docutils literal notranslate"><span class="pre">Operation</span></code> objects so that code
+generation can (in the future) depend on the context. All code
+generation beyond single coordinates is implemented by a method <code class="docutils literal notranslate"><span class="pre">code</span></code>
+(which will in the future accept an optional transformation argument).</p>
+<p>Names for <code class="docutils literal notranslate"><span class="pre">Operation</span></code> subclasses are lowercase, because from a user
+perspective they act like functions; no method call or field access should
+be performed on their instances.</p>
+<p>This is an abstract superclass that is not to be instantiated.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.moveto">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">moveto</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.moveto" title="Permalink to this definition">¶</a></dt>
+<dd><p>one or several move-to operations</p>
+<p>see §14.1</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.lineto">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">lineto</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em>, <em class="sig-param"><span class="n">op</span><span class="o">=</span><span class="default_value">'--'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.lineto" title="Permalink to this definition">¶</a></dt>
+<dd><p>one or several line-to operations of the same type</p>
+<p><code class="docutils literal notranslate"><span class="pre">op</span></code> can be <code class="docutils literal notranslate"><span class="pre">'--'</span></code> for straight lines (default), <code class="docutils literal notranslate"><span class="pre">'-|'</span></code> for first
+horizontal, then vertical, or <code class="docutils literal notranslate"><span class="pre">'|-'</span></code> for first vertical, then horizontal.</p>
+<p>see §14.2</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.line">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em>, <em class="sig-param"><span class="n">op</span><span class="o">=</span><span class="default_value">'--'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.line" title="Permalink to this definition">¶</a></dt>
+<dd><p>convenience version of <code class="docutils literal notranslate"><span class="pre">lineto</span></code></p>
+<p>Starts with move-to instead of line-to operation.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.curveto">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">curveto</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coord</span></em>, <em class="sig-param"><span class="n">control1</span></em>, <em class="sig-param"><span class="n">control2</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.curveto" title="Permalink to this definition">¶</a></dt>
+<dd><p>curve-to operation</p>
+<p>see §14.3</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.rectangle">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">rectangle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coord</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.rectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>rectangle operation</p>
+<p>see §14.4</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.circle">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">circle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y_radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">at</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.circle" title="Permalink to this definition">¶</a></dt>
+<dd><p>circle operation</p>
+<p>see §14.6</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.arc">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">arc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y_radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.arc" title="Permalink to this definition">¶</a></dt>
+<dd><p>arc operation</p>
+<p>see §14.7</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.grid">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">grid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coord</span></em>, <em class="sig-param"><span class="n">step</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">xstep</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ystep</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>grid operation</p>
+<p>Specifying <code class="docutils literal notranslate"><span class="pre">step</span></code> as a coordinate is not supported, use <code class="docutils literal notranslate"><span class="pre">xstep</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ystep</span></code> instead.</p>
+<p>see §14.8</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.parabola">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">parabola</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coord</span></em>, <em class="sig-param"><span class="n">bend</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.parabola" title="Permalink to this definition">¶</a></dt>
+<dd><p>parabola operation</p>
+<p>see §14.9</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.sin">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">sin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coord</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.sin" title="Permalink to this definition">¶</a></dt>
+<dd><p>sine operation</p>
+<p>see §14.10</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.cos">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">cos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coord</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.cos" title="Permalink to this definition">¶</a></dt>
+<dd><p>cosine operation</p>
+<p>see §14.10</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.topath">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">topath</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coord</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.topath" title="Permalink to this definition">¶</a></dt>
+<dd><p>to-path operation</p>
+<p>see §14.13</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.node">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contents</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">at</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">headless</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.node" title="Permalink to this definition">¶</a></dt>
+<dd><p>node operation</p>
+<p>Animation is not supported because it does not make sense for static
+image generation. The foreach statement for nodes is not supported because
+it can be replaced by a Python loop.</p>
+<p>Provides ‘headless’ mode for node action.</p>
+<p>see §17</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.coordinate">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">coordinate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">at</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">headless</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.coordinate" title="Permalink to this definition">¶</a></dt>
+<dd><p>coordinate operation</p>
+<p>Animation is not supported because it does not make sense for static
+image generation. The foreach statement for coordinates is not supported
+because it can be replaced by a Python loop.</p>
+<p>Provides ‘headless’ mode for coordinate action.</p>
+<p>see §17.2.1</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.plot">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em>, <em class="sig-param"><span class="n">to</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>plot operation</p>
+<p>The decision whether to directly specify coordinates or provide them
+through a file is made internally. Coordinate expressions and gnuplot
+formulas are not supported.</p>
+<p>see §22</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tikz.options">
+<code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">options</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.options" title="Permalink to this definition">¶</a></dt>
+<dd><p>in-path options</p>
+<p>This is not a path operation, but can be specified at an arbitrary position
+within a path specification. It sets options for the rest of the path.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.Action">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">Action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action_name</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Action" title="Permalink to this definition">¶</a></dt>
+<dd><p>action on path</p>
+<p>see §15</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.Scope">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">Scope</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>scope environment</p>
+<dl class="py method">
+<dt id="tikz.Scope.add_scope">
+<code class="sig-name descname">add_scope</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.add_scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>create and add scope environment</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.code">
+<code class="sig-name descname">code</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.code" title="Permalink to this definition">¶</a></dt>
+<dd><p>create TikZ code</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.path">
+<code class="sig-name descname">path</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>path action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.draw">
+<code class="sig-name descname">draw</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>draw action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.fill">
+<code class="sig-name descname">fill</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.fill" title="Permalink to this definition">¶</a></dt>
+<dd><p>fill action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.filldraw">
+<code class="sig-name descname">filldraw</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.filldraw" title="Permalink to this definition">¶</a></dt>
+<dd><p>filldraw action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.pattern">
+<code class="sig-name descname">pattern</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.pattern" title="Permalink to this definition">¶</a></dt>
+<dd><p>pattern action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.shade">
+<code class="sig-name descname">shade</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.shade" title="Permalink to this definition">¶</a></dt>
+<dd><p>shade action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.shadedraw">
+<code class="sig-name descname">shadedraw</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.shadedraw" title="Permalink to this definition">¶</a></dt>
+<dd><p>shadedraw action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.clip">
+<code class="sig-name descname">clip</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.clip" title="Permalink to this definition">¶</a></dt>
+<dd><p>clip action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.useasboundingbox">
+<code class="sig-name descname">useasboundingbox</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">spec</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.useasboundingbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>useasboundingbox action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.node">
+<code class="sig-name descname">node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contents</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">at</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.node" title="Permalink to this definition">¶</a></dt>
+<dd><p>node action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.coordinate">
+<code class="sig-name descname">coordinate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">at</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.coordinate" title="Permalink to this definition">¶</a></dt>
+<dd><p>coordinate action</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.definecolor">
+<code class="sig-name descname">definecolor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">colormodel</span></em>, <em class="sig-param"><span class="n">colorspec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.definecolor" title="Permalink to this definition">¶</a></dt>
+<dd><p>definecolor command (xcolor)</p>
+<p>Define new color from color model and specification.</p>
+<ul class="simple">
+<li><p>core models: rgb, cmy, cmyk, hsb, gray</p></li>
+<li><p>integer models: RGB, HTML, HSB, Gray</p></li>
+<li><p>decimal models: Hsb, tHsb, wave</p></li>
+<li><p>pseudo models: names, ps</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.colorlet">
+<code class="sig-name descname">colorlet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">colorexpr</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.colorlet" title="Permalink to this definition">¶</a></dt>
+<dd><p>colorlet command (xcolor)</p>
+<p>Define new color from color expression, e.g. ‘blue!20!white’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.tikzset">
+<code class="sig-name descname">tikzset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.tikzset" title="Permalink to this definition">¶</a></dt>
+<dd><p>tikzset command</p>
+<p>Sets options.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Scope.tikzstyle">
+<code class="sig-name descname">tikzstyle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Scope.tikzstyle" title="Permalink to this definition">¶</a></dt>
+<dd><p>define style</p>
+<p>Emulates deprecated tikzstyle command using tikzset.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="tikz.Picture">
+<em class="property">class </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">Picture</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">opt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwoptions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Picture" title="Permalink to this definition">¶</a></dt>
+<dd><p>tikzpicture environment</p>
+<dl class="py method">
+<dt id="tikz.Picture.usetikzlibrary">
+<code class="sig-name descname">usetikzlibrary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">library</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Picture.usetikzlibrary" title="Permalink to this definition">¶</a></dt>
+<dd><p>usetikzlibrary command</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Picture.code">
+<code class="sig-name descname">code</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Picture.code" title="Permalink to this definition">¶</a></dt>
+<dd><p>create TikZ code</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Picture.write_image">
+<code class="sig-name descname">write_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">dpi</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Picture.write_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>write picture to image file</p>
+<p>The file type is determined from the file extension, and can be PDF,
+PNG, or SVG.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tikz.Picture.demo">
+<code class="sig-name descname">demo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpi</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tikz.Picture.demo" title="Permalink to this definition">¶</a></dt>
+<dd><p>convenience function to test &amp; debug picture</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="tikz.LatexException">
+<em class="property">exception </em><code class="sig-prename descclassname">tikz.</code><code class="sig-name descname">LatexException</code><a class="headerlink" href="#tikz.LatexException" title="Permalink to this definition">¶</a></dt>
+<dd><p>problem with external LaTeX process</p>
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">pytikz 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pytikz</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Carsten Allefeld.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>
