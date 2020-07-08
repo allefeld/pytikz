@@ -4,7 +4,11 @@
 
 # delete old version
 rm -r ../docs/
-# generate new version, putting the html files into the repository's `docs`
+# create pages for modules, excluding setup.py
+sphinx-apidoc -T -o . .. ../setup.py
+# scale logo down for documentation
+convert -resize 200 ../logo.png _static/logo.png
+# generate new version of html files in the repository's `docs`
 # folder, but the cached build information under `_build`.
 sphinx-build -b html ./ ../docs/ -d ./_build/
 # create file that tells GitHub to just copy the files

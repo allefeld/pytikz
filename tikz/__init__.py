@@ -1,15 +1,13 @@
 """
-# pytikz – A Python interface to Ti*k*Z
-
-This package provides a way to create, compile, view, and save figures based
-on the LaTeX package [Ti*k*Z & PGF](https://ctan.org/pkg/pgf). It makes the
-creation of Ti*k*Z figures easier when (part of) the underlying data is
-computed, and makes the preview and debugging of figures within a Jupyter
-notebook seamless.
-
-***
-
+Create, compile, view, and save graphics based on the LaTeX package
+`TikZ & PGF`.
 """
+
+# TODO:
+# - type hinting
+# - all docstring triple-quoted, with blank line after
+# - docstring for: class (not `__init__`), method, function; package, module
+# - variables are documented in the class/module/package docstring
 
 import atexit
 import base64
@@ -816,12 +814,22 @@ class Picture(Scope):
 
     def code(self):
         "create TikZ code"
-        # We use `str` to create the LaTeX code so that we can directly include
-        # strings in `self.elements`, for which `str()` is idempotent.
-        code = r'\begin{tikzpicture}' + self.opt + '\n'
-        code += '\n'.join(el.code() for el in self.elements) + '\n'
-        code += r'\end{tikzpicture}'
-        return code
+        return (r'\begin{tikzpicture}' + self.opt + '\n'
+                + '\n'.join(el.code() for el in self.elements) + '\n'
+                + r'\end{tikzpicture}')
+
+    def document_code(self):
+        "create LaTeX/TikZ code for a complete compilable document"
+        return (
+                '\n'.join([
+                    r'\documentclass{article}',
+                    r'\usepackage{tikz}',
+                    r'\usetikzlibrary{external}',
+                    r'\tikzexternalize'])
+                + '\n'.join(self.preamble) + '\n'
+                + r'\begin{document}' + '\n'
+                + self.code() + '\n'
+                + r'\end{document}' + '\n')
 
     def _create_pdf(self):
         "ensure that an up-to-date PDF file exists"
@@ -836,16 +844,7 @@ class Picture(Scope):
         # arguments directly. See section 53 of the PGF/TikZ manual.
 
         # create LaTeX code
-        code = (
-            '\n'.join([
-                r'\documentclass{article}',
-                r'\usepackage{tikz}',
-                r'\usetikzlibrary{external}',
-                r'\tikzexternalize'])
-            + '\n'.join(self.preamble) + '\n'
-            + r'\begin{document}' + '\n'
-            + self.code() + '\n'
-            + r'\end{document}' + '\n')
+        code = self.document_code()
 
         # does the PDF file have to be created?
         #  This check is implemented by using the SHA1 digest of the LaTeX code

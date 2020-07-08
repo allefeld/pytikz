@@ -1,5 +1,6 @@
 import setuptools
 
+# constants for setup.py as well as docsource/conf.py
 name = 'pytikz'
 author = 'Carsten Allefeld'
 version = '0.1.0'

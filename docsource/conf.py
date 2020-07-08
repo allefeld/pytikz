@@ -7,7 +7,6 @@
 import os
 import sys
 import datetime
-import commonmark
 
 # -- Path setup --------------------------------------------------------------
 
@@ -21,7 +20,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 # get information from `setup.py` or autogenerate
-from setup import name, author, version                            # noqa: E402
+from setup import name, author, version, description, url          # noqa: E402
 
 project = name
 copyright = str(datetime.date.today().year) + ', ' + author
@@ -36,11 +35,9 @@ release = version
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc'
+    'sphinx.ext.napoleon',      # for Google-style docstrings
+    'sphinx.ext.autodoc'        # to automatically create module documentation
 ]
-
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -53,28 +50,24 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'classic'
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+html_theme = 'alabaster'
+html_theme_options = {
+    'logo': 'logo.png',
+    'description': description,
+    'fixed_sidebar': True,
+    'github_button': True,
+    'extra_nav_links': {
+        'GitHub': url
+    }
+}
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'searchbox.html'
+        ]
+}
 html_static_path = ['_static']
-
-
-# -- Additional settings -----------------------------------------------------
-
-# parse docstrings as CommonMark
-def docstring(app, what, name, obj, options, lines):
-    md = '\n'.join(lines)
-    ast = commonmark.Parser().parse(md)
-    rst = commonmark.ReStructuredTextRenderer().render(ast)
-    lines.clear()
-    lines += rst.splitlines()
-    print(lines)
-
-
-def setup(app):
-    app.connect('autodoc-process-docstring', docstring)
 
 
 # don't sort members

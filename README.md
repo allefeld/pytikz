@@ -1,4 +1,4 @@
-![](pytikz.png)
+![](logo.png)
 
 
 # pytikz – A Python interface to Ti*k*Z
@@ -35,7 +35,7 @@ A tutorial illustrating the use of pytikz is provided in the form of a Jupyter n
 
 ## Documentation
 
-The package is documented at <https://allefeld.github.io/pytikz/>.
+The package is documented at [allefeld.github.io/pytikz](https://allefeld.github.io/pytikz/).
 
 
 ***
