@@ -4,8 +4,8 @@
 
 # delete old version
 rm -r ../docs/
-# create pages for modules, excluding setup.py
-sphinx-apidoc -T -o . .. ../setup.py
+# # create pages for modules, excluding setup.py
+# sphinx-apidoc -T -o . .. ../setup.py
 # scale logo down for documentation
 convert -resize 200 ../logo.png _static/logo.png
 # generate new version of html files in the repository's `docs`

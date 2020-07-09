@@ -8,7 +8,7 @@ This package provides a way to create, compile, view, and save figures based on 
 
 ## Example
 
-Adapted from the Ti*k*Z documentation. Python code:
+Python code adapted from the Ti*k*Z documentation:
 
 ```
 coords = [(0, 0), (0, 2), (1, 3.25), (2, 2), (2, 0), (0, 2), (2, 2), (0, 0), (2, 0)]

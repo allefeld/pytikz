@@ -1,6 +1,12 @@
 """
-Create, compile, view, and save graphics based on the LaTeX package
-`TikZ & PGF`.
+This module provides a way to create, compile, view, and save graphics based
+on the LaTeX package [TikZ & PGF](https://ctan.org/pkg/pgf). It makes the
+creation of TikZ graphics easier when (part of) the underlying data is
+computed, and makes the preview and debugging of graphics within a Jupyter
+notebook seamless.
+
+.. include:: tikz.md
+   :start-line: 4
 """
 
 # TODO:
@@ -115,22 +121,6 @@ def _list(obj): return isinstance(obj, list)
 def _coordinate(coord):
     """
     check and normalize coordinate
-
-    A coordinate (in path specifications as well as as arguments elsewhere) is
-    a string, or a `tuple` or 1d-`ndarray` with 2 or 3 elements.
-
-    Strings can be used e.g. to provide coordinates in TikZ' `canvas`
-    coordinate system. Coordinate-specifying strings are enclosed in
-    parentheses, possibly prefixed by `+` or `++` (relative coordinates).
-
-    Elements of `tuple`s can be numbers or strings. If all elements are
-    numeric, it represents coordinates in TikZ' `xyz` coordinate system and is
-    converted into a 1d-`ndarray`. If all are strings it represents
-    coordinates in TikZ' `canvas` coordinate system, and is converted into a
-    simple string including parentheses. Otherwise it represents a mixed
-    `xyz`/`canvas` coordinate as described in §13.2.1 and is left as a tuple.
-
-    `ndarray`s must be numeric.
     """
     # A coordinate can be a string with enclosing parentheses, possibly
     # prefixed by `+` or `++`, or the string 'cycle'.
@@ -160,12 +150,6 @@ def _coordinate(coord):
 def _sequence(seq, accept_coordinate=True):
     """
     check and normalize sequence of coordinates
-
-    A sequence of coordinates is a `list` of coordinates as described under
-    `_coordinate`, or a numeric 2d-`ndarray` with 2 or 3 columns,
-    representing `xyz` coordinates. If a list contains only
-    numeric 1d-`ndarray`s (after conversion) with the same number of elements,
-    it is converted into a 2d-`ndarray` itself.
     """
     # A sequence can be a list.
     if _list(seq):
@@ -269,7 +253,9 @@ class Operation:
 
     This is an abstract superclass that is not to be instantiated.
     """
-    pass
+    def code(self):
+        "create TikZ code"
+        pass
 
 
 class moveto(Operation):
