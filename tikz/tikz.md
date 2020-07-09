@@ -71,4 +71,14 @@ Option
     For embedding options within a path specification, the function `options` can be used.
 
     Classes, methods or functions that accept options contain opt=None, **kwoptions in their signature.
- 
+
+
+## Color
+
+TikZ automatically loads the [LaTeX package <code>xcolor</code>](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf), which means that a large number of [named colors](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#section.4) can be used within pictures. The package also allows to define new colors based on a variety of color models as well as through mixture of known colors, exposed through the
+[environment<code>.definecolor()</code>](#tikz.Scope.definecolor) and
+[environment<code>.colorlet()</code>](#tikz.Scope.colorlet)
+methods of `Picture` and other environments.
+
+
+***

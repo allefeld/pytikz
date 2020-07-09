@@ -9,6 +9,7 @@ notebook seamless.
    :start-line: 4
 """
 
+
 # TODO:
 # - type hinting
 # - all docstring triple-quoted, with blank line after
@@ -34,12 +35,30 @@ import numpy as np
 class cfg:
     "configuration variables"
 
-    display_dpi = 192    # standard monitor dpi × zoom 2
+    display_dpi = 192
+    """
+    resolution at which the graphic is rendered for display in the notebook
+
+    The default is 192, twice the standard monitor resolution.
+    """
+
     file_dpi = 300
+    """
+    resolution at which the graphic is rendered for saved PNG files
+
+    The default is 300.
+    """
 
     # executable name, possibly including path
     # pdflatex is fastest, lualatex + 50%, xelatex + 100%
     latex = 'pdflatex'
+    """
+    name of the executable used to compile the LaTeX document
+
+    This can be any version of LaTeX that produces PDF output. The fastest
+    appears to be pdfLaTeX, but choosing another version may be necessary for
+    specific features.
+    """
 
     # {0} is replaced by a Base64-encoded PNG image,
     # {1} by TikZ-LaTeX code
@@ -55,6 +74,13 @@ class cfg:
         '  </div>',
         '  <div style="clear:both"></div>',
         '</div>'])
+    """
+    HTML template used by `Picture.demo` for notebook display
+
+    The template must contain two placeholders. `{0}` is replaced by a
+    Base64-encoded PNG-format rendering of the graphic, `{1}`by the output of
+    `Picture.code`.
+    """
 
 
 # helper functions and helper-helper functions
@@ -62,15 +88,14 @@ class cfg:
 
 def _option_code(key, val):
     """
-    transform single `key=value` pair into TikZ string
-
-    A value of `True` is omitted, an underscore in a key is transformed into
-    a space.
+    returns TikZ code for single option
 
     helper function for `_options`
     """
+    # replace underscores by spaces
     key = str(key).replace('_', ' ')
     if val is True:
+        # omit `=True`
         return key
     else:
         return f'{key}={str(val)}'
@@ -78,44 +103,31 @@ def _option_code(key, val):
 
 def _options_code(opt=None, **kwoptions):
     """
-    transform options parameters into TikZ options string
-
-    Transforms additional keyword parameters captured as a dictionary
-    (`**kwoptions`) into string. Options with value `None` are omitted. A
-    supplementary raw part of the options string can be provided
-    via the keyword parameter `opt`. Example:
-        (opt='red', thick=True, rounded_corners='4pt')
-    returns
-        '[thick,rounded corners=4pt,red]'
+    returns TikZ code for options
 
     helper function to format `opt=None, **kwoptions` in various functions
     """
+    # use `_option_code` to transform individual options
     o = [_option_code(key, val) for key, val in kwoptions.items()
          if val is not None]
+    # insert raw string
     if opt is not None:
         o.insert(0, opt)
+    # create TikZ code
     code = '[' + ','.join(o) + ']'
+    # suppress empty options
     if code == '[]':
         code = ''
     return code
 
 
+# check types
 def _str(obj): return isinstance(obj, str)
-
-
 def _tuple(obj): return isinstance(obj, tuple)
-
-
 def _numeric(obj): return isinstance(obj, numbers.Real)
-
-
 def _str_or_numeric(obj): return _str(obj) or _numeric(obj)
-
-
 def _ndarray(obj): return isinstance(obj, np.ndarray)
-
-
-def _list(obj): return isinstance(obj, list)
+def _list(obj): return isinstance(obj, list)                        # noqa E302
 
 
 def _coordinate(coord):
@@ -150,6 +162,8 @@ def _coordinate(coord):
 def _sequence(seq, accept_coordinate=True):
     """
     check and normalize sequence of coordinates
+
+    accept_coordinate: whether to accept a single coordinate
     """
     # A sequence can be a list.
     if _list(seq):
@@ -175,38 +189,27 @@ def _str_or_numeric_code(x):
     """
     transform element of coordinate into TikZ representation
 
-    Leaves string  elements as is, and converts numeric elements to a
+    Leaves string elements as is, and converts numeric elements to a
     fixed-point representation with 5 decimals precision (TikZ: ±16383.99999)
     without trailing '0's or '.'
     """
     if _str(x):
+        # leave string as-is
         return x
     else:
+        # convert numeric elements to a fixed-point representation with 5
+        # decimals precision (TikZ: ±16383.99999) without trailing '0's or '.'
         return '{:.5f}'.format(x).rstrip('0').rstrip('.')
 
 
 def _coordinate_code(coord):
-    "create TikZ code for coordinate"
+    "returns TikZ code for coordinate"
     # assumes the argument has already been normalized
     if _str(coord):
+        # leave string as-is
         return coord
     else:
         return '(' + ','.join(map(_str_or_numeric_code, coord)) + ')'
-
-
-def _operation(op):
-    """
-    check and normalize path specification elements
-
-    The elements of a path specification argument (`*spec`) can be `Operation`
-    objects (left as is), (lists of) coordinates (converted to `moveto`
-    objects), and strings (converted to `Raw` objects).
-    """
-    if isinstance(op, Operation):
-        return op
-    if _str(op):
-        return Raw(op)
-    return moveto(op)
 
 
 # coordinates
@@ -226,12 +229,19 @@ class Raw:
     In order to support TikZ features that are not explicitly modelled, objects
     of this class encapsulate a string which is copied as-is into the TikZ
     code. `Raw` objects can be used in place of `Operation` and `Action`
-    objects.
+    objects. Normally it is not necessary to explicily instantiate this class,
+    because the respective methods accept strings and convert them into `Raw`
+    objects internally.
     """
     def __init__(self, string):
         self.string = string
 
     def code(self):
+        """
+        returns TikZ code
+
+        Returns the stored string.
+        """
         return self.string
 
 
@@ -242,10 +252,7 @@ class Operation:
     """
     path operation
 
-    Path operations (§14) are modelled as `Operation` objects so that code
-    generation can (in the future) depend on the context. All code
-    generation beyond single coordinates is implemented by a method `code`
-    (which will in the future accept an optional transformation argument).
+    Path operations are modelled as `Operation` objects.
 
     Names for `Operation` subclasses are lowercase, because from a user
     perspective they act like functions; no method call or field access should
@@ -254,7 +261,7 @@ class Operation:
     This is an abstract superclass that is not to be instantiated.
     """
     def code(self):
-        "create TikZ code"
+        "returns TikZ code"
         pass
 
 
@@ -262,9 +269,12 @@ class moveto(Operation):
     """
     one or several move-to operations
 
-    see §14.1
+    `coords` can be a coordinate or a sequence of coordinates.
+
+    See [§14.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.1)
     """
     def __init__(self, coords):
+        # normalize coordinates
         self.coords = _sequence(coords, accept_coordinate=True)
 
     def code(self):
@@ -277,12 +287,15 @@ class lineto(Operation):
     """
     one or several line-to operations of the same type
 
+    `coords` can be a coordinate or a sequence of coordinates.
+
     `op` can be `'--'` for straight lines (default), `'-|'` for first
     horizontal, then vertical, or `'|-'` for first vertical, then horizontal.
 
-    see §14.2
+    see [§14.2](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.2)
     """
     def __init__(self, coords, op='--'):
+        # normalize coordinates
         self.coords = _sequence(coords, accept_coordinate=True)
         self.op = op
 
@@ -299,6 +312,7 @@ class line(Operation):
     Starts with move-to instead of line-to operation.
     """
     def __init__(self, coords, op='--'):
+        # normalize coordinates
         self.coords = _sequence(coords)
         self.op = op
 
@@ -313,9 +327,12 @@ class curveto(Operation):
     """
     curve-to operation
 
-    see §14.3
+    `coord`, `control1`, and the optional `control2` must be coordinates.
+
+    see [§14.3](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.3)
     """
     def __init__(self, coord, control1, control2=None):
+        # normalize coordinates
         self.coord = _coordinate(coord)
         self.control1 = _coordinate(control1)
         if control2 is not None:
@@ -335,9 +352,12 @@ class rectangle(Operation):
     """
     rectangle operation
 
-    see §14.4
+    `coord` must be a coordinate
+
+    see [§14.4](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.4)
     """
     def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
         self.coord = _coordinate(coord)
         self.opt = opt
         self.kwoptions = kwoptions
@@ -351,16 +371,26 @@ class circle(Operation):
     """
     circle operation
 
-    see §14.6
+    Either `radius` or `x_radius` and `y_radius` (for an ellipse) must be
+    given. If all are specified, `radius` overrides the other two options. They
+    can be numbers or a string containing a number and a dimension.
+
+    The circle is centered at the current coordinate, unless another coordinate
+    is given as `at`.
+
+    see [§14.6](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.6)
     """
     def __init__(self, radius=None, x_radius=None, y_radius=None, at=None,
                  opt=None, **kwoptions):
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
         if radius is not None:
             self.x_radius = radius
             self.y_radius = radius
         else:
             self.x_radius = x_radius
             self.y_radius = y_radius
+        # normalize coordinate
         if at is not None:
             self.at = _coordinate(at)
         else:
@@ -384,10 +414,16 @@ class arc(Operation):
     """
     arc operation
 
-    see §14.7
+    Either `radius` or `x_radius` and `y_radius` (for an elliptical arc) must
+    be given. If all are specified, `radius` overrides the other two options.
+    They can be numbers or a string containing a number and a dimension.
+
+    see [§14.7](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.7)
     """
     def __init__(self, radius=None, x_radius=None, y_radius=None,
                  opt=None, **kwoptions):
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
         if radius is not None:
             self.x_radius = radius
             self.y_radius = radius
@@ -411,14 +447,19 @@ class grid(Operation):
     """
     grid operation
 
-    Specifying `step` as a coordinate is not supported, use `xstep` and
-    `ystep` instead.
+    Either `step` or `xstep` and `ystep` must be given. If all are specified,
+    `step` overrides the other two options. They can be numbers or a string
+    containing a number and a dimension. Specifying `step` as a coordinate is
+    not supported, use `xstep` and `ystep` instead.
 
-    see §14.8
+    see [§14.8](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.8)
     """
     def __init__(self, coord, step=None, xstep=None, ystep=None,
                  opt=None, **kwoptions):
+        # normalize coordinate
         self.coord = _coordinate(coord)
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
         if step is not None:
             self.xstep = step
             self.ystep = step
@@ -443,9 +484,12 @@ class parabola(Operation):
     """
     parabola operation
 
-    see §14.9
+    `coord` and the optional `bend` must be coordinates.
+
+    see [§14.9](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.9)
     """
     def __init__(self, coord, bend=None, opt=None, **kwoptions):
+        # normalize coordinates
         self.coord = _coordinate(coord)
         if bend is not None:
             self.bend = _coordinate(bend)
@@ -466,9 +510,12 @@ class sin(Operation):
     """
     sine operation
 
-    see §14.10
+    `coord` must be a coordinate.
+
+    see [§14.10](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.10)
     """
     def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
         self.coord = _coordinate(coord)
         self.opt = opt
         self.kwoptions = kwoptions
@@ -482,9 +529,12 @@ class cos(Operation):
     """
     cosine operation
 
-    see §14.10
+    `coord` must be a coordinate.
+
+    see [§14.10](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.10)
     """
     def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
         self.coord = _coordinate(coord)
         self.opt = opt
         self.kwoptions = kwoptions
@@ -498,9 +548,12 @@ class topath(Operation):
     """
     to-path operation
 
-    see §14.13
+    `coord` must be a coordinate.
+
+    see [§14.13](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.13)
     """
     def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
         self.coord = _coordinate(coord)
         self.opt = opt
         self.kwoptions = kwoptions
@@ -514,23 +567,32 @@ class node(Operation):
     """
     node operation
 
+    `contents` must be a string containing the node text, and may be LaTeX
+    code.
+
+    The optional `name` must be a string, which allows later references to the
+    coordinate `(`name`)` in TikZ' node coordinate system.
+
+    The node is positioned relative to the current coordinate, unless the
+    optional coordinate `at` is given.
+
     Animation is not supported because it does not make sense for static
     image generation. The foreach statement for nodes is not supported because
     it can be replaced by a Python loop.
 
-    Provides 'headless' mode for node action.
-
-    see §17
+    see [§17](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.17)
     """
-    def __init__(self, contents, name=None, at=None, headless=False,
+    # Provides 'headless' mode for `Scope.node` and `Scope.coordinate`
+    def __init__(self, contents, name=None, at=None, _headless=False,
                  opt=None, **kwoptions):
         self.name = name
         self.contents = contents
+        # normalize coordinate
         if at is not None:
             self.at = _coordinate(at)
         else:
             self.at = None
-        self.headless = headless
+        self.headless = _headless
         self.opt = opt
         self.kwoptions = kwoptions
 
@@ -554,21 +616,27 @@ class coordinate(Operation):
     """
     coordinate operation
 
+    `name` must be a string, which allows later references to the coordinate
+    `(`name`)` in TikZ' node coordinate system.
+
+    The node is positioned relative to the current coordinate, unless the
+    optional coordinate `at` is given.
+
     Animation is not supported because it does not make sense for static
-    image generation. The foreach statement for coordinates is not supported
-    because it can be replaced by a Python loop.
+    image generation. The foreach statement for nodes is not supported because
+    it can be replaced by a Python loop.
 
-    Provides 'headless' mode for coordinate action.
-
-    see §17.2.1
+    see
+    [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
     """
-    def __init__(self, name, at=None, headless=False, opt=None, **kwoptions):
+    def __init__(self, name, at=None, _headless=False, opt=None, **kwoptions):
         self.name = name
+        # normalize coordinate
         if at is not None:
             self.at = _coordinate(at)
         else:
             self.at = None
-        self.headless = headless
+        self.headless = _headless
         self.opt = opt
         self.kwoptions = kwoptions
 
@@ -590,13 +658,20 @@ class plot(Operation):
     """
     plot operation
 
-    The decision whether to directly specify coordinates or provide them
-    through a file is made internally. Coordinate expressions and gnuplot
-    formulas are not supported.
+    `coords` can be a coordinate or a sequence of coordinates.
 
-    see §22
+    The optional `to` determines whether a line-to operation is included before
+    the plot operation.
+
+    The difference between `plot coordinates` and `plot file` is not exposed;
+    the decision whether to specify coordinates inline in the TikZ code or
+    provide them through a file is made internally. Coordinate expressions and
+    gnuplot formulas are not supported.
+
+    see [§22](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.22)
     """
     def __init__(self, coords, to=False, opt=None, **kwoptions):
+        # normalize coordinates
         self.coords = _sequence(coords, accept_coordinate=True)
         self.to = to
         self.opt = opt
@@ -619,8 +694,9 @@ def options(opt=None, **kwoptions):
     """
     in-path options
 
-    This is not a path operation, but can be specified at an arbitrary position
-    within a path specification. It sets options for the rest of the path.
+    Though this is not a path operation, it can be specified at an arbitrary
+    position within a path specification. It sets options for the rest of the
+    path (unless they are path-global).
     """
     # just a wrapper around _options_code
     return _options_code(opt=opt, **kwoptions)
@@ -628,19 +704,45 @@ def options(opt=None, **kwoptions):
 
 # actions on paths
 
+def _operation(op):
+    """
+    check and normalize path specification elements
+
+    The elements of a path specification argument (`*spec`) can be `Operation`
+    objects (left as is), (lists of) coordinates (converted to `moveto`
+    objects), and strings (converted to `Raw` objects).
+
+    helper function for `Action`
+    """
+    if isinstance(op, Operation):
+        # leave `Operation` as is
+        return op
+    if _str(op):
+        # convert string to `Raw` object
+        return Raw(op)
+    return moveto(op)
+
+
 class Action:
     """
     action on path
 
-    see §15
+    Objects of this class are used to represent path actions. It is not
+    normally necessary to instantiate this class, because `Action` objects are
+    created and added implicitly by environment methods like
+    [<code>Picture.path()</code>](#tikz.Scope.path).
+
+    see [§15](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.15)
     """
     def __init__(self, action_name, *spec, opt=None, **kwoptions):
         self.action_name = action_name
+        # normalize path specification
         self.spec = [_operation(op) for op in spec]
         self.opt = opt
         self.kwoptions = kwoptions
 
     def code(self):
+        "returns TikZ code"
         return ('\\' + self.action_name
                 + _options_code(opt=self.opt, **self.kwoptions)
                 + ' ' + ' '.join(op.code() for op in self.spec) + ';')
@@ -650,7 +752,19 @@ class Action:
 
 
 class Scope:
-    "scope environment"
+    """
+    scope environment
+
+    A scope can be used to group path actions and other commands together, so
+    that options can be applied to them in total.
+
+    Do not instantiate this class, but use the
+    [<code>add_scope()</code>](#tikz.Scope.addscope) method of `Picture` or
+    another environment.
+
+    see
+    [§12.3.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1)
+    """
 
     def __init__(self, opt=None, **kwoptions):
         self.elements = []
@@ -667,13 +781,17 @@ class Scope:
         self.elements.append(el)
 
     def add_scope(self, opt=None, **kwoptions):
-        "create and add scope environment"
+        """
+        create and add scope to the current environment
+
+        A `Scope` object is created, added, and returned.
+        """
         s = Scope(opt=opt, **kwoptions)
         self._append(s)
         return s
 
     def code(self):
-        "create TikZ code"
+        "returns TikZ code"
         code = r'\begin{scope}' + self.opt + '\n'
         code += '\n'.join(el.code() for el in self.elements) + '\n'
         code += r'\end{scope}'
@@ -682,65 +800,148 @@ class Scope:
     # add actions on paths (§15)
 
     def path(self, *spec, opt=None, **kwoptions):
-        "path action"
+        """
+        path action
+
+        The `path` path action is the prototype of all path actions. It
+        represents a pure path, one that is not used for drawing, filling or
+        other creation of visible elements, unless instructed to do so by
+        options.
+
+        `*spec` is one or more arguments giving the path specification,
+        `opt=None, **kwoptions` can be used to specify options.
+
+        see [§14](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.14)
+        """
         self._append(Action('path', *spec, opt=opt, **kwoptions))
 
     def draw(self, *spec, opt=None, **kwoptions):
-        "draw action"
+        """
+        draw action
+
+        Abbreviation for [<code>path(…, draw=True)</code>](#tikz.Scope.path).
+
+        see
+        [§15.3](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.3)
+        """
         self._append(Action('draw', *spec, opt=opt, **kwoptions))
 
     def fill(self, *spec, opt=None, **kwoptions):
-        "fill action"
+        """
+        fill action
+
+        Abbreviation for [<code>path(…, fill=True)</code>](#tikz.Scope.path).
+
+        see
+        [§15.5](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.5)
+        """
         self._append(Action('fill', *spec, opt=opt, **kwoptions))
 
     def filldraw(self, *spec, opt=None, **kwoptions):
-        "filldraw action"
+        """
+        filldraw action
+
+        Abbreviation for
+        [<code>path(…, fill=True, draw=True)</code>](#tikz.Scope.path).
+        """
         self._append(Action('filldraw', *spec, opt=opt, **kwoptions))
 
     def pattern(self, *spec, opt=None, **kwoptions):
-        "pattern action"
+        """
+        pattern action
+
+        Abbreviation
+        for [<code>path(…, pattern=True)</code>](#tikz.Scope.path).
+
+        see
+        [§15.5.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.15.5.1)
+        """
         self._append(Action('pattern', *spec, opt=opt, **kwoptions))
 
     def shade(self, *spec, opt=None, **kwoptions):
-        "shade action"
+        """
+        shade action
+
+        Abbreviation for [<code>path(…, shade=True)</code>](#tikz.Scope.path).
+
+        see
+        [§15.7](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.7)
+        """
         self._append(Action('shade', *spec, opt=opt, **kwoptions))
 
     def shadedraw(self, *spec, opt=None, **kwoptions):
-        "shadedraw action"
+        """
+        shadedraw action
+
+        Abbreviation for
+        [<code>path(…, shade=True, draw=True)</code>](#tikz.Scope.path).
+        """
         self._append(Action('shadedraw', *spec, opt=opt, **kwoptions))
 
     def clip(self, *spec, opt=None, **kwoptions):
-        "clip action"
+        """
+        clip action
+
+        Abbreviation for [<code>path(…, clip=True)</code>](#tikz.Scope.path).
+
+        see
+        [§15.9](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.9)
+        """
         self._append(Action('clip', *spec, opt=opt, **kwoptions))
 
     def useasboundingbox(self, *spec, opt=None, **kwoptions):
-        "useasboundingbox action"
+        """
+        useasboundingbox action
+
+        Abbreviation for
+        [<code>path(…, use_as_bounding_box=True)</code>](#tikz.Scope.path).
+
+        see
+        [§15.8](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.8)
+        """
         self._append(Action('useasboundingbox', *spec, opt=opt, **kwoptions))
 
     def node(self, contents, name=None, at=None, opt=None, **kwoptions):
-        "node action"
+        """
+        node action
+
+        Abbreviation for
+        [<code>path(node(…))</code>](#tikz.node).
+
+        see
+        [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+       """
         self._append(Action(
-            'node', node(contents, name=name, at=at, headless=True),
+            'node', node(contents, name=name, at=at, _headless=True),
             opt=opt, **kwoptions))
 
     def coordinate(self, name, at=None, opt=None, **kwoptions):
+        """
+        coordinate action
+
+        Abbreviation for
+        [<code>path(coordinate(…))</code>](#tikz.coordinate).
+
+        see
+        [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+       """
         "coordinate action"
         self._append(Action(
-            'coordinate', coordinate(name=name, at=at, headless=True),
+            'coordinate', coordinate(name=name, at=at, _headless=True),
             opt=opt, **kwoptions))
 
     # other commands
 
     def definecolor(self, name, colormodel, colorspec):
         """
-        definecolor command (xcolor)
+        define a new color from a color specification
 
-        Define new color from color model and specification.
+        Define a new color `name` from a color model `colormodel` and a color
+        specification `colorspec`. All arguments are strings.
 
-        - core models: rgb, cmy, cmyk, hsb, gray
-        - integer models: RGB, HTML, HSB, Gray
-        - decimal models: Hsb, tHsb, wave
-        - pseudo models: names, ps
+        see
+        [<code>xcolor</code>
+        §2.5.2](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2)
         """
         if not isinstance(colorspec, str):
             colorspec = ','.join(colorspec)
@@ -749,17 +950,23 @@ class Scope:
 
     def colorlet(self, name, colorexpr):
         """
-        colorlet command (xcolor)
+        define a new color from a color expression
 
-        Define new color from color expression, e.g. 'blue!20!white'.
+        Define a new color `name` from color expression `colorexpr`. All
+        arguments are strings.
+
+        see
+        [<code>xcolor</code>
+        §2.5.2](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2)
         """
         self._append(Raw(r'\colorlet' + '{' + name + '}{' + colorexpr + '}'))
 
     def tikzset(self, opt=None, **kwoptions):
         """
-        tikzset command
+        set options that apply for the rest of the current environment
 
-        Sets options.
+        see
+        [§12.4.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.1)
         """
         # create options string without brackets
         opt = _options_code(opt=opt, **kwoptions)
@@ -768,11 +975,17 @@ class Scope:
         # because braces are needed
         self._append(Raw(r'\tikzset{' + opt + '}'))
 
-    def tikzstyle(self, name, opt=None, **kwoptions):
+    def style(self, name, opt=None, **kwoptions):
         """
         define style
 
-        Emulates deprecated tikzstyle command using tikzset.
+        Defines a new style `name` by the given options. In the following, this
+        style can be used whereever options are accepted, and acts as if these
+        options had been given directly. It can also be used to override
+        TikZ' default styles like the default draw style.
+
+        see
+        [§12.4.2](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.2)
         """
         # create options string without brackets
         opt = _options_code(opt=opt, **kwoptions)
@@ -783,7 +996,16 @@ class Scope:
 
 
 class Picture(Scope):
-    "tikzpicture environment"
+    """
+    tikzpicture environment
+
+    This is the central class of the module. A picture is created by
+    instantiating `Picture` and calling its methods. The object represents both
+    the whole LaTeX document and its single `tikzpicture` environment.
+
+    see
+    [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
+    """
 
     def __init__(self, opt=None, **kwoptions):
         super().__init__(opt=opt, **kwoptions)
@@ -794,18 +1016,28 @@ class Picture(Scope):
         # make sure it gets deleted
         atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
 
-    def usetikzlibrary(self, library):
-        "usetikzlibrary command"
-        self.preamble.append(r'\usetikzlibrary{' + library + '}')
+    def usetikzlibrary(self, name):
+        """
+        use TikZ library
+
+        Makes the functionality of the TikZ library `name` available.
+
+        This adds a `\\usetikzlibrary` command to the preamble of the LaTeX
+        document.
+
+        see
+        [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
+        """
+        self.preamble.append(r'\usetikzlibrary{' + name + '}')
 
     def code(self):
-        "create TikZ code"
+        "returns TikZ code"
         return (r'\begin{tikzpicture}' + self.opt + '\n'
                 + '\n'.join(el.code() for el in self.elements) + '\n'
                 + r'\end{tikzpicture}')
 
     def document_code(self):
-        "create LaTeX/TikZ code for a complete compilable document"
+        "returns LaTeX/TikZ code for a complete compilable document"
         return (
                 '\n'.join([
                     r'\documentclass{article}',
@@ -865,7 +1097,14 @@ class Picture(Scope):
         write picture to image file
 
         The file type is determined from the file extension, and can be PDF,
-        PNG, or SVG.
+        PNG, or SVG. For PDF, the file created by LaTeX is copied to
+        `filename`. For PNG, the PDF is rendered to a bitmap. If the
+        resolution `dpi` is not specified, `cfg.file_dpi` is used. For
+        SVG, the PDF is converted to SVG.
+
+        Rendering and conversion are performed by the
+        [MuPDF library](https://mupdf.com/) through the Python binding
+        [PyMuPDF](https://pymupdf.readthedocs.io/en/latest/).
         """
         if dpi is None:
             dpi = cfg.file_dpi
@@ -905,7 +1144,16 @@ class Picture(Scope):
         return pix.getPNGdata()
 
     def demo(self, dpi=None):
-        "convenience function to test & debug picture"
+        """
+        show picture and code in the notebook
+
+        This is a convenience function meant to aid development and debugging
+        of a picture in a Jupyter notebook. It creates an output cell that (by
+        default) contains the rendered picture on the left and the
+        corresponding TikZ code on the right. This layout can be modified via
+        `cfg.demo_template`. The optional argument `dpi` can be used to
+        override the default `cfg.display_dpi`.
+        """
         png_base64 = ''
         try:
             png_base64 = base64.b64encode(
@@ -922,5 +1170,7 @@ class Picture(Scope):
 
 
 class LatexException(Exception):
-    "problem with external LaTeX process"
+    """
+    error in the external LaTeX process
+    """
     pass
