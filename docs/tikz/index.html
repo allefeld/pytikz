@@ -144,8 +144,6 @@ class cfg:
     The default is 300.
     &#34;&#34;&#34;
 
-    # executable name, possibly including path
-    # pdflatex is fastest, lualatex + 50%, xelatex + 100%
     latex = &#39;pdflatex&#39;
     &#34;&#34;&#34;
     name of the executable used to compile the LaTeX document
@@ -155,8 +153,6 @@ class cfg:
     specific features.
     &#34;&#34;&#34;
 
-    # {0} is replaced by a Base64-encoded PNG image,
-    # {1} by TikZ-LaTeX code
     demo_template = &#39;\n&#39;.join([
         &#39;&lt;div style=&#34;background-color:#e0e0e0;margin:0&#34;&gt;&#39;,
         &#39;  &lt;div&gt;&#39;,
@@ -173,7 +169,7 @@ class cfg:
     &#34;&#34;&#34;
     HTML template used by `Picture.demo` for notebook display
 
-    The template must contain two placeholders. `{0}` is replaced by a
+    The template must contain two placeholders: `{0}` is replaced by a
     Base64-encoded PNG-format rendering of the graphic, `{1}`by the output of
     `Picture.code`.
     &#34;&#34;&#34;
@@ -1204,7 +1200,7 @@ class Picture(Scope):
             capture_output=True,
             text=True)
         if completed.returncode != 0:
-            raise LatexException(&#39;pdflatex has failed\n&#39; + completed.stdout)
+            raise LatexError(&#39;LaTeX has failed\n&#39; + completed.stdout)
 
         # rename created PDF file
         os.rename(self.tempdir + sep + &#39;tikz-figure0.pdf&#39;, self.temp_pdf)
@@ -1370,8 +1366,6 @@ path (unless they are path-global).</p></section>
     The default is 300.
     &#34;&#34;&#34;
 
-    # executable name, possibly including path
-    # pdflatex is fastest, lualatex + 50%, xelatex + 100%
     latex = &#39;pdflatex&#39;
     &#34;&#34;&#34;
     name of the executable used to compile the LaTeX document
@@ -1381,8 +1375,6 @@ path (unless they are path-global).</p></section>
     specific features.
     &#34;&#34;&#34;
 
-    # {0} is replaced by a Base64-encoded PNG image,
-    # {1} by TikZ-LaTeX code
     demo_template = &#39;\n&#39;.join([
         &#39;&lt;div style=&#34;background-color:#e0e0e0;margin:0&#34;&gt;&#39;,
         &#39;  &lt;div&gt;&#39;,
@@ -1399,7 +1391,7 @@ path (unless they are path-global).</p></section>
     &#34;&#34;&#34;
     HTML template used by `Picture.demo` for notebook display
 
-    The template must contain two placeholders. `{0}` is replaced by a
+    The template must contain two placeholders: `{0}` is replaced by a
     Base64-encoded PNG-format rendering of the graphic, `{1}`by the output of
     `Picture.code`.
     &#34;&#34;&#34;</code></pre>
@@ -1426,7 +1418,7 @@ specific features.</p></section>
 <dt id="tikz.cfg.demo_template"><code class="name">var <span class="ident">demo_template</span></code></dt>
 <dd>
 <section class="desc"><p>HTML template used by <a title="tikz.Picture.demo" href="#tikz.Picture.demo"><code>Picture.demo()</code></a> for notebook display</p>
-<p>The template must contain two placeholders. <code>{0}</code> is replaced by a
+<p>The template must contain two placeholders: <code>{0}</code> is replaced by a
 Base64-encoded PNG-format rendering of the graphic, <code>{1}</code>by the output of
 <a title="tikz.Picture.code" href="#tikz.Picture.code"><code>Picture.code()</code></a>.</p></section>
 </dd>
@@ -3520,7 +3512,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
             capture_output=True,
             text=True)
         if completed.returncode != 0:
-            raise LatexException(&#39;pdflatex has failed\n&#39; + completed.stdout)
+            raise LatexError(&#39;LaTeX has failed\n&#39; + completed.stdout)
 
         # rename created PDF file
         os.rename(self.tempdir + sep + &#39;tikz-figure0.pdf&#39;, self.temp_pdf)

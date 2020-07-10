@@ -7,7 +7,7 @@ mkdir -p docs
 
 # create pages for modules
 pdoc --config sort_identifiers=False --config show_inherited_members=True --html -o $TEMP tikz
-mv $TEMP/tikz/index.html docs/
+mv $TEMP/tikz docs/
 
 # create file that tells GitHub to just copy the files
 touch docs/.nojekyll
