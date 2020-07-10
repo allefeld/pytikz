@@ -1024,12 +1024,33 @@ class Picture(Scope):
         Makes the functionality of the TikZ library `name` available.
 
         This adds a `\\usetikzlibrary` command to the preamble of the LaTeX
-        document.
+        document. If the method is called multiple times with the same
+        arguments, only one such command is added.
 
         see
         [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
         """
-        self.preamble.append(r'\usetikzlibrary{' + name + '}')
+        code = r'\usetikzlibrary{' + name + '}'
+        if code not in self.preamble:
+            self.preamble.append(code)
+
+    def usepackage(self, name, options=None):
+        """
+        use LaTeX package
+
+        Makes the functionality of the LaTeX package `name` available. If
+        specified, package `options` are set.
+
+        This adds a `\\usepackage` command to the preamble of the LaTeX
+        document. If the method is called multiple times with the same
+        arguments, only one such command is added.
+        """
+        code = r'\usepackage'
+        if options is not None:
+            code += '[' + options + ']'
+        code += '{' + name + '}'
+        if code not in self.preamble:
+            self.preamble.append(code)
 
     def code(self):
         "returns TikZ code"
@@ -1044,7 +1065,7 @@ class Picture(Scope):
                     r'\documentclass{article}',
                     r'\usepackage{tikz}',
                     r'\usetikzlibrary{external}',
-                    r'\tikzexternalize'])
+                    r'\tikzexternalize']) + '\n'
                 + '\n'.join(self.preamble) + '\n'
                 + r'\begin{document}' + '\n'
                 + self.code() + '\n'
