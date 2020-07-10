@@ -1275,7 +1275,7 @@ class Picture(Scope):
         try:
             png_base64 = base64.b64encode(
                 self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
-        except LatexException as le:
+        except LatexError as le:
             message = le.args[0]
             tikz_error = message.find(&#39;! &#39;)
             if tikz_error != -1:
@@ -1286,7 +1286,7 @@ class Picture(Scope):
             cfg.demo_template.format(png_base64, code_escaped)))
 
 
-class LatexException(Exception):
+class LatexError(Exception):
     &#34;&#34;&#34;
     error in the external LaTeX process
     &#34;&#34;&#34;
@@ -3591,7 +3591,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         try:
             png_base64 = base64.b64encode(
                 self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
-        except LatexException as le:
+        except LatexError as le:
             message = le.args[0]
             tikz_error = message.find(&#39;! &#39;)
             if tikz_error != -1:
@@ -3804,7 +3804,7 @@ override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi
     try:
         png_base64 = base64.b64encode(
             self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
-    except LatexException as le:
+    except LatexError as le:
         message = le.args[0]
         tikz_error = message.find(&#39;! &#39;)
         if tikz_error != -1:
@@ -3977,8 +3977,8 @@ override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi
 </dd>
 </dl>
 </dd>
-<dt id="tikz.LatexException"><code class="flex name class">
-<span>class <span class="ident">LatexException</span></span>
+<dt id="tikz.LatexError"><code class="flex name class">
+<span>class <span class="ident">LatexError</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -3987,7 +3987,7 @@ override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class LatexException(Exception):
+<pre><code class="python">class LatexError(Exception):
     &#34;&#34;&#34;
     error in the external LaTeX process
     &#34;&#34;&#34;
@@ -4187,7 +4187,7 @@ override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi
 </ul>
 </li>
 <li>
-<h4><code><a title="tikz.LatexException" href="#tikz.LatexException">LatexException</a></code></h4>
+<h4><code><a title="tikz.LatexError" href="#tikz.LatexError">LatexError</a></code></h4>
 </li>
 </ul>
 </li>

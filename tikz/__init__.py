@@ -49,8 +49,6 @@ class cfg:
     The default is 300.
     """
 
-    # executable name, possibly including path
-    # pdflatex is fastest, lualatex + 50%, xelatex + 100%
     latex = 'pdflatex'
     """
     name of the executable used to compile the LaTeX document
@@ -60,8 +58,6 @@ class cfg:
     specific features.
     """
 
-    # {0} is replaced by a Base64-encoded PNG image,
-    # {1} by TikZ-LaTeX code
     demo_template = '\n'.join([
         '<div style="background-color:#e0e0e0;margin:0">',
         '  <div>',
@@ -78,7 +74,7 @@ class cfg:
     """
     HTML template used by `Picture.demo` for notebook display
 
-    The template must contain two placeholders. `{0}` is replaced by a
+    The template must contain two placeholders: `{0}` is replaced by a
     Base64-encoded PNG-format rendering of the graphic, `{1}`by the output of
     `Picture.code`.
     """
@@ -1109,7 +1105,7 @@ class Picture(Scope):
             capture_output=True,
             text=True)
         if completed.returncode != 0:
-            raise LatexException('pdflatex has failed\n' + completed.stdout)
+            raise LatexError('LaTeX has failed\n' + completed.stdout)
 
         # rename created PDF file
         os.rename(self.tempdir + sep + 'tikz-figure0.pdf', self.temp_pdf)
@@ -1180,7 +1176,7 @@ class Picture(Scope):
         try:
             png_base64 = base64.b64encode(
                 self._repr_png_(dpi=dpi)).decode('ascii')
-        except LatexException as le:
+        except LatexError as le:
             message = le.args[0]
             tikz_error = message.find('! ')
             if tikz_error != -1:
@@ -1191,7 +1187,7 @@ class Picture(Scope):
             cfg.demo_template.format(png_base64, code_escaped)))
 
 
-class LatexException(Exception):
+class LatexError(Exception):
     """
     error in the external LaTeX process
     """
