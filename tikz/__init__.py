@@ -1039,7 +1039,7 @@ class Picture(Scope):
         use LaTeX package
 
         Makes the functionality of the LaTeX package `name` available. If
-        specified, package `options` are set.
+        specified, package <code>options</code> are set.
 
         This adds a `\\usepackage` command to the preamble of the LaTeX
         document. If the method is called multiple times with the same

@@ -35,7 +35,7 @@ Coordinate
 
     `ndarray`s must be numeric and represent coordinates in TikZ' `xyz` coordinate system.
    
-    Strings can be used to specify coordinates in TikZ' other coordinate systems, e.g. `polar`, `perpendicular`, and `node`. Coordinate-specifying strings are enclosed in parentheses `()`, possibly prefixed by `+` or `++` (relative / incremental coordinates). A special case is the coordinate `'cycle'`, which can be created by the function `cycle`.
+    Strings can be used to specify coordinates in TikZ' other coordinate systems, e.g. `polar`, `perpendicular`, and <code>node</code>. Coordinate-specifying strings are enclosed in parentheses `()`, possibly prefixed by `+` or `++` (relative / incremental coordinates). A special case is the coordinate `'cycle'`, which can be created by the function `cycle`.
 
     If an argument is intended to be a coordinate, it is normally named `coord`.
 

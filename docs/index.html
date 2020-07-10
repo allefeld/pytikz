@@ -48,7 +48,7 @@ notebook seamless.</p>
 <p>A <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.13.2">coordinate</a> can be specified as a <code>tuple</code> or a NumPy 1d-<code>ndarray</code> with 2 or 3 elements, or as a string.</p>
 <p>Elements of <code>tuple</code>s can be numbers or strings. If all elements are numeric, it specifies coordinates in TikZ' <code>xyz</code> coordinate system. If all are strings (normally a number plus a unit like <code>'2pt'</code>) it specifies coordinates in TikZ' <code>canvas</code> coordinate system. Otherwise it specifies a <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.13.2.1">mixed</a> <code>xyz</code>/<code>canvas</code> coordinate.</p>
 <p><code>ndarray</code>s must be numeric and represent coordinates in TikZ' <code>xyz</code> coordinate system.</p>
-<p>Strings can be used to specify coordinates in TikZ' other coordinate systems, e.g. <code>polar</code>, <code>perpendicular</code>, and <a title="tikz.node" href="#tikz.node"><code>node</code></a>. Coordinate-specifying strings are enclosed in parentheses <code>()</code>, possibly prefixed by <code>+</code> or <code>++</code> (relative / incremental coordinates). A special case is the coordinate <code>'cycle'</code>, which can be created by the function <a title="tikz.cycle" href="#tikz.cycle"><code>cycle()</code></a>.</p>
+<p>Strings can be used to specify coordinates in TikZ' other coordinate systems, e.g. <code>polar</code>, <code>perpendicular</code>, and <code>node</code>. Coordinate-specifying strings are enclosed in parentheses <code>()</code>, possibly prefixed by <code>+</code> or <code>++</code> (relative / incremental coordinates). A special case is the coordinate <code>'cycle'</code>, which can be created by the function <a title="tikz.cycle" href="#tikz.cycle"><code>cycle()</code></a>.</p>
 <p>If an argument is intended to be a coordinate, it is normally named <code>coord</code>.</p>
 </dd>
 <dt>Sequence of coordinates</dt>
@@ -165,7 +165,7 @@ class cfg:
         &#39;    &lt;/div&gt;&#39;,
         &#39;    &lt;pre&#39;,
         &#39;        style=&#34;width:47%;margin:0;padding:10px;float:right;&#39;
-        + &#39;white-space:pre-wrap&#34;&#39;,
+        + &#39;white-space:pre-wrap;font-size:smaller&#34;&#39;,
         &#39;        &gt;{1}&lt;/pre&gt;&#39;,
         &#39;  &lt;/div&gt;&#39;,
         &#39;  &lt;div style=&#34;clear:both&#34;&gt;&lt;/div&gt;&#39;,
@@ -1119,12 +1119,33 @@ class Picture(Scope):
         Makes the functionality of the TikZ library `name` available.
 
         This adds a `\\usetikzlibrary` command to the preamble of the LaTeX
-        document.
+        document. If the method is called multiple times with the same
+        arguments, only one such command is added.
 
         see
         [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
         &#34;&#34;&#34;
-        self.preamble.append(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)
+        code = r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;
+        if code not in self.preamble:
+            self.preamble.append(code)
+
+    def usepackage(self, name, options=None):
+        &#34;&#34;&#34;
+        use LaTeX package
+
+        Makes the functionality of the LaTeX package `name` available. If
+        specified, package &lt;code&gt;options&lt;/code&gt; are set.
+
+        This adds a `\\usepackage` command to the preamble of the LaTeX
+        document. If the method is called multiple times with the same
+        arguments, only one such command is added.
+        &#34;&#34;&#34;
+        code = r&#39;\usepackage&#39;
+        if options is not None:
+            code += &#39;[&#39; + options + &#39;]&#39;
+        code += &#39;{&#39; + name + &#39;}&#39;
+        if code not in self.preamble:
+            self.preamble.append(code)
 
     def code(self):
         &#34;returns TikZ code&#34;
@@ -1139,7 +1160,7 @@ class Picture(Scope):
                     r&#39;\documentclass{article}&#39;,
                     r&#39;\usepackage{tikz}&#39;,
                     r&#39;\usetikzlibrary{external}&#39;,
-                    r&#39;\tikzexternalize&#39;])
+                    r&#39;\tikzexternalize&#39;]) + &#39;\n&#39;
                 + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
                 + r&#39;\begin{document}&#39; + &#39;\n&#39;
                 + self.code() + &#39;\n&#39;
@@ -1370,7 +1391,7 @@ path (unless they are path-global).</p></section>
         &#39;    &lt;/div&gt;&#39;,
         &#39;    &lt;pre&#39;,
         &#39;        style=&#34;width:47%;margin:0;padding:10px;float:right;&#39;
-        + &#39;white-space:pre-wrap&#34;&#39;,
+        + &#39;white-space:pre-wrap;font-size:smaller&#34;&#39;,
         &#39;        &gt;{1}&lt;/pre&gt;&#39;,
         &#39;  &lt;/div&gt;&#39;,
         &#39;  &lt;div style=&#34;clear:both&#34;&gt;&lt;/div&gt;&#39;,
@@ -3414,12 +3435,33 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         Makes the functionality of the TikZ library `name` available.
 
         This adds a `\\usetikzlibrary` command to the preamble of the LaTeX
-        document.
+        document. If the method is called multiple times with the same
+        arguments, only one such command is added.
 
         see
         [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
         &#34;&#34;&#34;
-        self.preamble.append(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)
+        code = r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;
+        if code not in self.preamble:
+            self.preamble.append(code)
+
+    def usepackage(self, name, options=None):
+        &#34;&#34;&#34;
+        use LaTeX package
+
+        Makes the functionality of the LaTeX package `name` available. If
+        specified, package &lt;code&gt;options&lt;/code&gt; are set.
+
+        This adds a `\\usepackage` command to the preamble of the LaTeX
+        document. If the method is called multiple times with the same
+        arguments, only one such command is added.
+        &#34;&#34;&#34;
+        code = r&#39;\usepackage&#39;
+        if options is not None:
+            code += &#39;[&#39; + options + &#39;]&#39;
+        code += &#39;{&#39; + name + &#39;}&#39;
+        if code not in self.preamble:
+            self.preamble.append(code)
 
     def code(self):
         &#34;returns TikZ code&#34;
@@ -3434,7 +3476,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
                     r&#39;\documentclass{article}&#39;,
                     r&#39;\usepackage{tikz}&#39;,
                     r&#39;\usetikzlibrary{external}&#39;,
-                    r&#39;\tikzexternalize&#39;])
+                    r&#39;\tikzexternalize&#39;]) + &#39;\n&#39;
                 + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
                 + r&#39;\begin{document}&#39; + &#39;\n&#39;
                 + self.code() + &#39;\n&#39;
@@ -3572,7 +3614,8 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 <section class="desc"><p>use TikZ library</p>
 <p>Makes the functionality of the TikZ library <code>name</code> available.</p>
 <p>This adds a <code>\usetikzlibrary</code> command to the preamble of the LaTeX
-document.</p>
+document. If the method is called multiple times with the same
+arguments, only one such command is added.</p>
 <p>see
 <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5">Part V</a></p></section>
 <details class="source">
@@ -3586,12 +3629,48 @@ document.</p>
     Makes the functionality of the TikZ library `name` available.
 
     This adds a `\\usetikzlibrary` command to the preamble of the LaTeX
-    document.
+    document. If the method is called multiple times with the same
+    arguments, only one such command is added.
 
     see
     [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
     &#34;&#34;&#34;
-    self.preamble.append(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)</code></pre>
+    code = r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;
+    if code not in self.preamble:
+        self.preamble.append(code)</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.usepackage"><code class="name flex">
+<span>def <span class="ident">usepackage</span></span>(<span>self, name, options=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>use LaTeX package</p>
+<p>Makes the functionality of the LaTeX package <code>name</code> available. If
+specified, package <code>options</code> are set.</p>
+<p>This adds a <code>\usepackage</code> command to the preamble of the LaTeX
+document. If the method is called multiple times with the same
+arguments, only one such command is added.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def usepackage(self, name, options=None):
+    &#34;&#34;&#34;
+    use LaTeX package
+
+    Makes the functionality of the LaTeX package `name` available. If
+    specified, package &lt;code&gt;options&lt;/code&gt; are set.
+
+    This adds a `\\usepackage` command to the preamble of the LaTeX
+    document. If the method is called multiple times with the same
+    arguments, only one such command is added.
+    &#34;&#34;&#34;
+    code = r&#39;\usepackage&#39;
+    if options is not None:
+        code += &#39;[&#39; + options + &#39;]&#39;
+    code += &#39;{&#39; + name + &#39;}&#39;
+    if code not in self.preamble:
+        self.preamble.append(code)</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.code"><code class="name flex">
@@ -3630,7 +3709,7 @@ document.</p>
                 r&#39;\documentclass{article}&#39;,
                 r&#39;\usepackage{tikz}&#39;,
                 r&#39;\usetikzlibrary{external}&#39;,
-                r&#39;\tikzexternalize&#39;])
+                r&#39;\tikzexternalize&#39;]) + &#39;\n&#39;
             + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
             + r&#39;\begin{document}&#39; + &#39;\n&#39;
             + self.code() + &#39;\n&#39;
@@ -4084,6 +4163,7 @@ override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi
 <h4><code><a title="tikz.Picture" href="#tikz.Picture">Picture</a></code></h4>
 <ul class="two-column">
 <li><code><a title="tikz.Picture.usetikzlibrary" href="#tikz.Picture.usetikzlibrary">usetikzlibrary</a></code></li>
+<li><code><a title="tikz.Picture.usepackage" href="#tikz.Picture.usepackage">usepackage</a></code></li>
 <li><code><a title="tikz.Picture.code" href="#tikz.Picture.code">code</a></code></li>
 <li><code><a title="tikz.Picture.document_code" href="#tikz.Picture.document_code">document_code</a></code></li>
 <li><code><a title="tikz.Picture.write_image" href="#tikz.Picture.write_image">write_image</a></code></li>
