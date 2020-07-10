@@ -65,8 +65,9 @@ class cfg:
     demo_template = '\n'.join([
         '<div style="background-color:#e0e0e0;margin:0">',
         '  <div>',
-        '    <img style="max-width:47%;padding:10px;float:left"',
-        '      src="data:image/png;base64,{0}">',
+        '    <div style="padding:10px;float:left">'
+        '      <img src="data:image/png;base64,{0}">',
+        '    </div>',
         '    <pre',
         '        style="width:47%;margin:0;padding:10px;float:right;'
         + 'white-space:pre-wrap"',

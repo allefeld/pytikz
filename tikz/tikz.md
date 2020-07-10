@@ -7,7 +7,9 @@ This documentation explains only how to access TikZ' functionality from Python. 
 
 ## Function
 
-The module exposes the basic graphics functionality of TikZ, as covered in [Part III](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.3) of the manual. At its center is the class `Picture`. It primarily represents a [<code>tikzpicture</code> environment](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1), but also provides methods to create a complete LaTeX document and compile it in the background. Methods of the class serve mainly to insert TikZ commands into this environment, but also allow to load necessary TikZ libraries and LaTeX packages.
+The module exposes the basic graphics functionality of TikZ, as described in [Part III](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.3) of the manual, except for some specialized functions with complex syntax (pics, graphs, matrices, trees).
+
+At its center is the class `Picture`. It primarily represents a [<code>tikzpicture</code> environment](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1), but also provides methods to create a complete LaTeX document and compile it in the background. Methods of the class serve mainly to insert TikZ commands into this environment, but also allow to load necessary TikZ libraries and LaTeX packages.
 
 LaTeX documents created by this package always contain a single `tikzpicture` environment, and the document is compiled in such a way that a PDF containing only that picture's bounding box is created. The picture can be directly displayed in a notebook, saved as a PDF, converted to PNG or SVG, and the resulting image file used in another application or again in LaTeX. It is also possible to show the TikZ code corresponding to the picture and copy & paste it into a LaTeX document of your own.
 
@@ -21,7 +23,9 @@ TikZ' basic design comprises
 -   path specifications created from the combination of the first two, and
 -   path actions.
 
-Path actions and other commands are grouped in [<code>scope</code> environments](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1). In addition, there are options which can be attached to a path action, path operation, or environment but can also be embedded in a path specification. In the following it is explained how these TikZ stuctures are mapped to Python in this module. 
+Path actions and other commands are grouped in [<code>scope</code> environments](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1). In addition, there are options which can be attached to a path action, path operation, or environment but can also be embedded in a path specification. In the following it is explained how these TikZ stuctures are mapped to Python in this module.
+
+![](tikz.svg){width=100%}
 
 Coordinate
 

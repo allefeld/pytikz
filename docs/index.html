@@ -1,140 +1,4123 @@
-
-<!DOCTYPE html>
-
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pytikz &#8212; pytikz 0.1.0 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="tikz package" href="tikz.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<p class="logo">
-  <a href="#">
-    <img class="logo" src="_static/logo.png" alt="Logo"/>
-    
-  </a>
-</p>
-
-
-
-<p class="blurb">A Python interface to TikZ</p>
-
-
-
-
-
-
-<h3>Navigation</h3>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">pytikz</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tikz.html">tikz package</a></li>
-</ul>
-
-
-<hr />
-<ul>
-    
-    <li class="toctree-l1"><a href="https://github.com/allefeld/pytikz">GitHub</a></li>
-    
-</ul>
-
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
-
-          <div class="body" role="main">
-            
-  <div class="section" id="pytikz">
-<h1>pytikz<a class="headerlink" href="#pytikz" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-</div>
-<p>This package provides a way to create, compile, view, and save graphics based on the LaTeX package <a class="reference external" href="https://ctan.org/pkg/pgf">TikZ &amp; PGF</a>. It makes the creation of TikZ graphics easier when (part of) the underlying data is computed, and makes the preview and debugging of graphics within a Jupyter
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>tikz API documentation</title>
+<meta name="description" content="This module provides a way to create, compile, view, and save graphics based
+on the LaTeX package [TikZ &amp; PGF](https://ctan.org/pkg/pgf). It makes
+…" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>tikz</code></h1>
+</header>
+<section id="section-intro">
+<p>This module provides a way to create, compile, view, and save graphics based
+on the LaTeX package <a href="https://ctan.org/pkg/pgf">TikZ &amp; PGF</a>. It makes the
+creation of TikZ graphics easier when (part of) the underlying data is
+computed, and makes the preview and debugging of graphics within a Jupyter
 notebook seamless.</p>
-<p>This documentation explains only how to access TikZ’ functionality from Python; to understand it, the <a class="reference external" href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf">TikZ &amp; PGF manual</a> needs to be consulted in parallel. A <a class="reference external" href="https://nbviewer.jupyter.org/github/allefeld/pytikz/blob/master/pytikz.ipynb">notebook</a> contains examples to get you started.</p>
-<div class="section" id="design-of-the-package">
-<h2>Design of the package<a class="headerlink" href="#design-of-the-package" title="Permalink to this headline">¶</a></h2>
-<p>All functionality is contained in the module <a class="reference internal" href="tikz.html#module-tikz" title="tikz"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tikz</span></code></a>, and at its center is the class <a class="reference internal" href="tikz.html#tikz.Picture" title="tikz.Picture"><code class="xref py py-class docutils literal notranslate"><span class="pre">tikz.Picture</span></code></a>. It represents a <code class="docutils literal notranslate"><span class="pre">tikzpicture</span></code> <a class="reference external" href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1">environment</a>, but also provides methods to create a complete LaTeX document and compile it in the background. Methods of the class serve mainly to insert TikZ commands into this environment, but also allow to load necessary TikZ libraries and LaTeX packages.</p>
-<p>LaTeX documents created by this package always contain a single <code class="docutils literal notranslate"><span class="pre">tikzpicture</span></code> environment, and the document is compiled in such a way that a PDF containing only that picture’s bounding box is created. This PDF can be displayed in a notebook, saved, converted to PNG or SVG, and the resulting image file used in another application or again in LaTeX. It is also possible to obtain the LaTeX code and copy &amp; paste it into a LaTeX document of your own.</p>
-<p>TikZ’ basic design comprises (sequences of) coordinates, path operations, path specifications created from the combination of the first two, and path actions. Path actions and other commands are grouped in <code class="docutils literal notranslate"><span class="pre">scope</span></code> <a class="reference external" href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1">environment</a>. In addition, there are options which can be attached to a path action, path operation, or environment but can also be embedded in a path specification. In the following it is explained how these TikZ stuctures are mapped to Python in this package.</p>
+<p>This documentation explains only how to access TikZ' functionality from Python. To understand it, the <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf">TikZ &amp; PGF manual</a> needs to be consulted in parallel. A <a href="https://nbviewer.jupyter.org/github/allefeld/pytikz/blob/master/pytikz.ipynb">notebook</a> contains examples to get you started.</p>
+<h2 id="function">Function</h2>
+<p>The module exposes the basic graphics functionality of TikZ, as described in <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.3">Part III</a> of the manual, except for some specialized functions with complex syntax (pics, graphs, matrices, trees).</p>
+<p>At its center is the class <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a>. It primarily represents a <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1"><code>tikzpicture</code> environment</a>, but also provides methods to create a complete LaTeX document and compile it in the background. Methods of the class serve mainly to insert TikZ commands into this environment, but also allow to load necessary TikZ libraries and LaTeX packages.</p>
+<p>LaTeX documents created by this package always contain a single <code>tikzpicture</code> environment, and the document is compiled in such a way that a PDF containing only that picture's bounding box is created. The picture can be directly displayed in a notebook, saved as a PDF, converted to PNG or SVG, and the resulting image file used in another application or again in LaTeX. It is also possible to show the TikZ code corresponding to the picture and copy &amp; paste it into a LaTeX document of your own.</p>
+<h2 id="design">Design</h2>
+<p>TikZ' basic design comprises</p>
+<ul>
+<li>(sequences of) coordinates,</li>
+<li>path operations,</li>
+<li>path specifications created from the combination of the first two, and</li>
+<li>path actions.</li>
+</ul>
+<p>Path actions and other commands are grouped in <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1"><code>scope</code> environments</a>. In addition, there are options which can be attached to a path action, path operation, or environment but can also be embedded in a path specification. In the following it is explained how these TikZ stuctures are mapped to Python in this module.</p>
+<p><img alt="" src="tikz.svg" width="100%"></p>
 <dl>
-<dt>Coordinate</dt><dd><p>A <a class="reference external" href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.13.2">coordinate</a> can be specified as a <code class="docutils literal notranslate"><span class="pre">tuple</span></code> or a NumPy 1d-<code class="docutils literal notranslate"><span class="pre">ndarray</span></code> with 2 or 3 elements, or as a string.</p>
-<p>Elements of <code class="docutils literal notranslate"><span class="pre">tuple</span></code>s can be numbers or strings. If all elements are    numeric, it represents coordinates in TikZ’ <code class="docutils literal notranslate"><span class="pre">xyz</span></code> coordinate system. If all are strings (normally a number plus a unit like <code class="docutils literal notranslate"><span class="pre">'2pt'</span></code>) it represents coordinates in TikZ’ <code class="docutils literal notranslate"><span class="pre">canvas</span></code> coordinate system. Otherwise it represents a mixed <code class="docutils literal notranslate"><span class="pre">xyz</span></code>/<code class="docutils literal notranslate"><span class="pre">canvas</span></code> coordinate as described in §13.2.1.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ndarray</span></code>s must be numeric and represent coordinates in TikZ’ <code class="docutils literal notranslate"><span class="pre">xyz</span></code> coordinate system.</p>
-<p>Strings can be used to specify coordinates in TikZ’ other coordinate systems, e.g. <code class="docutils literal notranslate"><span class="pre">polar</span></code>, <code class="docutils literal notranslate"><span class="pre">perpendicular`,</span> <span class="pre">and</span> <span class="pre">``node</span></code>. Coordinate-specifying strings are enclosed in parentheses <code class="docutils literal notranslate"><span class="pre">()</span></code>, possibly prefixed by <code class="docutils literal notranslate"><span class="pre">+</span></code> or <code class="docutils literal notranslate"><span class="pre">++</span></code> (relative / incremental coordinates). An special case is the coordinate <code class="docutils literal notranslate"><span class="pre">'cycle'</span></code> (see <a class="reference internal" href="tikz.html#tikz.cycle" title="tikz.cycle"><code class="xref py py-func docutils literal notranslate"><span class="pre">tikz.cycle()</span></code></a>).</p>
-<p>If an argument is intended to be a coordinate, it is normally named <code class="docutils literal notranslate"><span class="pre">coord</span></code>.</p>
+<dt>Coordinate</dt>
+<dd>
+<p>A <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.13.2">coordinate</a> can be specified as a <code>tuple</code> or a NumPy 1d-<code>ndarray</code> with 2 or 3 elements, or as a string.</p>
+<p>Elements of <code>tuple</code>s can be numbers or strings. If all elements are numeric, it specifies coordinates in TikZ' <code>xyz</code> coordinate system. If all are strings (normally a number plus a unit like <code>'2pt'</code>) it specifies coordinates in TikZ' <code>canvas</code> coordinate system. Otherwise it specifies a <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.13.2.1">mixed</a> <code>xyz</code>/<code>canvas</code> coordinate.</p>
+<p><code>ndarray</code>s must be numeric and represent coordinates in TikZ' <code>xyz</code> coordinate system.</p>
+<p>Strings can be used to specify coordinates in TikZ' other coordinate systems, e.g. <code>polar</code>, <code>perpendicular</code>, and <a title="tikz.node" href="#tikz.node"><code>node</code></a>. Coordinate-specifying strings are enclosed in parentheses <code>()</code>, possibly prefixed by <code>+</code> or <code>++</code> (relative / incremental coordinates). A special case is the coordinate <code>'cycle'</code>, which can be created by the function <a title="tikz.cycle" href="#tikz.cycle"><code>cycle()</code></a>.</p>
+<p>If an argument is intended to be a coordinate, it is normally named <code>coord</code>.</p>
 </dd>
-<dt>Sequence of coordinates</dt><dd><p>A sequence of coordinates is specified as a <code class="docutils literal notranslate"><span class="pre">list</span></code> of coordinates as described above, or as a numeric 2d-<code class="docutils literal notranslate"><span class="pre">ndarray</span></code> with 2 or 3 columns, representing <code class="docutils literal notranslate"><span class="pre">xyz</span></code> coordinates.</p>
-<p>If an argument is expected to be a sequence of coordinates, it is normally named <code class="docutils literal notranslate"><span class="pre">coords</span></code>. Often, a single coordinate can be given in place of a sequence.</p>
+<dt>Sequence of coordinates</dt>
+<dd>
+<p>A sequence of coordinates is specified as a <code>list</code> of coordinates as described above, or as a numeric 2d-<code>ndarray</code> with 2 or 3 columns, representing <code>xyz</code> coordinates.</p>
+<p>If an argument is expected to be a sequence of coordinates, it is normally named <code>coords</code>. Often, a single coordinate can be given in place of a sequence.</p>
 </dd>
-<dt>Path operation</dt><dd><p>A path operation is specified as an object of a subclass of <a class="reference internal" href="tikz.html#tikz.Operation" title="tikz.Operation"><code class="xref py py-class docutils literal notranslate"><span class="pre">tikz.Operation</span></code></a>. The class names have been chosen as lowercase, because in practical use these classes act similar to functions,</p>
-<p>It is normally not used as a single argument, but as part of a path specification. Some path operations accept options.</p>
+<dt>Path operation</dt>
+<dd>
+<p>A path operation is specified as an object of a subclass of <a title="tikz.Operation" href="#tikz.Operation"><code>Operation</code></a>. The subclass names are lowercase, because in practical use these classes act similar to functions, i.e. they are only instantiated, not manipulated.</p>
+<p>A path operation is normally not used as a single argument, but as part of a path specification. Some path operations accept options.</p>
 </dd>
-<dt>Path specification</dt><dd><p>A <a class="reference external" href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.14">path specification</a> is specified as a sequence of path operations and  (sequences of) coordinates (shorthand for <a class="reference internal" href="tikz.html#tikz.moveto" title="tikz.moveto"><code class="xref py py-class docutils literal notranslate"><span class="pre">tikz.moveto</span></code></a> operations). It can also include options and <a class="reference internal" href="tikz.html#tikz.Raw" title="tikz.Raw"><code class="xref py py-class docutils literal notranslate"><span class="pre">tikz.Raw</span></code></a> objects.</p>
-<p>It is normally passed as a sequence of arguments named <code class="docutils literal notranslate"><span class="pre">**spec</span></code> to a path action method.</p>
+<dt>Path specification</dt>
+<dd>
+<p>A <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.14">path specification</a> is specified as a sequence of path operations and
+(sequences of) coordinates (shorthand for <a title="tikz.moveto" href="#tikz.moveto"><code>moveto</code></a> operations). It can also include options and strings.</p>
+<p>A path specification is normally passed as a sequence of arguments named <code>**spec</code> to a path action method.</p>
 </dd>
-<dt>Path action</dt><dd><p>A <a class="reference external" href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.15">path action</a> is specified as a method of <a class="reference internal" href="tikz.html#tikz.Picture" title="tikz.Picture"><code class="xref py py-class docutils literal notranslate"><span class="pre">tikz.Picture</span></code></a> and other environments.</p>
+<dt>Path action</dt>
+<dd>
+<p>A <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.15">path action</a> is specified as a method of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a> and other environments. Several method calls in sequence create a sequence of path actions.</p>
 <p>A path action method typically accepts a path specification as well as options as arguments.</p>
 </dd>
-<dt>Option</dt><dd><p>An option is specified as a keyword argument (<code class="docutils literal notranslate"><span class="pre">**kwoptions</span></code>) or as a raw string (<code class="docutils literal notranslate"><span class="pre">opt</span></code>). TikZ keys that contain a space are specified with an underscore <code class="docutils literal notranslate"><span class="pre">_</span></code> instead, TikZ keys that do not take a value are specified with the value <code class="docutils literal notranslate"><span class="pre">True</span></code>. Keys with the value <code class="docutils literal notranslate"><span class="pre">None</span></code> are not passed to TikZ.</p>
-<p>For embedding options within a path specification, the function <a class="reference internal" href="tikz.html#tikz.options" title="tikz.options"><code class="xref py py-func docutils literal notranslate"><span class="pre">tikz.options()</span></code></a> can be used.</p>
-<p>Classes, methods or functions that accept options contain <code class="docutils literal notranslate"><span class="pre">opt=None,</span> <span class="pre">**kwoptions</span></code> in their signature.</p>
+<dt>Scope</dt>
+<dd>
+<p>A scope environment can be added to a <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a> or another environment using the method <a href="#tikz.Scope.addscope">environment<code>.add_scope()</code></a>. This creates a <a title="tikz.Scope" href="#tikz.Scope"><code>Scope</code></a> object, adds it to the environment and returns it. To add path actions and other commands to the environment, call the methods on the returned object.</p>
+</dd>
+<dt>Option</dt>
+<dd>
+<p>An option is specified as a keyword argument (<code>**kwoptions</code>) and/or as a string (<code>opt</code>); the string is included as-is in the TikZ-formatted option string. TikZ keys that contain spaces are specified with an underscore <code>_</code> in their place. TikZ keys that do not take a value are specified with the value <code>True</code>. Keys with the value <code>None</code> are not passed to TikZ.</p>
+<p>For embedding options within a path specification, the function <a title="tikz.options" href="#tikz.options"><code>options()</code></a> can be used.</p>
+<p>Classes, methods or functions that accept options contain opt=None, **kwoptions in their signature.</p>
 </dd>
 </dl>
+<h2 id="color">Color</h2>
+<p>TikZ automatically loads the <a href="https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf">LaTeX package <code>xcolor</code></a>, which means that a large number of <a href="https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#section.4">named colors</a> can be used within pictures. The package also allows to define new colors based on a variety of color models as well as through mixture of known colors, exposed through the
+<a href="#tikz.Scope.definecolor">environment<code>.definecolor()</code></a> and
+<a href="#tikz.Scope.colorlet">environment<code>.colorlet()</code></a>
+methods of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a> and other environments.</p>
+<hr>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module provides a way to create, compile, view, and save graphics based
+on the LaTeX package [TikZ &amp; PGF](https://ctan.org/pkg/pgf). It makes the
+creation of TikZ graphics easier when (part of) the underlying data is
+computed, and makes the preview and debugging of graphics within a Jupyter
+notebook seamless.
+
+.. include:: tikz.md
+   :start-line: 4
+&#34;&#34;&#34;
+
+
+# TODO:
+# - type hinting
+# - all docstring triple-quoted, with blank line after
+# - docstring for: class (not `__init__`), method, function; package, module
+# - variables are documented in the class/module/package docstring
+
+import atexit
+import base64
+import hashlib
+import html
+import numbers
+import os
+import os.path
+import shutil
+import subprocess
+import tempfile
+
+import fitz
+import IPython.display
+import numpy as np
+
+
+class cfg:
+    &#34;configuration variables&#34;
+
+    display_dpi = 192
+    &#34;&#34;&#34;
+    resolution at which the graphic is rendered for display in the notebook
+
+    The default is 192, twice the standard monitor resolution.
+    &#34;&#34;&#34;
+
+    file_dpi = 300
+    &#34;&#34;&#34;
+    resolution at which the graphic is rendered for saved PNG files
+
+    The default is 300.
+    &#34;&#34;&#34;
+
+    # executable name, possibly including path
+    # pdflatex is fastest, lualatex + 50%, xelatex + 100%
+    latex = &#39;pdflatex&#39;
+    &#34;&#34;&#34;
+    name of the executable used to compile the LaTeX document
+
+    This can be any version of LaTeX that produces PDF output. The fastest
+    appears to be pdfLaTeX, but choosing another version may be necessary for
+    specific features.
+    &#34;&#34;&#34;
+
+    # {0} is replaced by a Base64-encoded PNG image,
+    # {1} by TikZ-LaTeX code
+    demo_template = &#39;\n&#39;.join([
+        &#39;&lt;div style=&#34;background-color:#e0e0e0;margin:0&#34;&gt;&#39;,
+        &#39;  &lt;div&gt;&#39;,
+        &#39;    &lt;div style=&#34;padding:10px;float:left&#34;&gt;&#39;
+        &#39;      &lt;img src=&#34;data:image/png;base64,{0}&#34;&gt;&#39;,
+        &#39;    &lt;/div&gt;&#39;,
+        &#39;    &lt;pre&#39;,
+        &#39;        style=&#34;width:47%;margin:0;padding:10px;float:right;&#39;
+        + &#39;white-space:pre-wrap&#34;&#39;,
+        &#39;        &gt;{1}&lt;/pre&gt;&#39;,
+        &#39;  &lt;/div&gt;&#39;,
+        &#39;  &lt;div style=&#34;clear:both&#34;&gt;&lt;/div&gt;&#39;,
+        &#39;&lt;/div&gt;&#39;])
+    &#34;&#34;&#34;
+    HTML template used by `Picture.demo` for notebook display
+
+    The template must contain two placeholders. `{0}` is replaced by a
+    Base64-encoded PNG-format rendering of the graphic, `{1}`by the output of
+    `Picture.code`.
+    &#34;&#34;&#34;
+
+
+# helper functions and helper-helper functions
+
+
+def _option_code(key, val):
+    &#34;&#34;&#34;
+    returns TikZ code for single option
+
+    helper function for `_options`
+    &#34;&#34;&#34;
+    # replace underscores by spaces
+    key = str(key).replace(&#39;_&#39;, &#39; &#39;)
+    if val is True:
+        # omit `=True`
+        return key
+    else:
+        return f&#39;{key}={str(val)}&#39;
+
+
+def _options_code(opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    returns TikZ code for options
+
+    helper function to format `opt=None, **kwoptions` in various functions
+    &#34;&#34;&#34;
+    # use `_option_code` to transform individual options
+    o = [_option_code(key, val) for key, val in kwoptions.items()
+         if val is not None]
+    # insert raw string
+    if opt is not None:
+        o.insert(0, opt)
+    # create TikZ code
+    code = &#39;[&#39; + &#39;,&#39;.join(o) + &#39;]&#39;
+    # suppress empty options
+    if code == &#39;[]&#39;:
+        code = &#39;&#39;
+    return code
+
+
+# check types
+def _str(obj): return isinstance(obj, str)
+def _tuple(obj): return isinstance(obj, tuple)
+def _numeric(obj): return isinstance(obj, numbers.Real)
+def _str_or_numeric(obj): return _str(obj) or _numeric(obj)
+def _ndarray(obj): return isinstance(obj, np.ndarray)
+def _list(obj): return isinstance(obj, list)                        # noqa E302
+
+
+def _coordinate(coord):
+    &#34;&#34;&#34;
+    check and normalize coordinate
+    &#34;&#34;&#34;
+    # A coordinate can be a string with enclosing parentheses, possibly
+    # prefixed by `+` or `++`, or the string &#39;cycle&#39;.
+    if _str(coord) and (
+            (coord.startswith((&#39;(&#39;, &#39;+(&#39;, &#39;++(&#39;)) and coord.endswith(&#39;)&#39;))
+            or coord == &#39;cycle&#39;):
+        return coord
+    # A coordinate can be a 2/3-element tuple containing strings or numbers:
+    if (_tuple(coord) and len(coord) in [2, 3]
+            and all(_str_or_numeric(x) for x in coord)):
+        # If all strings, normalize to string.
+        if all(_str(x) for x in coord):
+            return &#39;(&#39; + &#39;,&#39;.join(coord) + &#39;)&#39;
+        # If all numbers, normalize to ndarray.
+        if all(_numeric(x) for x in coord):
+            return np.array(coord)
+        # If mixed, keep.
+        return coord
+    # A coordinate can be a 2/3-element 1d-ndarray.
+    if (_ndarray(coord) and coord.ndim == 1 and coord.size in [2, 3]
+            and all(_numeric(x) for x in coord)):
+        return coord
+    # Otherwise, report error.
+    raise TypeError(f&#39;{coord} is not a coordinate&#39;)
+
+
+def _sequence(seq, accept_coordinate=True):
+    &#34;&#34;&#34;
+    check and normalize sequence of coordinates
+
+    accept_coordinate: whether to accept a single coordinate
+    &#34;&#34;&#34;
+    # A sequence can be a list.
+    if _list(seq):
+        # Normalize contained coordinates.
+        seq = [_coordinate(coord) for coord in seq]
+        # If all coordinates are 1d-ndarrays, make the sequence a 2d-ndarray.
+        if (all(_ndarray(coord) for coord in seq)
+                and all(coord.size == seq[0].size for coord in seq)):
+            return np.array(seq)
+        return seq
+    # A sequence can be a numeric 2d-ndarray with 2 or 3 columns.
+    if (_ndarray(seq) and seq.ndim == 2 and seq.shape[1] in [2, 3]
+            and all(_numeric(x) for x in seq.flat)):
+        return seq
+    # Optionally accept a coordinate and turn it into a 1-element sequence.
+    if accept_coordinate:
+        return _sequence([seq])
+    # Otherwise, report error.
+    raise TypeError(f&#39;{seq} is not a sequence of coordinates&#39;)
+
+
+def _str_or_numeric_code(x):
+    &#34;&#34;&#34;
+    transform element of coordinate into TikZ representation
+
+    Leaves string elements as is, and converts numeric elements to a
+    fixed-point representation with 5 decimals precision (TikZ: ±16383.99999)
+    without trailing &#39;0&#39;s or &#39;.&#39;
+    &#34;&#34;&#34;
+    if _str(x):
+        # leave string as-is
+        return x
+    else:
+        # convert numeric elements to a fixed-point representation with 5
+        # decimals precision (TikZ: ±16383.99999) without trailing &#39;0&#39;s or &#39;.&#39;
+        return &#39;{:.5f}&#39;.format(x).rstrip(&#39;0&#39;).rstrip(&#39;.&#39;)
+
+
+def _coordinate_code(coord):
+    &#34;returns TikZ code for coordinate&#34;
+    # assumes the argument has already been normalized
+    if _str(coord):
+        # leave string as-is
+        return coord
+    else:
+        return &#39;(&#39; + &#39;,&#39;.join(map(_str_or_numeric_code, coord)) + &#39;)&#39;
+
+
+# coordinates
+
+
+def cycle():
+    &#34;cycle coordinate&#34;
+    return &#39;cycle&#39;
+
+
+# raw object
+
+class Raw:
+    &#34;&#34;&#34;
+    raw TikZ code object
+
+    In order to support TikZ features that are not explicitly modelled, objects
+    of this class encapsulate a string which is copied as-is into the TikZ
+    code. `Raw` objects can be used in place of `Operation` and `Action`
+    objects. Normally it is not necessary to explicily instantiate this class,
+    because the respective methods accept strings and convert them into `Raw`
+    objects internally.
+    &#34;&#34;&#34;
+    def __init__(self, string):
+        self.string = string
+
+    def code(self):
+        &#34;&#34;&#34;
+        returns TikZ code
+
+        Returns the stored string.
+        &#34;&#34;&#34;
+        return self.string
+
+
+# path operations (§14)
+
+
+class Operation:
+    &#34;&#34;&#34;
+    path operation
+
+    Path operations are modelled as `Operation` objects.
+
+    Names for `Operation` subclasses are lowercase, because from a user
+    perspective they act like functions; no method call or field access should
+    be performed on their instances.
+
+    This is an abstract superclass that is not to be instantiated.
+    &#34;&#34;&#34;
+    def code(self):
+        &#34;returns TikZ code&#34;
+        pass
+
+
+class moveto(Operation):
+    &#34;&#34;&#34;
+    one or several move-to operations
+
+    `coords` can be a coordinate or a sequence of coordinates.
+
+    See [§14.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.1)
+    &#34;&#34;&#34;
+    def __init__(self, coords):
+        # normalize coordinates
+        self.coords = _sequence(coords, accept_coordinate=True)
+
+    def code(self):
+        # put move-to operation before each coordinate,
+        # for the first one implicitly
+        return &#39; &#39;.join(_coordinate_code(coord) for coord in self.coords)
+
+
+class lineto(Operation):
+    &#34;&#34;&#34;
+    one or several line-to operations of the same type
+
+    `coords` can be a coordinate or a sequence of coordinates.
+
+    `op` can be `&#39;--&#39;` for straight lines (default), `&#39;-|&#39;` for first
+    horizontal, then vertical, or `&#39;|-&#39;` for first vertical, then horizontal.
+
+    see [§14.2](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.2)
+    &#34;&#34;&#34;
+    def __init__(self, coords, op=&#39;--&#39;):
+        # normalize coordinates
+        self.coords = _sequence(coords, accept_coordinate=True)
+        self.op = op
+
+    def code(self):
+        # put line-to operation before each coordinate
+        return f&#39;{self.op} &#39; + f&#39; {self.op} &#39;.join(
+            _coordinate_code(coord) for coord in self.coords)
+
+
+class line(Operation):
+    &#34;&#34;&#34;
+    convenience version of `lineto`
+
+    Starts with move-to instead of line-to operation.
+    &#34;&#34;&#34;
+    def __init__(self, coords, op=&#39;--&#39;):
+        # normalize coordinates
+        self.coords = _sequence(coords)
+        self.op = op
+
+    def code(self):
+        # put line-to operation between coordinates
+        # (implicit move-to before first)
+        return f&#39; {self.op} &#39;.join(
+            _coordinate_code(coord) for coord in self.coords)
+
+
+class curveto(Operation):
+    &#34;&#34;&#34;
+    curve-to operation
+
+    `coord`, `control1`, and the optional `control2` must be coordinates.
+
+    see [§14.3](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.3)
+    &#34;&#34;&#34;
+    def __init__(self, coord, control1, control2=None):
+        # normalize coordinates
+        self.coord = _coordinate(coord)
+        self.control1 = _coordinate(control1)
+        if control2 is not None:
+            self.control2 = _coordinate(control2)
+        else:
+            self.control2 = None
+
+    def code(self):
+        code = &#39;.. controls &#39; + _coordinate_code(self.control1)
+        if self.control2 is not None:
+            code += &#39; and &#39; + _coordinate_code(self.control2)
+        code += &#39; ..&#39; + &#39; &#39; + _coordinate_code(self.coord)
+        return code
+
+
+class rectangle(Operation):
+    &#34;&#34;&#34;
+    rectangle operation
+
+    `coord` must be a coordinate
+
+    see [§14.4](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.4)
+    &#34;&#34;&#34;
+    def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return (&#39;rectangle&#39; + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))
+
+
+class circle(Operation):
+    &#34;&#34;&#34;
+    circle operation
+
+    Either `radius` or `x_radius` and `y_radius` (for an ellipse) must be
+    given. If all are specified, `radius` overrides the other two options. They
+    can be numbers or a string containing a number and a dimension.
+
+    The circle is centered at the current coordinate, unless another coordinate
+    is given as `at`.
+
+    see [§14.6](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.6)
+    &#34;&#34;&#34;
+    def __init__(self, radius=None, x_radius=None, y_radius=None, at=None,
+                 opt=None, **kwoptions):
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
+        if radius is not None:
+            self.x_radius = radius
+            self.y_radius = radius
+        else:
+            self.x_radius = x_radius
+            self.y_radius = y_radius
+        # normalize coordinate
+        if at is not None:
+            self.at = _coordinate(at)
+        else:
+            self.at = None
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        kwoptions = self.kwoptions
+        if self.x_radius == self.y_radius:
+            kwoptions[&#39;radius&#39;] = self.x_radius
+        else:
+            kwoptions[&#39;x_radius&#39;] = self.x_radius
+            kwoptions[&#39;y_radius&#39;] = self.y_radius
+        if self.at is not None:
+            kwoptions[&#39;at&#39;] = _coordinate_code(self.at)
+        return &#39;circle&#39; + _options_code(opt=self.opt, **self.kwoptions)
+
+
+class arc(Operation):
+    &#34;&#34;&#34;
+    arc operation
+
+    Either `radius` or `x_radius` and `y_radius` (for an elliptical arc) must
+    be given. If all are specified, `radius` overrides the other two options.
+    They can be numbers or a string containing a number and a dimension.
+
+    see [§14.7](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.7)
+    &#34;&#34;&#34;
+    def __init__(self, radius=None, x_radius=None, y_radius=None,
+                 opt=None, **kwoptions):
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
+        if radius is not None:
+            self.x_radius = radius
+            self.y_radius = radius
+        else:
+            self.x_radius = x_radius
+            self.y_radius = y_radius
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        kwoptions = self.kwoptions
+        if self.x_radius == self.y_radius:
+            kwoptions[&#39;radius&#39;] = self.x_radius
+        else:
+            kwoptions[&#39;x_radius&#39;] = self.x_radius
+            kwoptions[&#39;y_radius&#39;] = self.y_radius
+        return &#39;arc&#39; + _options_code(opt=self.opt, **kwoptions)
+
+
+class grid(Operation):
+    &#34;&#34;&#34;
+    grid operation
+
+    Either `step` or `xstep` and `ystep` must be given. If all are specified,
+    `step` overrides the other two options. They can be numbers or a string
+    containing a number and a dimension. Specifying `step` as a coordinate is
+    not supported, use `xstep` and `ystep` instead.
+
+    see [§14.8](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.8)
+    &#34;&#34;&#34;
+    def __init__(self, coord, step=None, xstep=None, ystep=None,
+                 opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
+        if step is not None:
+            self.xstep = step
+            self.ystep = step
+        else:
+            self.xstep = xstep
+            self.ystep = ystep
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        kwoptions = self.kwoptions
+        if self.xstep == self.ystep:
+            kwoptions[&#39;step&#39;] = self.xstep
+        else:
+            kwoptions[&#39;xstep&#39;] = self.xstep
+            kwoptions[&#39;ystep&#39;] = self.ystep
+        return (&#39;grid&#39; + _options_code(opt=self.opt, **kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))
+
+
+class parabola(Operation):
+    &#34;&#34;&#34;
+    parabola operation
+
+    `coord` and the optional `bend` must be coordinates.
+
+    see [§14.9](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.9)
+    &#34;&#34;&#34;
+    def __init__(self, coord, bend=None, opt=None, **kwoptions):
+        # normalize coordinates
+        self.coord = _coordinate(coord)
+        if bend is not None:
+            self.bend = _coordinate(bend)
+        else:
+            self.bend = None
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        code = &#39;parabola&#39; + _options_code(opt=self.opt, **self.kwoptions)
+        if self.bend is not None:
+            code += &#39; bend &#39; + _coordinate_code(self.bend)
+        code += &#39; &#39; + _coordinate_code(self.coord)
+        return code
+
+
+class sin(Operation):
+    &#34;&#34;&#34;
+    sine operation
+
+    `coord` must be a coordinate.
+
+    see [§14.10](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.10)
+    &#34;&#34;&#34;
+    def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return (&#39;sin&#39; + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))
+
+
+class cos(Operation):
+    &#34;&#34;&#34;
+    cosine operation
+
+    `coord` must be a coordinate.
+
+    see [§14.10](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.10)
+    &#34;&#34;&#34;
+    def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return (&#39;cos&#39; + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))
+
+
+class topath(Operation):
+    &#34;&#34;&#34;
+    to-path operation
+
+    `coord` must be a coordinate.
+
+    see [§14.13](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.13)
+    &#34;&#34;&#34;
+    def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return (&#39;to&#39; + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))
+
+
+class node(Operation):
+    &#34;&#34;&#34;
+    node operation
+
+    `contents` must be a string containing the node text, and may be LaTeX
+    code.
+
+    The optional `name` must be a string, which allows later references to the
+    coordinate `(`name`)` in TikZ&#39; node coordinate system.
+
+    The node is positioned relative to the current coordinate, unless the
+    optional coordinate `at` is given.
+
+    Animation is not supported because it does not make sense for static
+    image generation. The foreach statement for nodes is not supported because
+    it can be replaced by a Python loop.
+
+    see [§17](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.17)
+    &#34;&#34;&#34;
+    # Provides &#39;headless&#39; mode for `Scope.node` and `Scope.coordinate`
+    def __init__(self, contents, name=None, at=None, _headless=False,
+                 opt=None, **kwoptions):
+        self.name = name
+        self.contents = contents
+        # normalize coordinate
+        if at is not None:
+            self.at = _coordinate(at)
+        else:
+            self.at = None
+        self.headless = _headless
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        if not self.headless:
+            code = &#39;node&#39;
+        else:
+            code = &#39;&#39;
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        if self.name is not None:
+            code += f&#39; ({self.name})&#39;
+        if self.at is not None:
+            code += &#39; at &#39; + _coordinate_code(self.at)
+        code += &#39; {&#39; + self.contents + &#39;}&#39;
+        if self.headless:
+            code = code.lstrip()
+        return code
+
+
+class coordinate(Operation):
+    &#34;&#34;&#34;
+    coordinate operation
+
+    `name` must be a string, which allows later references to the coordinate
+    `(`name`)` in TikZ&#39; node coordinate system.
+
+    The node is positioned relative to the current coordinate, unless the
+    optional coordinate `at` is given.
+
+    Animation is not supported because it does not make sense for static
+    image generation. The foreach statement for nodes is not supported because
+    it can be replaced by a Python loop.
+
+    see
+    [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+    &#34;&#34;&#34;
+    def __init__(self, name, at=None, _headless=False, opt=None, **kwoptions):
+        self.name = name
+        # normalize coordinate
+        if at is not None:
+            self.at = _coordinate(at)
+        else:
+            self.at = None
+        self.headless = _headless
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        if not self.headless:
+            code = &#39;coordinate&#39;
+        else:
+            code = &#39;&#39;
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        code += f&#39; ({self.name})&#39;
+        if self.at is not None:
+            code += &#39; at &#39; + _coordinate_code(self.at)
+        if self.headless:
+            code = code.lstrip()
+        return code
+
+
+class plot(Operation):
+    &#34;&#34;&#34;
+    plot operation
+
+    `coords` can be a coordinate or a sequence of coordinates.
+
+    The optional `to` determines whether a line-to operation is included before
+    the plot operation.
+
+    The difference between `plot coordinates` and `plot file` is not exposed;
+    the decision whether to specify coordinates inline in the TikZ code or
+    provide them through a file is made internally. Coordinate expressions and
+    gnuplot formulas are not supported.
+
+    see [§22](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.22)
+    &#34;&#34;&#34;
+    def __init__(self, coords, to=False, opt=None, **kwoptions):
+        # normalize coordinates
+        self.coords = _sequence(coords, accept_coordinate=True)
+        self.to = to
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        # The &#39;file&#39; variant may be used in the future as an alternative to
+        # coordinates when there are many points.
+        if self.to:
+            code = &#39;--plot&#39;
+        else:
+            code = &#39;plot&#39;
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        code += &#39; coordinates {&#39; + &#39; &#39;.join(
+            _coordinate_code(coord) for coord in self.coords) + &#39;}&#39;
+        return code
+
+
+def options(opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    in-path options
+
+    Though this is not a path operation, it can be specified at an arbitrary
+    position within a path specification. It sets options for the rest of the
+    path (unless they are path-global).
+    &#34;&#34;&#34;
+    # just a wrapper around _options_code
+    return _options_code(opt=opt, **kwoptions)
+
+
+# actions on paths
+
+def _operation(op):
+    &#34;&#34;&#34;
+    check and normalize path specification elements
+
+    The elements of a path specification argument (`*spec`) can be `Operation`
+    objects (left as is), (lists of) coordinates (converted to `moveto`
+    objects), and strings (converted to `Raw` objects).
+
+    helper function for `Action`
+    &#34;&#34;&#34;
+    if isinstance(op, Operation):
+        # leave `Operation` as is
+        return op
+    if _str(op):
+        # convert string to `Raw` object
+        return Raw(op)
+    return moveto(op)
+
+
+class Action:
+    &#34;&#34;&#34;
+    action on path
+
+    Objects of this class are used to represent path actions. It is not
+    normally necessary to instantiate this class, because `Action` objects are
+    created and added implicitly by environment methods like
+    [&lt;code&gt;Picture.path()&lt;/code&gt;](#tikz.Scope.path).
+
+    see [§15](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.15)
+    &#34;&#34;&#34;
+    def __init__(self, action_name, *spec, opt=None, **kwoptions):
+        self.action_name = action_name
+        # normalize path specification
+        self.spec = [_operation(op) for op in spec]
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        &#34;returns TikZ code&#34;
+        return (&#39;\\&#39; + self.action_name
+                + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + &#39; &#39;.join(op.code() for op in self.spec) + &#39;;&#39;)
+
+
+# environments
+
+
+class Scope:
+    &#34;&#34;&#34;
+    scope environment
+
+    A scope can be used to group path actions and other commands together, so
+    that options can be applied to them in total.
+
+    Do not instantiate this class, but use the
+    [&lt;code&gt;add_scope()&lt;/code&gt;](#tikz.Scope.addscope) method of `Picture` or
+    another environment.
+
+    see
+    [§12.3.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1)
+    &#34;&#34;&#34;
+
+    def __init__(self, opt=None, **kwoptions):
+        self.elements = []
+        self.opt = _options_code(opt=opt, **kwoptions)
+
+    def _append(self, el):
+        &#34;&#34;&#34;
+        append element
+
+        Elements of an environment object can be `Action` objects (for path
+        actions), `Raw` objects (for other commands), or other environment
+        objects.
+        &#34;&#34;&#34;
+        self.elements.append(el)
+
+    def add_scope(self, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        create and add scope to the current environment
+
+        A `Scope` object is created, added, and returned.
+        &#34;&#34;&#34;
+        s = Scope(opt=opt, **kwoptions)
+        self._append(s)
+        return s
+
+    def code(self):
+        &#34;returns TikZ code&#34;
+        code = r&#39;\begin{scope}&#39; + self.opt + &#39;\n&#39;
+        code += &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
+        code += r&#39;\end{scope}&#39;
+        return code
+
+    # add actions on paths (§15)
+
+    def path(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        path action
+
+        The `path` path action is the prototype of all path actions. It
+        represents a pure path, one that is not used for drawing, filling or
+        other creation of visible elements, unless instructed to do so by
+        options.
+
+        `*spec` is one or more arguments giving the path specification,
+        `opt=None, **kwoptions` can be used to specify options.
+
+        see [§14](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.14)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;path&#39;, *spec, opt=opt, **kwoptions))
+
+    def draw(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        draw action
+
+        Abbreviation for [&lt;code&gt;path(…, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.3](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.3)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;draw&#39;, *spec, opt=opt, **kwoptions))
+
+    def fill(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        fill action
+
+        Abbreviation for [&lt;code&gt;path(…, fill=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.5](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.5)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;fill&#39;, *spec, opt=opt, **kwoptions))
+
+    def filldraw(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        filldraw action
+
+        Abbreviation for
+        [&lt;code&gt;path(…, fill=True, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+        &#34;&#34;&#34;
+        self._append(Action(&#39;filldraw&#39;, *spec, opt=opt, **kwoptions))
+
+    def pattern(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        pattern action
+
+        Abbreviation
+        for [&lt;code&gt;path(…, pattern=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.5.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.15.5.1)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;pattern&#39;, *spec, opt=opt, **kwoptions))
+
+    def shade(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        shade action
+
+        Abbreviation for [&lt;code&gt;path(…, shade=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.7](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.7)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;shade&#39;, *spec, opt=opt, **kwoptions))
+
+    def shadedraw(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        shadedraw action
+
+        Abbreviation for
+        [&lt;code&gt;path(…, shade=True, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+        &#34;&#34;&#34;
+        self._append(Action(&#39;shadedraw&#39;, *spec, opt=opt, **kwoptions))
+
+    def clip(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        clip action
+
+        Abbreviation for [&lt;code&gt;path(…, clip=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.9](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.9)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;clip&#39;, *spec, opt=opt, **kwoptions))
+
+    def useasboundingbox(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        useasboundingbox action
+
+        Abbreviation for
+        [&lt;code&gt;path(…, use_as_bounding_box=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.8](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.8)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;useasboundingbox&#39;, *spec, opt=opt, **kwoptions))
+
+    def node(self, contents, name=None, at=None, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        node action
+
+        Abbreviation for
+        [&lt;code&gt;path(node(…))&lt;/code&gt;](#tikz.node).
+
+        see
+        [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+       &#34;&#34;&#34;
+        self._append(Action(
+            &#39;node&#39;, node(contents, name=name, at=at, _headless=True),
+            opt=opt, **kwoptions))
+
+    def coordinate(self, name, at=None, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        coordinate action
+
+        Abbreviation for
+        [&lt;code&gt;path(coordinate(…))&lt;/code&gt;](#tikz.coordinate).
+
+        see
+        [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+       &#34;&#34;&#34;
+        &#34;coordinate action&#34;
+        self._append(Action(
+            &#39;coordinate&#39;, coordinate(name=name, at=at, _headless=True),
+            opt=opt, **kwoptions))
+
+    # other commands
+
+    def definecolor(self, name, colormodel, colorspec):
+        &#34;&#34;&#34;
+        define a new color from a color specification
+
+        Define a new color `name` from a color model `colormodel` and a color
+        specification `colorspec`. All arguments are strings.
+
+        see
+        [&lt;code&gt;xcolor&lt;/code&gt;
+        §2.5.2](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2)
+        &#34;&#34;&#34;
+        if not isinstance(colorspec, str):
+            colorspec = &#39;,&#39;.join(colorspec)
+        self._append(Raw(r&#39;\definecolor&#39; + &#39;{&#39; + name + &#39;}{&#39;
+                     + colormodel + &#39;}{&#39; + colorspec + &#39;}&#39;))
+
+    def colorlet(self, name, colorexpr):
+        &#34;&#34;&#34;
+        define a new color from a color expression
+
+        Define a new color `name` from color expression `colorexpr`. All
+        arguments are strings.
+
+        see
+        [&lt;code&gt;xcolor&lt;/code&gt;
+        §2.5.2](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2)
+        &#34;&#34;&#34;
+        self._append(Raw(r&#39;\colorlet&#39; + &#39;{&#39; + name + &#39;}{&#39; + colorexpr + &#39;}&#39;))
+
+    def tikzset(self, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        set options that apply for the rest of the current environment
+
+        see
+        [§12.4.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.1)
+        &#34;&#34;&#34;
+        # create options string without brackets
+        opt = _options_code(opt=opt, **kwoptions)
+        if opt.startswith(&#39;[&#39;) and opt.endswith(&#39;]&#39;):
+            opt = opt[1:-1]
+        # because braces are needed
+        self._append(Raw(r&#39;\tikzset{&#39; + opt + &#39;}&#39;))
+
+    def style(self, name, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        define style
+
+        Defines a new style `name` by the given options. In the following, this
+        style can be used whereever options are accepted, and acts as if these
+        options had been given directly. It can also be used to override
+        TikZ&#39; default styles like the default draw style.
+
+        see
+        [§12.4.2](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.2)
+        &#34;&#34;&#34;
+        # create options string without brackets
+        opt = _options_code(opt=opt, **kwoptions)
+        if opt.startswith(&#39;[&#39;) and opt.endswith(&#39;]&#39;):
+            opt = opt[1:-1]
+        # because braces are needed
+        self._append(Raw(r&#39;\tikzset{&#39; + name + &#39;/.style={&#39; + opt + &#39;}}&#39;))
+
+
+class Picture(Scope):
+    &#34;&#34;&#34;
+    tikzpicture environment
+
+    This is the central class of the module. A picture is created by
+    instantiating `Picture` and calling its methods. The object represents both
+    the whole LaTeX document and its single `tikzpicture` environment.
+
+    see
+    [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
+    &#34;&#34;&#34;
+
+    def __init__(self, opt=None, **kwoptions):
+        super().__init__(opt=opt, **kwoptions)
+        # additional preamble entries
+        self.preamble = []
+        # create temporary directory for pdflatex etc.
+        self.tempdir = tempfile.mkdtemp(prefix=&#39;tikz-&#39;)
+        # make sure it gets deleted
+        atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
+
+    def usetikzlibrary(self, name):
+        &#34;&#34;&#34;
+        use TikZ library
+
+        Makes the functionality of the TikZ library `name` available.
+
+        This adds a `\\usetikzlibrary` command to the preamble of the LaTeX
+        document.
+
+        see
+        [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
+        &#34;&#34;&#34;
+        self.preamble.append(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)
+
+    def code(self):
+        &#34;returns TikZ code&#34;
+        return (r&#39;\begin{tikzpicture}&#39; + self.opt + &#39;\n&#39;
+                + &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
+                + r&#39;\end{tikzpicture}&#39;)
+
+    def document_code(self):
+        &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
+        return (
+                &#39;\n&#39;.join([
+                    r&#39;\documentclass{article}&#39;,
+                    r&#39;\usepackage{tikz}&#39;,
+                    r&#39;\usetikzlibrary{external}&#39;,
+                    r&#39;\tikzexternalize&#39;])
+                + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
+                + r&#39;\begin{document}&#39; + &#39;\n&#39;
+                + self.code() + &#39;\n&#39;
+                + r&#39;\end{document}&#39; + &#39;\n&#39;)
+
+    def _create_pdf(self):
+        &#34;ensure that an up-to-date PDF file exists&#34;
+
+        sep = os.path.sep
+
+        # We don&#39;t want a PDF file of the whole LaTeX document, but only of the
+        # contents of the `tikzpicture` environment. This is achieved using
+        # TikZ&#39; `external` library, which makes TikZ write out pictures as
+        # individual PDF files. To do so, in a normal pdflatex run TikZ calls
+        # pdflatex again with special arguments. We use these special
+        # arguments directly. See section 53 of the PGF/TikZ manual.
+
+        # create LaTeX code
+        code = self.document_code()
+
+        # does the PDF file have to be created?
+        #  This check is implemented by using the SHA1 digest of the LaTeX code
+        # in the PDF filename, and to skip creation if that file exists.
+        hash = hashlib.sha1(code.encode()).hexdigest()
+        self.temp_pdf = self.tempdir + sep + &#39;tikz-&#39; + hash + &#39;.pdf&#39;
+        if os.path.isfile(self.temp_pdf):
+            return
+
+        # create LaTeX file
+        temp_tex = self.tempdir + sep + &#39;tikz.tex&#39;
+        with open(temp_tex, &#39;w&#39;) as f:
+            f.write(code)
+
+        # process LaTeX file into PDF
+        completed = subprocess.run(
+            [cfg.latex,
+             &#39;-jobname&#39;,
+             &#39;tikz-figure0&#39;,
+             r&#39;\def\tikzexternalrealjob{tikz}\input{tikz}&#39;],
+            cwd=self.tempdir,
+            capture_output=True,
+            text=True)
+        if completed.returncode != 0:
+            raise LatexException(&#39;pdflatex has failed\n&#39; + completed.stdout)
+
+        # rename created PDF file
+        os.rename(self.tempdir + sep + &#39;tikz-figure0.pdf&#39;, self.temp_pdf)
+
+    def write_image(self, filename, dpi=None):
+        &#34;&#34;&#34;
+        write picture to image file
+
+        The file type is determined from the file extension, and can be PDF,
+        PNG, or SVG. For PDF, the file created by LaTeX is copied to
+        `filename`. For PNG, the PDF is rendered to a bitmap. If the
+        resolution `dpi` is not specified, `cfg.file_dpi` is used. For
+        SVG, the PDF is converted to SVG.
+
+        Rendering and conversion are performed by the
+        [MuPDF library](https://mupdf.com/) through the Python binding
+        [PyMuPDF](https://pymupdf.readthedocs.io/en/latest/).
+        &#34;&#34;&#34;
+        if dpi is None:
+            dpi = cfg.file_dpi
+        self._create_pdf()
+        # determine extension
+        _, ext = os.path.splitext(filename)
+        # if a PDF is requested,
+        if ext.lower() == &#39;.pdf&#39;:
+            # just copy the file
+            shutil.copyfile(self.temp_pdf, filename)
+        elif ext.lower() == &#39;.png&#39;:
+            # render PDF as PNG using PyMuPDF
+            zoom = dpi / 72
+            doc = fitz.open(self.temp_pdf)
+            page = doc.loadPage(0)
+            pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom), alpha=True)
+            pix.writePNG(filename)
+        elif ext.lower() == &#39;.svg&#39;:
+            # convert PDF to SVG using PyMuPDF
+            doc = fitz.open(self.temp_pdf)
+            page = doc.loadPage(0)
+            svg = page.getSVGimage()
+            with open(filename, &#39;w&#39;) as f:
+                f.write(svg)
+        else:
+            print(f&#39;format {ext[1:]} is not supported&#39;)
+
+    def _repr_png_(self, dpi=None):
+        &#34;represent of picture as PNG for notebook&#34;
+        self._create_pdf()
+        if dpi is None:
+            dpi = cfg.display_dpi
+        zoom = dpi / 72
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
+        return pix.getPNGdata()
+
+    def demo(self, dpi=None):
+        &#34;&#34;&#34;
+        show picture and code in the notebook
+
+        This is a convenience function meant to aid development and debugging
+        of a picture in a Jupyter notebook. It creates an output cell that (by
+        default) contains the rendered picture on the left and the
+        corresponding TikZ code on the right. This layout can be modified via
+        `cfg.demo_template`. The optional argument `dpi` can be used to
+        override the default `cfg.display_dpi`.
+        &#34;&#34;&#34;
+        png_base64 = &#39;&#39;
+        try:
+            png_base64 = base64.b64encode(
+                self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
+        except LatexException as le:
+            message = le.args[0]
+            tikz_error = message.find(&#39;! &#39;)
+            if tikz_error != -1:
+                message = message[tikz_error:]
+            print(message)
+        code_escaped = html.escape(self.code())
+        IPython.display.display(IPython.display.HTML(
+            cfg.demo_template.format(png_base64, code_escaped)))
+
+
+class LatexException(Exception):
+    &#34;&#34;&#34;
+    error in the external LaTeX process
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="tikz.cycle"><code class="name flex">
+<span>def <span class="ident">cycle</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>cycle coordinate</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cycle():
+    &#34;cycle coordinate&#34;
+    return &#39;cycle&#39;</code></pre>
+</details>
+</dd>
+<dt id="tikz.options"><code class="name flex">
+<span>def <span class="ident">options</span></span>(<span>opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>in-path options</p>
+<p>Though this is not a path operation, it can be specified at an arbitrary
+position within a path specification. It sets options for the rest of the
+path (unless they are path-global).</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def options(opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    in-path options
+
+    Though this is not a path operation, it can be specified at an arbitrary
+    position within a path specification. It sets options for the rest of the
+    path (unless they are path-global).
+    &#34;&#34;&#34;
+    # just a wrapper around _options_code
+    return _options_code(opt=opt, **kwoptions)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="tikz.cfg"><code class="flex name class">
+<span>class <span class="ident">cfg</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>configuration variables</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class cfg:
+    &#34;configuration variables&#34;
+
+    display_dpi = 192
+    &#34;&#34;&#34;
+    resolution at which the graphic is rendered for display in the notebook
+
+    The default is 192, twice the standard monitor resolution.
+    &#34;&#34;&#34;
+
+    file_dpi = 300
+    &#34;&#34;&#34;
+    resolution at which the graphic is rendered for saved PNG files
+
+    The default is 300.
+    &#34;&#34;&#34;
+
+    # executable name, possibly including path
+    # pdflatex is fastest, lualatex + 50%, xelatex + 100%
+    latex = &#39;pdflatex&#39;
+    &#34;&#34;&#34;
+    name of the executable used to compile the LaTeX document
+
+    This can be any version of LaTeX that produces PDF output. The fastest
+    appears to be pdfLaTeX, but choosing another version may be necessary for
+    specific features.
+    &#34;&#34;&#34;
+
+    # {0} is replaced by a Base64-encoded PNG image,
+    # {1} by TikZ-LaTeX code
+    demo_template = &#39;\n&#39;.join([
+        &#39;&lt;div style=&#34;background-color:#e0e0e0;margin:0&#34;&gt;&#39;,
+        &#39;  &lt;div&gt;&#39;,
+        &#39;    &lt;div style=&#34;padding:10px;float:left&#34;&gt;&#39;
+        &#39;      &lt;img src=&#34;data:image/png;base64,{0}&#34;&gt;&#39;,
+        &#39;    &lt;/div&gt;&#39;,
+        &#39;    &lt;pre&#39;,
+        &#39;        style=&#34;width:47%;margin:0;padding:10px;float:right;&#39;
+        + &#39;white-space:pre-wrap&#34;&#39;,
+        &#39;        &gt;{1}&lt;/pre&gt;&#39;,
+        &#39;  &lt;/div&gt;&#39;,
+        &#39;  &lt;div style=&#34;clear:both&#34;&gt;&lt;/div&gt;&#39;,
+        &#39;&lt;/div&gt;&#39;])
+    &#34;&#34;&#34;
+    HTML template used by `Picture.demo` for notebook display
+
+    The template must contain two placeholders. `{0}` is replaced by a
+    Base64-encoded PNG-format rendering of the graphic, `{1}`by the output of
+    `Picture.code`.
+    &#34;&#34;&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="tikz.cfg.display_dpi"><code class="name">var <span class="ident">display_dpi</span></code></dt>
+<dd>
+<section class="desc"><p>resolution at which the graphic is rendered for display in the notebook</p>
+<p>The default is 192, twice the standard monitor resolution.</p></section>
+</dd>
+<dt id="tikz.cfg.file_dpi"><code class="name">var <span class="ident">file_dpi</span></code></dt>
+<dd>
+<section class="desc"><p>resolution at which the graphic is rendered for saved PNG files</p>
+<p>The default is 300.</p></section>
+</dd>
+<dt id="tikz.cfg.latex"><code class="name">var <span class="ident">latex</span></code></dt>
+<dd>
+<section class="desc"><p>name of the executable used to compile the LaTeX document</p>
+<p>This can be any version of LaTeX that produces PDF output. The fastest
+appears to be pdfLaTeX, but choosing another version may be necessary for
+specific features.</p></section>
+</dd>
+<dt id="tikz.cfg.demo_template"><code class="name">var <span class="ident">demo_template</span></code></dt>
+<dd>
+<section class="desc"><p>HTML template used by <a title="tikz.Picture.demo" href="#tikz.Picture.demo"><code>Picture.demo()</code></a> for notebook display</p>
+<p>The template must contain two placeholders. <code>{0}</code> is replaced by a
+Base64-encoded PNG-format rendering of the graphic, <code>{1}</code>by the output of
+<a title="tikz.Picture.code" href="#tikz.Picture.code"><code>Picture.code()</code></a>.</p></section>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.Raw"><code class="flex name class">
+<span>class <span class="ident">Raw</span></span>
+<span>(</span><span>string)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>raw TikZ code object</p>
+<p>In order to support TikZ features that are not explicitly modelled, objects
+of this class encapsulate a string which is copied as-is into the TikZ
+code. <a title="tikz.Raw" href="#tikz.Raw"><code>Raw</code></a> objects can be used in place of <a title="tikz.Operation" href="#tikz.Operation"><code>Operation</code></a> and <a title="tikz.Action" href="#tikz.Action"><code>Action</code></a>
+objects. Normally it is not necessary to explicily instantiate this class,
+because the respective methods accept strings and convert them into <a title="tikz.Raw" href="#tikz.Raw"><code>Raw</code></a>
+objects internally.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Raw:
+    &#34;&#34;&#34;
+    raw TikZ code object
+
+    In order to support TikZ features that are not explicitly modelled, objects
+    of this class encapsulate a string which is copied as-is into the TikZ
+    code. `Raw` objects can be used in place of `Operation` and `Action`
+    objects. Normally it is not necessary to explicily instantiate this class,
+    because the respective methods accept strings and convert them into `Raw`
+    objects internally.
+    &#34;&#34;&#34;
+    def __init__(self, string):
+        self.string = string
+
+    def code(self):
+        &#34;&#34;&#34;
+        returns TikZ code
+
+        Returns the stored string.
+        &#34;&#34;&#34;
+        return self.string</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.Raw.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>returns TikZ code</p>
+<p>Returns the stored string.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    &#34;&#34;&#34;
+    returns TikZ code
+
+    Returns the stored string.
+    &#34;&#34;&#34;
+    return self.string</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.Operation"><code class="flex name class">
+<span>class <span class="ident">Operation</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>path operation</p>
+<p>Path operations are modelled as <a title="tikz.Operation" href="#tikz.Operation"><code>Operation</code></a> objects.</p>
+<p>Names for <a title="tikz.Operation" href="#tikz.Operation"><code>Operation</code></a> subclasses are lowercase, because from a user
+perspective they act like functions; no method call or field access should
+be performed on their instances.</p>
+<p>This is an abstract superclass that is not to be instantiated.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Operation:
+    &#34;&#34;&#34;
+    path operation
+
+    Path operations are modelled as `Operation` objects.
+
+    Names for `Operation` subclasses are lowercase, because from a user
+    perspective they act like functions; no method call or field access should
+    be performed on their instances.
+
+    This is an abstract superclass that is not to be instantiated.
+    &#34;&#34;&#34;
+    def code(self):
+        &#34;returns TikZ code&#34;
+        pass</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="tikz.moveto" href="#tikz.moveto">moveto</a></li>
+<li><a title="tikz.lineto" href="#tikz.lineto">lineto</a></li>
+<li><a title="tikz.line" href="#tikz.line">line</a></li>
+<li><a title="tikz.curveto" href="#tikz.curveto">curveto</a></li>
+<li><a title="tikz.rectangle" href="#tikz.rectangle">rectangle</a></li>
+<li><a title="tikz.circle" href="#tikz.circle">circle</a></li>
+<li><a title="tikz.arc" href="#tikz.arc">arc</a></li>
+<li><a title="tikz.grid" href="#tikz.grid">grid</a></li>
+<li><a title="tikz.parabola" href="#tikz.parabola">parabola</a></li>
+<li><a title="tikz.sin" href="#tikz.sin">sin</a></li>
+<li><a title="tikz.cos" href="#tikz.cos">cos</a></li>
+<li><a title="tikz.topath" href="#tikz.topath">topath</a></li>
+<li><a title="tikz.node" href="#tikz.node">node</a></li>
+<li><a title="tikz.coordinate" href="#tikz.coordinate">coordinate</a></li>
+<li><a title="tikz.plot" href="#tikz.plot">plot</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.Operation.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    &#34;returns TikZ code&#34;
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.moveto"><code class="flex name class">
+<span>class <span class="ident">moveto</span></span>
+<span>(</span><span>coords)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>one or several move-to operations</p>
+<p><code>coords</code> can be a coordinate or a sequence of coordinates.</p>
+<p>See <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.1">§14.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class moveto(Operation):
+    &#34;&#34;&#34;
+    one or several move-to operations
+
+    `coords` can be a coordinate or a sequence of coordinates.
+
+    See [§14.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.1)
+    &#34;&#34;&#34;
+    def __init__(self, coords):
+        # normalize coordinates
+        self.coords = _sequence(coords, accept_coordinate=True)
+
+    def code(self):
+        # put move-to operation before each coordinate,
+        # for the first one implicitly
+        return &#39; &#39;.join(_coordinate_code(coord) for coord in self.coords)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.moveto.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    # put move-to operation before each coordinate,
+    # for the first one implicitly
+    return &#39; &#39;.join(_coordinate_code(coord) for coord in self.coords)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.lineto"><code class="flex name class">
+<span>class <span class="ident">lineto</span></span>
+<span>(</span><span>coords, op='--')</span>
+</code></dt>
+<dd>
+<section class="desc"><p>one or several line-to operations of the same type</p>
+<p><code>coords</code> can be a coordinate or a sequence of coordinates.</p>
+<p><code>op</code> can be <code>'--'</code> for straight lines (default), <code>'-|'</code> for first
+horizontal, then vertical, or <code>'|-'</code> for first vertical, then horizontal.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.2">§14.2</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class lineto(Operation):
+    &#34;&#34;&#34;
+    one or several line-to operations of the same type
+
+    `coords` can be a coordinate or a sequence of coordinates.
+
+    `op` can be `&#39;--&#39;` for straight lines (default), `&#39;-|&#39;` for first
+    horizontal, then vertical, or `&#39;|-&#39;` for first vertical, then horizontal.
+
+    see [§14.2](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.2)
+    &#34;&#34;&#34;
+    def __init__(self, coords, op=&#39;--&#39;):
+        # normalize coordinates
+        self.coords = _sequence(coords, accept_coordinate=True)
+        self.op = op
+
+    def code(self):
+        # put line-to operation before each coordinate
+        return f&#39;{self.op} &#39; + f&#39; {self.op} &#39;.join(
+            _coordinate_code(coord) for coord in self.coords)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.lineto.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    # put line-to operation before each coordinate
+    return f&#39;{self.op} &#39; + f&#39; {self.op} &#39;.join(
+        _coordinate_code(coord) for coord in self.coords)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.line"><code class="flex name class">
+<span>class <span class="ident">line</span></span>
+<span>(</span><span>coords, op='--')</span>
+</code></dt>
+<dd>
+<section class="desc"><p>convenience version of <a title="tikz.lineto" href="#tikz.lineto"><code>lineto</code></a></p>
+<p>Starts with move-to instead of line-to operation.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class line(Operation):
+    &#34;&#34;&#34;
+    convenience version of `lineto`
+
+    Starts with move-to instead of line-to operation.
+    &#34;&#34;&#34;
+    def __init__(self, coords, op=&#39;--&#39;):
+        # normalize coordinates
+        self.coords = _sequence(coords)
+        self.op = op
+
+    def code(self):
+        # put line-to operation between coordinates
+        # (implicit move-to before first)
+        return f&#39; {self.op} &#39;.join(
+            _coordinate_code(coord) for coord in self.coords)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.line.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    # put line-to operation between coordinates
+    # (implicit move-to before first)
+    return f&#39; {self.op} &#39;.join(
+        _coordinate_code(coord) for coord in self.coords)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.curveto"><code class="flex name class">
+<span>class <span class="ident">curveto</span></span>
+<span>(</span><span>coord, control1, control2=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>curve-to operation</p>
+<p><code>coord</code>, <code>control1</code>, and the optional <code>control2</code> must be coordinates.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.3">§14.3</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class curveto(Operation):
+    &#34;&#34;&#34;
+    curve-to operation
+
+    `coord`, `control1`, and the optional `control2` must be coordinates.
+
+    see [§14.3](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.3)
+    &#34;&#34;&#34;
+    def __init__(self, coord, control1, control2=None):
+        # normalize coordinates
+        self.coord = _coordinate(coord)
+        self.control1 = _coordinate(control1)
+        if control2 is not None:
+            self.control2 = _coordinate(control2)
+        else:
+            self.control2 = None
+
+    def code(self):
+        code = &#39;.. controls &#39; + _coordinate_code(self.control1)
+        if self.control2 is not None:
+            code += &#39; and &#39; + _coordinate_code(self.control2)
+        code += &#39; ..&#39; + &#39; &#39; + _coordinate_code(self.coord)
+        return code</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.curveto.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    code = &#39;.. controls &#39; + _coordinate_code(self.control1)
+    if self.control2 is not None:
+        code += &#39; and &#39; + _coordinate_code(self.control2)
+    code += &#39; ..&#39; + &#39; &#39; + _coordinate_code(self.coord)
+    return code</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.rectangle"><code class="flex name class">
+<span>class <span class="ident">rectangle</span></span>
+<span>(</span><span>coord, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>rectangle operation</p>
+<p><code>coord</code> must be a coordinate</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.4">§14.4</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class rectangle(Operation):
+    &#34;&#34;&#34;
+    rectangle operation
+
+    `coord` must be a coordinate
+
+    see [§14.4](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.4)
+    &#34;&#34;&#34;
+    def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return (&#39;rectangle&#39; + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.rectangle.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    return (&#39;rectangle&#39; + _options_code(opt=self.opt, **self.kwoptions)
+            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.circle"><code class="flex name class">
+<span>class <span class="ident">circle</span></span>
+<span>(</span><span>radius=None, x_radius=None, y_radius=None, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>circle operation</p>
+<p>Either <code>radius</code> or <code>x_radius</code> and <code>y_radius</code> (for an ellipse) must be
+given. If all are specified, <code>radius</code> overrides the other two options. They
+can be numbers or a string containing a number and a dimension.</p>
+<p>The circle is centered at the current coordinate, unless another coordinate
+is given as <code>at</code>.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.6">§14.6</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class circle(Operation):
+    &#34;&#34;&#34;
+    circle operation
+
+    Either `radius` or `x_radius` and `y_radius` (for an ellipse) must be
+    given. If all are specified, `radius` overrides the other two options. They
+    can be numbers or a string containing a number and a dimension.
+
+    The circle is centered at the current coordinate, unless another coordinate
+    is given as `at`.
+
+    see [§14.6](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.6)
+    &#34;&#34;&#34;
+    def __init__(self, radius=None, x_radius=None, y_radius=None, at=None,
+                 opt=None, **kwoptions):
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
+        if radius is not None:
+            self.x_radius = radius
+            self.y_radius = radius
+        else:
+            self.x_radius = x_radius
+            self.y_radius = y_radius
+        # normalize coordinate
+        if at is not None:
+            self.at = _coordinate(at)
+        else:
+            self.at = None
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        kwoptions = self.kwoptions
+        if self.x_radius == self.y_radius:
+            kwoptions[&#39;radius&#39;] = self.x_radius
+        else:
+            kwoptions[&#39;x_radius&#39;] = self.x_radius
+            kwoptions[&#39;y_radius&#39;] = self.y_radius
+        if self.at is not None:
+            kwoptions[&#39;at&#39;] = _coordinate_code(self.at)
+        return &#39;circle&#39; + _options_code(opt=self.opt, **self.kwoptions)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.circle.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    kwoptions = self.kwoptions
+    if self.x_radius == self.y_radius:
+        kwoptions[&#39;radius&#39;] = self.x_radius
+    else:
+        kwoptions[&#39;x_radius&#39;] = self.x_radius
+        kwoptions[&#39;y_radius&#39;] = self.y_radius
+    if self.at is not None:
+        kwoptions[&#39;at&#39;] = _coordinate_code(self.at)
+    return &#39;circle&#39; + _options_code(opt=self.opt, **self.kwoptions)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.arc"><code class="flex name class">
+<span>class <span class="ident">arc</span></span>
+<span>(</span><span>radius=None, x_radius=None, y_radius=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>arc operation</p>
+<p>Either <code>radius</code> or <code>x_radius</code> and <code>y_radius</code> (for an elliptical arc) must
+be given. If all are specified, <code>radius</code> overrides the other two options.
+They can be numbers or a string containing a number and a dimension.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.7">§14.7</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class arc(Operation):
+    &#34;&#34;&#34;
+    arc operation
+
+    Either `radius` or `x_radius` and `y_radius` (for an elliptical arc) must
+    be given. If all are specified, `radius` overrides the other two options.
+    They can be numbers or a string containing a number and a dimension.
+
+    see [§14.7](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.7)
+    &#34;&#34;&#34;
+    def __init__(self, radius=None, x_radius=None, y_radius=None,
+                 opt=None, **kwoptions):
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
+        if radius is not None:
+            self.x_radius = radius
+            self.y_radius = radius
+        else:
+            self.x_radius = x_radius
+            self.y_radius = y_radius
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        kwoptions = self.kwoptions
+        if self.x_radius == self.y_radius:
+            kwoptions[&#39;radius&#39;] = self.x_radius
+        else:
+            kwoptions[&#39;x_radius&#39;] = self.x_radius
+            kwoptions[&#39;y_radius&#39;] = self.y_radius
+        return &#39;arc&#39; + _options_code(opt=self.opt, **kwoptions)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.arc.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    kwoptions = self.kwoptions
+    if self.x_radius == self.y_radius:
+        kwoptions[&#39;radius&#39;] = self.x_radius
+    else:
+        kwoptions[&#39;x_radius&#39;] = self.x_radius
+        kwoptions[&#39;y_radius&#39;] = self.y_radius
+    return &#39;arc&#39; + _options_code(opt=self.opt, **kwoptions)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.grid"><code class="flex name class">
+<span>class <span class="ident">grid</span></span>
+<span>(</span><span>coord, step=None, xstep=None, ystep=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>grid operation</p>
+<p>Either <code>step</code> or <code>xstep</code> and <code>ystep</code> must be given. If all are specified,
+<code>step</code> overrides the other two options. They can be numbers or a string
+containing a number and a dimension. Specifying <code>step</code> as a coordinate is
+not supported, use <code>xstep</code> and <code>ystep</code> instead.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.8">§14.8</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class grid(Operation):
+    &#34;&#34;&#34;
+    grid operation
+
+    Either `step` or `xstep` and `ystep` must be given. If all are specified,
+    `step` overrides the other two options. They can be numbers or a string
+    containing a number and a dimension. Specifying `step` as a coordinate is
+    not supported, use `xstep` and `ystep` instead.
+
+    see [§14.8](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.8)
+    &#34;&#34;&#34;
+    def __init__(self, coord, step=None, xstep=None, ystep=None,
+                 opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        # overriding logic
+        # Information is stored as separate radii to enable scaling.
+        if step is not None:
+            self.xstep = step
+            self.ystep = step
+        else:
+            self.xstep = xstep
+            self.ystep = ystep
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        kwoptions = self.kwoptions
+        if self.xstep == self.ystep:
+            kwoptions[&#39;step&#39;] = self.xstep
+        else:
+            kwoptions[&#39;xstep&#39;] = self.xstep
+            kwoptions[&#39;ystep&#39;] = self.ystep
+        return (&#39;grid&#39; + _options_code(opt=self.opt, **kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.grid.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    kwoptions = self.kwoptions
+    if self.xstep == self.ystep:
+        kwoptions[&#39;step&#39;] = self.xstep
+    else:
+        kwoptions[&#39;xstep&#39;] = self.xstep
+        kwoptions[&#39;ystep&#39;] = self.ystep
+    return (&#39;grid&#39; + _options_code(opt=self.opt, **kwoptions)
+            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.parabola"><code class="flex name class">
+<span>class <span class="ident">parabola</span></span>
+<span>(</span><span>coord, bend=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>parabola operation</p>
+<p><code>coord</code> and the optional <code>bend</code> must be coordinates.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.9">§14.9</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class parabola(Operation):
+    &#34;&#34;&#34;
+    parabola operation
+
+    `coord` and the optional `bend` must be coordinates.
+
+    see [§14.9](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.9)
+    &#34;&#34;&#34;
+    def __init__(self, coord, bend=None, opt=None, **kwoptions):
+        # normalize coordinates
+        self.coord = _coordinate(coord)
+        if bend is not None:
+            self.bend = _coordinate(bend)
+        else:
+            self.bend = None
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        code = &#39;parabola&#39; + _options_code(opt=self.opt, **self.kwoptions)
+        if self.bend is not None:
+            code += &#39; bend &#39; + _coordinate_code(self.bend)
+        code += &#39; &#39; + _coordinate_code(self.coord)
+        return code</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.parabola.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    code = &#39;parabola&#39; + _options_code(opt=self.opt, **self.kwoptions)
+    if self.bend is not None:
+        code += &#39; bend &#39; + _coordinate_code(self.bend)
+    code += &#39; &#39; + _coordinate_code(self.coord)
+    return code</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.sin"><code class="flex name class">
+<span>class <span class="ident">sin</span></span>
+<span>(</span><span>coord, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>sine operation</p>
+<p><code>coord</code> must be a coordinate.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.10">§14.10</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class sin(Operation):
+    &#34;&#34;&#34;
+    sine operation
+
+    `coord` must be a coordinate.
+
+    see [§14.10](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.10)
+    &#34;&#34;&#34;
+    def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return (&#39;sin&#39; + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.sin.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    return (&#39;sin&#39; + _options_code(opt=self.opt, **self.kwoptions)
+            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.cos"><code class="flex name class">
+<span>class <span class="ident">cos</span></span>
+<span>(</span><span>coord, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>cosine operation</p>
+<p><code>coord</code> must be a coordinate.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.10">§14.10</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class cos(Operation):
+    &#34;&#34;&#34;
+    cosine operation
+
+    `coord` must be a coordinate.
+
+    see [§14.10](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.10)
+    &#34;&#34;&#34;
+    def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return (&#39;cos&#39; + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.cos.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    return (&#39;cos&#39; + _options_code(opt=self.opt, **self.kwoptions)
+            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.topath"><code class="flex name class">
+<span>class <span class="ident">topath</span></span>
+<span>(</span><span>coord, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>to-path operation</p>
+<p><code>coord</code> must be a coordinate.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.13">§14.13</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class topath(Operation):
+    &#34;&#34;&#34;
+    to-path operation
+
+    `coord` must be a coordinate.
+
+    see [§14.13](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.13)
+    &#34;&#34;&#34;
+    def __init__(self, coord, opt=None, **kwoptions):
+        # normalize coordinate
+        self.coord = _coordinate(coord)
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        return (&#39;to&#39; + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.topath.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    return (&#39;to&#39; + _options_code(opt=self.opt, **self.kwoptions)
+            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.node"><code class="flex name class">
+<span>class <span class="ident">node</span></span>
+<span>(</span><span>contents, name=None, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>node operation</p>
+<p><code>contents</code> must be a string containing the node text, and may be LaTeX
+code.</p>
+<p>The optional <code>name</code> must be a string, which allows later references to the
+coordinate <code>(</code>name<code>)</code> in TikZ' node coordinate system.</p>
+<p>The node is positioned relative to the current coordinate, unless the
+optional coordinate <code>at</code> is given.</p>
+<p>Animation is not supported because it does not make sense for static
+image generation. The foreach statement for nodes is not supported because
+it can be replaced by a Python loop.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.17">§17</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class node(Operation):
+    &#34;&#34;&#34;
+    node operation
+
+    `contents` must be a string containing the node text, and may be LaTeX
+    code.
+
+    The optional `name` must be a string, which allows later references to the
+    coordinate `(`name`)` in TikZ&#39; node coordinate system.
+
+    The node is positioned relative to the current coordinate, unless the
+    optional coordinate `at` is given.
+
+    Animation is not supported because it does not make sense for static
+    image generation. The foreach statement for nodes is not supported because
+    it can be replaced by a Python loop.
+
+    see [§17](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.17)
+    &#34;&#34;&#34;
+    # Provides &#39;headless&#39; mode for `Scope.node` and `Scope.coordinate`
+    def __init__(self, contents, name=None, at=None, _headless=False,
+                 opt=None, **kwoptions):
+        self.name = name
+        self.contents = contents
+        # normalize coordinate
+        if at is not None:
+            self.at = _coordinate(at)
+        else:
+            self.at = None
+        self.headless = _headless
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        if not self.headless:
+            code = &#39;node&#39;
+        else:
+            code = &#39;&#39;
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        if self.name is not None:
+            code += f&#39; ({self.name})&#39;
+        if self.at is not None:
+            code += &#39; at &#39; + _coordinate_code(self.at)
+        code += &#39; {&#39; + self.contents + &#39;}&#39;
+        if self.headless:
+            code = code.lstrip()
+        return code</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.node.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    if not self.headless:
+        code = &#39;node&#39;
+    else:
+        code = &#39;&#39;
+    code += _options_code(opt=self.opt, **self.kwoptions)
+    if self.name is not None:
+        code += f&#39; ({self.name})&#39;
+    if self.at is not None:
+        code += &#39; at &#39; + _coordinate_code(self.at)
+    code += &#39; {&#39; + self.contents + &#39;}&#39;
+    if self.headless:
+        code = code.lstrip()
+    return code</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.coordinate"><code class="flex name class">
+<span>class <span class="ident">coordinate</span></span>
+<span>(</span><span>name, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>coordinate operation</p>
+<p><code>name</code> must be a string, which allows later references to the coordinate
+<code>(</code>name<code>)</code> in TikZ' node coordinate system.</p>
+<p>The node is positioned relative to the current coordinate, unless the
+optional coordinate <code>at</code> is given.</p>
+<p>Animation is not supported because it does not make sense for static
+image generation. The foreach statement for nodes is not supported because
+it can be replaced by a Python loop.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1">§17.2.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class coordinate(Operation):
+    &#34;&#34;&#34;
+    coordinate operation
+
+    `name` must be a string, which allows later references to the coordinate
+    `(`name`)` in TikZ&#39; node coordinate system.
+
+    The node is positioned relative to the current coordinate, unless the
+    optional coordinate `at` is given.
+
+    Animation is not supported because it does not make sense for static
+    image generation. The foreach statement for nodes is not supported because
+    it can be replaced by a Python loop.
+
+    see
+    [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+    &#34;&#34;&#34;
+    def __init__(self, name, at=None, _headless=False, opt=None, **kwoptions):
+        self.name = name
+        # normalize coordinate
+        if at is not None:
+            self.at = _coordinate(at)
+        else:
+            self.at = None
+        self.headless = _headless
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        if not self.headless:
+            code = &#39;coordinate&#39;
+        else:
+            code = &#39;&#39;
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        code += f&#39; ({self.name})&#39;
+        if self.at is not None:
+            code += &#39; at &#39; + _coordinate_code(self.at)
+        if self.headless:
+            code = code.lstrip()
+        return code</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.coordinate.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    if not self.headless:
+        code = &#39;coordinate&#39;
+    else:
+        code = &#39;&#39;
+    code += _options_code(opt=self.opt, **self.kwoptions)
+    code += f&#39; ({self.name})&#39;
+    if self.at is not None:
+        code += &#39; at &#39; + _coordinate_code(self.at)
+    if self.headless:
+        code = code.lstrip()
+    return code</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.plot"><code class="flex name class">
+<span>class <span class="ident">plot</span></span>
+<span>(</span><span>coords, to=False, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>plot operation</p>
+<p><code>coords</code> can be a coordinate or a sequence of coordinates.</p>
+<p>The optional <code>to</code> determines whether a line-to operation is included before
+the plot operation.</p>
+<p>The difference between <code>plot coordinates</code> and <code>plot file</code> is not exposed;
+the decision whether to specify coordinates inline in the TikZ code or
+provide them through a file is made internally. Coordinate expressions and
+gnuplot formulas are not supported.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.22">§22</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class plot(Operation):
+    &#34;&#34;&#34;
+    plot operation
+
+    `coords` can be a coordinate or a sequence of coordinates.
+
+    The optional `to` determines whether a line-to operation is included before
+    the plot operation.
+
+    The difference between `plot coordinates` and `plot file` is not exposed;
+    the decision whether to specify coordinates inline in the TikZ code or
+    provide them through a file is made internally. Coordinate expressions and
+    gnuplot formulas are not supported.
+
+    see [§22](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.22)
+    &#34;&#34;&#34;
+    def __init__(self, coords, to=False, opt=None, **kwoptions):
+        # normalize coordinates
+        self.coords = _sequence(coords, accept_coordinate=True)
+        self.to = to
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        # The &#39;file&#39; variant may be used in the future as an alternative to
+        # coordinates when there are many points.
+        if self.to:
+            code = &#39;--plot&#39;
+        else:
+            code = &#39;plot&#39;
+        code += _options_code(opt=self.opt, **self.kwoptions)
+        code += &#39; coordinates {&#39; + &#39; &#39;.join(
+            _coordinate_code(coord) for coord in self.coords) + &#39;}&#39;
+        return code</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.plot.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    # The &#39;file&#39; variant may be used in the future as an alternative to
+    # coordinates when there are many points.
+    if self.to:
+        code = &#39;--plot&#39;
+    else:
+        code = &#39;plot&#39;
+    code += _options_code(opt=self.opt, **self.kwoptions)
+    code += &#39; coordinates {&#39; + &#39; &#39;.join(
+        _coordinate_code(coord) for coord in self.coords) + &#39;}&#39;
+    return code</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.Action"><code class="flex name class">
+<span>class <span class="ident">Action</span></span>
+<span>(</span><span>action_name, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>action on path</p>
+<p>Objects of this class are used to represent path actions. It is not
+normally necessary to instantiate this class, because <a title="tikz.Action" href="#tikz.Action"><code>Action</code></a> objects are
+created and added implicitly by environment methods like
+<a href="#tikz.Scope.path"><code>Picture.path()</code></a>.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.15">§15</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Action:
+    &#34;&#34;&#34;
+    action on path
+
+    Objects of this class are used to represent path actions. It is not
+    normally necessary to instantiate this class, because `Action` objects are
+    created and added implicitly by environment methods like
+    [&lt;code&gt;Picture.path()&lt;/code&gt;](#tikz.Scope.path).
+
+    see [§15](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.15)
+    &#34;&#34;&#34;
+    def __init__(self, action_name, *spec, opt=None, **kwoptions):
+        self.action_name = action_name
+        # normalize path specification
+        self.spec = [_operation(op) for op in spec]
+        self.opt = opt
+        self.kwoptions = kwoptions
+
+    def code(self):
+        &#34;returns TikZ code&#34;
+        return (&#39;\\&#39; + self.action_name
+                + _options_code(opt=self.opt, **self.kwoptions)
+                + &#39; &#39; + &#39; &#39;.join(op.code() for op in self.spec) + &#39;;&#39;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.Action.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    &#34;returns TikZ code&#34;
+    return (&#39;\\&#39; + self.action_name
+            + _options_code(opt=self.opt, **self.kwoptions)
+            + &#39; &#39; + &#39; &#39;.join(op.code() for op in self.spec) + &#39;;&#39;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.Scope"><code class="flex name class">
+<span>class <span class="ident">Scope</span></span>
+<span>(</span><span>opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>scope environment</p>
+<p>A scope can be used to group path actions and other commands together, so
+that options can be applied to them in total.</p>
+<p>Do not instantiate this class, but use the
+<a href="#tikz.Scope.addscope"><code>add_scope()</code></a> method of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a> or
+another environment.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1">§12.3.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Scope:
+    &#34;&#34;&#34;
+    scope environment
+
+    A scope can be used to group path actions and other commands together, so
+    that options can be applied to them in total.
+
+    Do not instantiate this class, but use the
+    [&lt;code&gt;add_scope()&lt;/code&gt;](#tikz.Scope.addscope) method of `Picture` or
+    another environment.
+
+    see
+    [§12.3.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1)
+    &#34;&#34;&#34;
+
+    def __init__(self, opt=None, **kwoptions):
+        self.elements = []
+        self.opt = _options_code(opt=opt, **kwoptions)
+
+    def _append(self, el):
+        &#34;&#34;&#34;
+        append element
+
+        Elements of an environment object can be `Action` objects (for path
+        actions), `Raw` objects (for other commands), or other environment
+        objects.
+        &#34;&#34;&#34;
+        self.elements.append(el)
+
+    def add_scope(self, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        create and add scope to the current environment
+
+        A `Scope` object is created, added, and returned.
+        &#34;&#34;&#34;
+        s = Scope(opt=opt, **kwoptions)
+        self._append(s)
+        return s
+
+    def code(self):
+        &#34;returns TikZ code&#34;
+        code = r&#39;\begin{scope}&#39; + self.opt + &#39;\n&#39;
+        code += &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
+        code += r&#39;\end{scope}&#39;
+        return code
+
+    # add actions on paths (§15)
+
+    def path(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        path action
+
+        The `path` path action is the prototype of all path actions. It
+        represents a pure path, one that is not used for drawing, filling or
+        other creation of visible elements, unless instructed to do so by
+        options.
+
+        `*spec` is one or more arguments giving the path specification,
+        `opt=None, **kwoptions` can be used to specify options.
+
+        see [§14](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.14)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;path&#39;, *spec, opt=opt, **kwoptions))
+
+    def draw(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        draw action
+
+        Abbreviation for [&lt;code&gt;path(…, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.3](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.3)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;draw&#39;, *spec, opt=opt, **kwoptions))
+
+    def fill(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        fill action
+
+        Abbreviation for [&lt;code&gt;path(…, fill=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.5](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.5)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;fill&#39;, *spec, opt=opt, **kwoptions))
+
+    def filldraw(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        filldraw action
+
+        Abbreviation for
+        [&lt;code&gt;path(…, fill=True, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+        &#34;&#34;&#34;
+        self._append(Action(&#39;filldraw&#39;, *spec, opt=opt, **kwoptions))
+
+    def pattern(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        pattern action
+
+        Abbreviation
+        for [&lt;code&gt;path(…, pattern=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.5.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.15.5.1)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;pattern&#39;, *spec, opt=opt, **kwoptions))
+
+    def shade(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        shade action
+
+        Abbreviation for [&lt;code&gt;path(…, shade=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.7](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.7)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;shade&#39;, *spec, opt=opt, **kwoptions))
+
+    def shadedraw(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        shadedraw action
+
+        Abbreviation for
+        [&lt;code&gt;path(…, shade=True, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+        &#34;&#34;&#34;
+        self._append(Action(&#39;shadedraw&#39;, *spec, opt=opt, **kwoptions))
+
+    def clip(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        clip action
+
+        Abbreviation for [&lt;code&gt;path(…, clip=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.9](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.9)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;clip&#39;, *spec, opt=opt, **kwoptions))
+
+    def useasboundingbox(self, *spec, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        useasboundingbox action
+
+        Abbreviation for
+        [&lt;code&gt;path(…, use_as_bounding_box=True)&lt;/code&gt;](#tikz.Scope.path).
+
+        see
+        [§15.8](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.8)
+        &#34;&#34;&#34;
+        self._append(Action(&#39;useasboundingbox&#39;, *spec, opt=opt, **kwoptions))
+
+    def node(self, contents, name=None, at=None, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        node action
+
+        Abbreviation for
+        [&lt;code&gt;path(node(…))&lt;/code&gt;](#tikz.node).
+
+        see
+        [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+       &#34;&#34;&#34;
+        self._append(Action(
+            &#39;node&#39;, node(contents, name=name, at=at, _headless=True),
+            opt=opt, **kwoptions))
+
+    def coordinate(self, name, at=None, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        coordinate action
+
+        Abbreviation for
+        [&lt;code&gt;path(coordinate(…))&lt;/code&gt;](#tikz.coordinate).
+
+        see
+        [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+       &#34;&#34;&#34;
+        &#34;coordinate action&#34;
+        self._append(Action(
+            &#39;coordinate&#39;, coordinate(name=name, at=at, _headless=True),
+            opt=opt, **kwoptions))
+
+    # other commands
+
+    def definecolor(self, name, colormodel, colorspec):
+        &#34;&#34;&#34;
+        define a new color from a color specification
+
+        Define a new color `name` from a color model `colormodel` and a color
+        specification `colorspec`. All arguments are strings.
+
+        see
+        [&lt;code&gt;xcolor&lt;/code&gt;
+        §2.5.2](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2)
+        &#34;&#34;&#34;
+        if not isinstance(colorspec, str):
+            colorspec = &#39;,&#39;.join(colorspec)
+        self._append(Raw(r&#39;\definecolor&#39; + &#39;{&#39; + name + &#39;}{&#39;
+                     + colormodel + &#39;}{&#39; + colorspec + &#39;}&#39;))
+
+    def colorlet(self, name, colorexpr):
+        &#34;&#34;&#34;
+        define a new color from a color expression
+
+        Define a new color `name` from color expression `colorexpr`. All
+        arguments are strings.
+
+        see
+        [&lt;code&gt;xcolor&lt;/code&gt;
+        §2.5.2](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2)
+        &#34;&#34;&#34;
+        self._append(Raw(r&#39;\colorlet&#39; + &#39;{&#39; + name + &#39;}{&#39; + colorexpr + &#39;}&#39;))
+
+    def tikzset(self, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        set options that apply for the rest of the current environment
+
+        see
+        [§12.4.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.1)
+        &#34;&#34;&#34;
+        # create options string without brackets
+        opt = _options_code(opt=opt, **kwoptions)
+        if opt.startswith(&#39;[&#39;) and opt.endswith(&#39;]&#39;):
+            opt = opt[1:-1]
+        # because braces are needed
+        self._append(Raw(r&#39;\tikzset{&#39; + opt + &#39;}&#39;))
+
+    def style(self, name, opt=None, **kwoptions):
+        &#34;&#34;&#34;
+        define style
+
+        Defines a new style `name` by the given options. In the following, this
+        style can be used whereever options are accepted, and acts as if these
+        options had been given directly. It can also be used to override
+        TikZ&#39; default styles like the default draw style.
+
+        see
+        [§12.4.2](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.2)
+        &#34;&#34;&#34;
+        # create options string without brackets
+        opt = _options_code(opt=opt, **kwoptions)
+        if opt.startswith(&#39;[&#39;) and opt.endswith(&#39;]&#39;):
+            opt = opt[1:-1]
+        # because braces are needed
+        self._append(Raw(r&#39;\tikzset{&#39; + name + &#39;/.style={&#39; + opt + &#39;}}&#39;))</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="tikz.Picture" href="#tikz.Picture">Picture</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.Scope.add_scope"><code class="name flex">
+<span>def <span class="ident">add_scope</span></span>(<span>self, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create and add scope to the current environment</p>
+<p>A <a title="tikz.Scope" href="#tikz.Scope"><code>Scope</code></a> object is created, added, and returned.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_scope(self, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    create and add scope to the current environment
+
+    A `Scope` object is created, added, and returned.
+    &#34;&#34;&#34;
+    s = Scope(opt=opt, **kwoptions)
+    self._append(s)
+    return s</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    &#34;returns TikZ code&#34;
+    code = r&#39;\begin{scope}&#39; + self.opt + &#39;\n&#39;
+    code += &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
+    code += r&#39;\end{scope}&#39;
+    return code</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.path"><code class="name flex">
+<span>def <span class="ident">path</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>path action</p>
+<p>The <code>path</code> path action is the prototype of all path actions. It
+represents a pure path, one that is not used for drawing, filling or
+other creation of visible elements, unless instructed to do so by
+options.</p>
+<p><code>*spec</code> is one or more arguments giving the path specification,
+<code>opt=None, **kwoptions</code> can be used to specify options.</p>
+<p>see <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.14">§14</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def path(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    path action
+
+    The `path` path action is the prototype of all path actions. It
+    represents a pure path, one that is not used for drawing, filling or
+    other creation of visible elements, unless instructed to do so by
+    options.
+
+    `*spec` is one or more arguments giving the path specification,
+    `opt=None, **kwoptions` can be used to specify options.
+
+    see [§14](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#section.14)
+    &#34;&#34;&#34;
+    self._append(Action(&#39;path&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>draw action</p>
+<p>Abbreviation for <a href="#tikz.Scope.path"><code>path(…, draw=True)</code></a>.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.3">§15.3</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def draw(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    draw action
+
+    Abbreviation for [&lt;code&gt;path(…, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+
+    see
+    [§15.3](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.3)
+    &#34;&#34;&#34;
+    self._append(Action(&#39;draw&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.fill"><code class="name flex">
+<span>def <span class="ident">fill</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>fill action</p>
+<p>Abbreviation for <a href="#tikz.Scope.path"><code>path(…, fill=True)</code></a>.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.5">§15.5</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fill(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    fill action
+
+    Abbreviation for [&lt;code&gt;path(…, fill=True)&lt;/code&gt;](#tikz.Scope.path).
+
+    see
+    [§15.5](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.5)
+    &#34;&#34;&#34;
+    self._append(Action(&#39;fill&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.filldraw"><code class="name flex">
+<span>def <span class="ident">filldraw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>filldraw action</p>
+<p>Abbreviation for
+<a href="#tikz.Scope.path"><code>path(…, fill=True, draw=True)</code></a>.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filldraw(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    filldraw action
+
+    Abbreviation for
+    [&lt;code&gt;path(…, fill=True, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+    &#34;&#34;&#34;
+    self._append(Action(&#39;filldraw&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.pattern"><code class="name flex">
+<span>def <span class="ident">pattern</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>pattern action</p>
+<p>Abbreviation
+for <a href="#tikz.Scope.path"><code>path(…, pattern=True)</code></a>.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.15.5.1">§15.5.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pattern(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    pattern action
+
+    Abbreviation
+    for [&lt;code&gt;path(…, pattern=True)&lt;/code&gt;](#tikz.Scope.path).
+
+    see
+    [§15.5.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.15.5.1)
+    &#34;&#34;&#34;
+    self._append(Action(&#39;pattern&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.shade"><code class="name flex">
+<span>def <span class="ident">shade</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>shade action</p>
+<p>Abbreviation for <a href="#tikz.Scope.path"><code>path(…, shade=True)</code></a>.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.7">§15.7</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shade(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    shade action
+
+    Abbreviation for [&lt;code&gt;path(…, shade=True)&lt;/code&gt;](#tikz.Scope.path).
+
+    see
+    [§15.7](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.7)
+    &#34;&#34;&#34;
+    self._append(Action(&#39;shade&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.shadedraw"><code class="name flex">
+<span>def <span class="ident">shadedraw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>shadedraw action</p>
+<p>Abbreviation for
+<a href="#tikz.Scope.path"><code>path(…, shade=True, draw=True)</code></a>.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shadedraw(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    shadedraw action
+
+    Abbreviation for
+    [&lt;code&gt;path(…, shade=True, draw=True)&lt;/code&gt;](#tikz.Scope.path).
+    &#34;&#34;&#34;
+    self._append(Action(&#39;shadedraw&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.clip"><code class="name flex">
+<span>def <span class="ident">clip</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>clip action</p>
+<p>Abbreviation for <a href="#tikz.Scope.path"><code>path(…, clip=True)</code></a>.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.9">§15.9</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clip(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    clip action
+
+    Abbreviation for [&lt;code&gt;path(…, clip=True)&lt;/code&gt;](#tikz.Scope.path).
+
+    see
+    [§15.9](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.9)
+    &#34;&#34;&#34;
+    self._append(Action(&#39;clip&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.useasboundingbox"><code class="name flex">
+<span>def <span class="ident">useasboundingbox</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>useasboundingbox action</p>
+<p>Abbreviation for
+<a href="#tikz.Scope.path"><code>path(…, use_as_bounding_box=True)</code></a>.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.8">§15.8</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def useasboundingbox(self, *spec, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    useasboundingbox action
+
+    Abbreviation for
+    [&lt;code&gt;path(…, use_as_bounding_box=True)&lt;/code&gt;](#tikz.Scope.path).
+
+    see
+    [§15.8](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.15.8)
+    &#34;&#34;&#34;
+    self._append(Action(&#39;useasboundingbox&#39;, *spec, opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.node"><code class="name flex">
+<span>def <span class="ident">node</span></span>(<span>self, contents, name=None, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>node action</p>
+<p>Abbreviation for
+<a href="#tikz.node"><code>path(node(…))</code></a>.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1">§17.2.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def node(self, contents, name=None, at=None, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    node action
+
+    Abbreviation for
+    [&lt;code&gt;path(node(…))&lt;/code&gt;](#tikz.node).
+
+    see
+    [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+   &#34;&#34;&#34;
+    self._append(Action(
+        &#39;node&#39;, node(contents, name=name, at=at, _headless=True),
+        opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.coordinate"><code class="name flex">
+<span>def <span class="ident">coordinate</span></span>(<span>self, name, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>coordinate action</p>
+<p>Abbreviation for
+<a href="#tikz.coordinate"><code>path(coordinate(…))</code></a>.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1">§17.2.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coordinate(self, name, at=None, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    coordinate action
+
+    Abbreviation for
+    [&lt;code&gt;path(coordinate(…))&lt;/code&gt;](#tikz.coordinate).
+
+    see
+    [§17.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.2.1)
+   &#34;&#34;&#34;
+    &#34;coordinate action&#34;
+    self._append(Action(
+        &#39;coordinate&#39;, coordinate(name=name, at=at, _headless=True),
+        opt=opt, **kwoptions))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.definecolor"><code class="name flex">
+<span>def <span class="ident">definecolor</span></span>(<span>self, name, colormodel, colorspec)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>define a new color from a color specification</p>
+<p>Define a new color <code>name</code> from a color model <code>colormodel</code> and a color
+specification <code>colorspec</code>. All arguments are strings.</p>
+<p>see
+<a href="https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2"><code>xcolor</code>
+§2.5.2</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def definecolor(self, name, colormodel, colorspec):
+    &#34;&#34;&#34;
+    define a new color from a color specification
+
+    Define a new color `name` from a color model `colormodel` and a color
+    specification `colorspec`. All arguments are strings.
+
+    see
+    [&lt;code&gt;xcolor&lt;/code&gt;
+    §2.5.2](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2)
+    &#34;&#34;&#34;
+    if not isinstance(colorspec, str):
+        colorspec = &#39;,&#39;.join(colorspec)
+    self._append(Raw(r&#39;\definecolor&#39; + &#39;{&#39; + name + &#39;}{&#39;
+                 + colormodel + &#39;}{&#39; + colorspec + &#39;}&#39;))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.colorlet"><code class="name flex">
+<span>def <span class="ident">colorlet</span></span>(<span>self, name, colorexpr)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>define a new color from a color expression</p>
+<p>Define a new color <code>name</code> from color expression <code>colorexpr</code>. All
+arguments are strings.</p>
+<p>see
+<a href="https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2"><code>xcolor</code>
+§2.5.2</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def colorlet(self, name, colorexpr):
+    &#34;&#34;&#34;
+    define a new color from a color expression
+
+    Define a new color `name` from color expression `colorexpr`. All
+    arguments are strings.
+
+    see
+    [&lt;code&gt;xcolor&lt;/code&gt;
+    §2.5.2](https://mirrors.nxthost.com/ctan/macros/latex/contrib/xcolor/xcolor.pdf#subsubsection.2.5.2)
+    &#34;&#34;&#34;
+    self._append(Raw(r&#39;\colorlet&#39; + &#39;{&#39; + name + &#39;}{&#39; + colorexpr + &#39;}&#39;))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.tikzset"><code class="name flex">
+<span>def <span class="ident">tikzset</span></span>(<span>self, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>set options that apply for the rest of the current environment</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.1">§12.4.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tikzset(self, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    set options that apply for the rest of the current environment
+
+    see
+    [§12.4.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.1)
+    &#34;&#34;&#34;
+    # create options string without brackets
+    opt = _options_code(opt=opt, **kwoptions)
+    if opt.startswith(&#39;[&#39;) and opt.endswith(&#39;]&#39;):
+        opt = opt[1:-1]
+    # because braces are needed
+    self._append(Raw(r&#39;\tikzset{&#39; + opt + &#39;}&#39;))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Scope.style"><code class="name flex">
+<span>def <span class="ident">style</span></span>(<span>self, name, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>define style</p>
+<p>Defines a new style <code>name</code> by the given options. In the following, this
+style can be used whereever options are accepted, and acts as if these
+options had been given directly. It can also be used to override
+TikZ' default styles like the default draw style.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.2">§12.4.2</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def style(self, name, opt=None, **kwoptions):
+    &#34;&#34;&#34;
+    define style
+
+    Defines a new style `name` by the given options. In the following, this
+    style can be used whereever options are accepted, and acts as if these
+    options had been given directly. It can also be used to override
+    TikZ&#39; default styles like the default draw style.
+
+    see
+    [§12.4.2](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.4.2)
+    &#34;&#34;&#34;
+    # create options string without brackets
+    opt = _options_code(opt=opt, **kwoptions)
+    if opt.startswith(&#39;[&#39;) and opt.endswith(&#39;]&#39;):
+        opt = opt[1:-1]
+    # because braces are needed
+    self._append(Raw(r&#39;\tikzset{&#39; + name + &#39;/.style={&#39; + opt + &#39;}}&#39;))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.Picture"><code class="flex name class">
+<span>class <span class="ident">Picture</span></span>
+<span>(</span><span>opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>tikzpicture environment</p>
+<p>This is the central class of the module. A picture is created by
+instantiating <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a> and calling its methods. The object represents both
+the whole LaTeX document and its single <code>tikzpicture</code> environment.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1">§12.2.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Picture(Scope):
+    &#34;&#34;&#34;
+    tikzpicture environment
+
+    This is the central class of the module. A picture is created by
+    instantiating `Picture` and calling its methods. The object represents both
+    the whole LaTeX document and its single `tikzpicture` environment.
+
+    see
+    [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
+    &#34;&#34;&#34;
+
+    def __init__(self, opt=None, **kwoptions):
+        super().__init__(opt=opt, **kwoptions)
+        # additional preamble entries
+        self.preamble = []
+        # create temporary directory for pdflatex etc.
+        self.tempdir = tempfile.mkdtemp(prefix=&#39;tikz-&#39;)
+        # make sure it gets deleted
+        atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
+
+    def usetikzlibrary(self, name):
+        &#34;&#34;&#34;
+        use TikZ library
+
+        Makes the functionality of the TikZ library `name` available.
+
+        This adds a `\\usetikzlibrary` command to the preamble of the LaTeX
+        document.
+
+        see
+        [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
+        &#34;&#34;&#34;
+        self.preamble.append(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)
+
+    def code(self):
+        &#34;returns TikZ code&#34;
+        return (r&#39;\begin{tikzpicture}&#39; + self.opt + &#39;\n&#39;
+                + &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
+                + r&#39;\end{tikzpicture}&#39;)
+
+    def document_code(self):
+        &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
+        return (
+                &#39;\n&#39;.join([
+                    r&#39;\documentclass{article}&#39;,
+                    r&#39;\usepackage{tikz}&#39;,
+                    r&#39;\usetikzlibrary{external}&#39;,
+                    r&#39;\tikzexternalize&#39;])
+                + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
+                + r&#39;\begin{document}&#39; + &#39;\n&#39;
+                + self.code() + &#39;\n&#39;
+                + r&#39;\end{document}&#39; + &#39;\n&#39;)
+
+    def _create_pdf(self):
+        &#34;ensure that an up-to-date PDF file exists&#34;
+
+        sep = os.path.sep
+
+        # We don&#39;t want a PDF file of the whole LaTeX document, but only of the
+        # contents of the `tikzpicture` environment. This is achieved using
+        # TikZ&#39; `external` library, which makes TikZ write out pictures as
+        # individual PDF files. To do so, in a normal pdflatex run TikZ calls
+        # pdflatex again with special arguments. We use these special
+        # arguments directly. See section 53 of the PGF/TikZ manual.
+
+        # create LaTeX code
+        code = self.document_code()
+
+        # does the PDF file have to be created?
+        #  This check is implemented by using the SHA1 digest of the LaTeX code
+        # in the PDF filename, and to skip creation if that file exists.
+        hash = hashlib.sha1(code.encode()).hexdigest()
+        self.temp_pdf = self.tempdir + sep + &#39;tikz-&#39; + hash + &#39;.pdf&#39;
+        if os.path.isfile(self.temp_pdf):
+            return
+
+        # create LaTeX file
+        temp_tex = self.tempdir + sep + &#39;tikz.tex&#39;
+        with open(temp_tex, &#39;w&#39;) as f:
+            f.write(code)
+
+        # process LaTeX file into PDF
+        completed = subprocess.run(
+            [cfg.latex,
+             &#39;-jobname&#39;,
+             &#39;tikz-figure0&#39;,
+             r&#39;\def\tikzexternalrealjob{tikz}\input{tikz}&#39;],
+            cwd=self.tempdir,
+            capture_output=True,
+            text=True)
+        if completed.returncode != 0:
+            raise LatexException(&#39;pdflatex has failed\n&#39; + completed.stdout)
+
+        # rename created PDF file
+        os.rename(self.tempdir + sep + &#39;tikz-figure0.pdf&#39;, self.temp_pdf)
+
+    def write_image(self, filename, dpi=None):
+        &#34;&#34;&#34;
+        write picture to image file
+
+        The file type is determined from the file extension, and can be PDF,
+        PNG, or SVG. For PDF, the file created by LaTeX is copied to
+        `filename`. For PNG, the PDF is rendered to a bitmap. If the
+        resolution `dpi` is not specified, `cfg.file_dpi` is used. For
+        SVG, the PDF is converted to SVG.
+
+        Rendering and conversion are performed by the
+        [MuPDF library](https://mupdf.com/) through the Python binding
+        [PyMuPDF](https://pymupdf.readthedocs.io/en/latest/).
+        &#34;&#34;&#34;
+        if dpi is None:
+            dpi = cfg.file_dpi
+        self._create_pdf()
+        # determine extension
+        _, ext = os.path.splitext(filename)
+        # if a PDF is requested,
+        if ext.lower() == &#39;.pdf&#39;:
+            # just copy the file
+            shutil.copyfile(self.temp_pdf, filename)
+        elif ext.lower() == &#39;.png&#39;:
+            # render PDF as PNG using PyMuPDF
+            zoom = dpi / 72
+            doc = fitz.open(self.temp_pdf)
+            page = doc.loadPage(0)
+            pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom), alpha=True)
+            pix.writePNG(filename)
+        elif ext.lower() == &#39;.svg&#39;:
+            # convert PDF to SVG using PyMuPDF
+            doc = fitz.open(self.temp_pdf)
+            page = doc.loadPage(0)
+            svg = page.getSVGimage()
+            with open(filename, &#39;w&#39;) as f:
+                f.write(svg)
+        else:
+            print(f&#39;format {ext[1:]} is not supported&#39;)
+
+    def _repr_png_(self, dpi=None):
+        &#34;represent of picture as PNG for notebook&#34;
+        self._create_pdf()
+        if dpi is None:
+            dpi = cfg.display_dpi
+        zoom = dpi / 72
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
+        return pix.getPNGdata()
+
+    def demo(self, dpi=None):
+        &#34;&#34;&#34;
+        show picture and code in the notebook
+
+        This is a convenience function meant to aid development and debugging
+        of a picture in a Jupyter notebook. It creates an output cell that (by
+        default) contains the rendered picture on the left and the
+        corresponding TikZ code on the right. This layout can be modified via
+        `cfg.demo_template`. The optional argument `dpi` can be used to
+        override the default `cfg.display_dpi`.
+        &#34;&#34;&#34;
+        png_base64 = &#39;&#39;
+        try:
+            png_base64 = base64.b64encode(
+                self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
+        except LatexException as le:
+            message = le.args[0]
+            tikz_error = message.find(&#39;! &#39;)
+            if tikz_error != -1:
+                message = message[tikz_error:]
+            print(message)
+        code_escaped = html.escape(self.code())
+        IPython.display.display(IPython.display.HTML(
+            cfg.demo_template.format(png_base64, code_escaped)))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Scope" href="#tikz.Scope">Scope</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.Picture.usetikzlibrary"><code class="name flex">
+<span>def <span class="ident">usetikzlibrary</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>use TikZ library</p>
+<p>Makes the functionality of the TikZ library <code>name</code> available.</p>
+<p>This adds a <code>\usetikzlibrary</code> command to the preamble of the LaTeX
+document.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5">Part V</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def usetikzlibrary(self, name):
+    &#34;&#34;&#34;
+    use TikZ library
+
+    Makes the functionality of the TikZ library `name` available.
+
+    This adds a `\\usetikzlibrary` command to the preamble of the LaTeX
+    document.
+
+    see
+    [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
+    &#34;&#34;&#34;
+    self.preamble.append(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.code" href="#tikz.Scope.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def code(self):
+    &#34;returns TikZ code&#34;
+    return (r&#39;\begin{tikzpicture}&#39; + self.opt + &#39;\n&#39;
+            + &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
+            + r&#39;\end{tikzpicture}&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.document_code"><code class="name flex">
+<span>def <span class="ident">document_code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>returns LaTeX/TikZ code for a complete compilable document</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def document_code(self):
+    &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
+    return (
+            &#39;\n&#39;.join([
+                r&#39;\documentclass{article}&#39;,
+                r&#39;\usepackage{tikz}&#39;,
+                r&#39;\usetikzlibrary{external}&#39;,
+                r&#39;\tikzexternalize&#39;])
+            + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
+            + r&#39;\begin{document}&#39; + &#39;\n&#39;
+            + self.code() + &#39;\n&#39;
+            + r&#39;\end{document}&#39; + &#39;\n&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.write_image"><code class="name flex">
+<span>def <span class="ident">write_image</span></span>(<span>self, filename, dpi=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>write picture to image file</p>
+<p>The file type is determined from the file extension, and can be PDF,
+PNG, or SVG. For PDF, the file created by LaTeX is copied to
+<code>filename</code>. For PNG, the PDF is rendered to a bitmap. If the
+resolution <code>dpi</code> is not specified, <a title="tikz.cfg.file_dpi" href="#tikz.cfg.file_dpi"><code>cfg.file_dpi</code></a> is used. For
+SVG, the PDF is converted to SVG.</p>
+<p>Rendering and conversion are performed by the
+<a href="https://mupdf.com/">MuPDF library</a> through the Python binding
+<a href="https://pymupdf.readthedocs.io/en/latest/">PyMuPDF</a>.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_image(self, filename, dpi=None):
+    &#34;&#34;&#34;
+    write picture to image file
+
+    The file type is determined from the file extension, and can be PDF,
+    PNG, or SVG. For PDF, the file created by LaTeX is copied to
+    `filename`. For PNG, the PDF is rendered to a bitmap. If the
+    resolution `dpi` is not specified, `cfg.file_dpi` is used. For
+    SVG, the PDF is converted to SVG.
+
+    Rendering and conversion are performed by the
+    [MuPDF library](https://mupdf.com/) through the Python binding
+    [PyMuPDF](https://pymupdf.readthedocs.io/en/latest/).
+    &#34;&#34;&#34;
+    if dpi is None:
+        dpi = cfg.file_dpi
+    self._create_pdf()
+    # determine extension
+    _, ext = os.path.splitext(filename)
+    # if a PDF is requested,
+    if ext.lower() == &#39;.pdf&#39;:
+        # just copy the file
+        shutil.copyfile(self.temp_pdf, filename)
+    elif ext.lower() == &#39;.png&#39;:
+        # render PDF as PNG using PyMuPDF
+        zoom = dpi / 72
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom), alpha=True)
+        pix.writePNG(filename)
+    elif ext.lower() == &#39;.svg&#39;:
+        # convert PDF to SVG using PyMuPDF
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        svg = page.getSVGimage()
+        with open(filename, &#39;w&#39;) as f:
+            f.write(svg)
+    else:
+        print(f&#39;format {ext[1:]} is not supported&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.demo"><code class="name flex">
+<span>def <span class="ident">demo</span></span>(<span>self, dpi=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>show picture and code in the notebook</p>
+<p>This is a convenience function meant to aid development and debugging
+of a picture in a Jupyter notebook. It creates an output cell that (by
+default) contains the rendered picture on the left and the
+corresponding TikZ code on the right. This layout can be modified via
+<a title="tikz.cfg.demo_template" href="#tikz.cfg.demo_template"><code>cfg.demo_template</code></a>. The optional argument <code>dpi</code> can be used to
+override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi"><code>cfg.display_dpi</code></a>.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def demo(self, dpi=None):
+    &#34;&#34;&#34;
+    show picture and code in the notebook
+
+    This is a convenience function meant to aid development and debugging
+    of a picture in a Jupyter notebook. It creates an output cell that (by
+    default) contains the rendered picture on the left and the
+    corresponding TikZ code on the right. This layout can be modified via
+    `cfg.demo_template`. The optional argument `dpi` can be used to
+    override the default `cfg.display_dpi`.
+    &#34;&#34;&#34;
+    png_base64 = &#39;&#39;
+    try:
+        png_base64 = base64.b64encode(
+            self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
+    except LatexException as le:
+        message = le.args[0]
+        tikz_error = message.find(&#39;! &#39;)
+        if tikz_error != -1:
+            message = message[tikz_error:]
+        print(message)
+    code_escaped = html.escape(self.code())
+    IPython.display.display(IPython.display.HTML(
+        cfg.demo_template.format(png_base64, code_escaped)))</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.add_scope"><code class="name flex">
+<span>def <span class="ident">add_scope</span></span>(<span>self, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.add_scope" href="#tikz.Scope.add_scope">add_scope</a></code>
+</p>
+<section class="desc inherited"><p>create and add scope to the current environment …</p></section>
+</dd>
+<dt id="tikz.Picture.path"><code class="name flex">
+<span>def <span class="ident">path</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.path" href="#tikz.Scope.path">path</a></code>
+</p>
+<section class="desc inherited"><p>path action …</p></section>
+</dd>
+<dt id="tikz.Picture.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.draw" href="#tikz.Scope.draw">draw</a></code>
+</p>
+<section class="desc inherited"><p>draw action …</p></section>
+</dd>
+<dt id="tikz.Picture.fill"><code class="name flex">
+<span>def <span class="ident">fill</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.fill" href="#tikz.Scope.fill">fill</a></code>
+</p>
+<section class="desc inherited"><p>fill action …</p></section>
+</dd>
+<dt id="tikz.Picture.filldraw"><code class="name flex">
+<span>def <span class="ident">filldraw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.filldraw" href="#tikz.Scope.filldraw">filldraw</a></code>
+</p>
+<section class="desc inherited"><p>filldraw action …</p></section>
+</dd>
+<dt id="tikz.Picture.pattern"><code class="name flex">
+<span>def <span class="ident">pattern</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.pattern" href="#tikz.Scope.pattern">pattern</a></code>
+</p>
+<section class="desc inherited"><p>pattern action …</p></section>
+</dd>
+<dt id="tikz.Picture.shade"><code class="name flex">
+<span>def <span class="ident">shade</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.shade" href="#tikz.Scope.shade">shade</a></code>
+</p>
+<section class="desc inherited"><p>shade action …</p></section>
+</dd>
+<dt id="tikz.Picture.shadedraw"><code class="name flex">
+<span>def <span class="ident">shadedraw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.shadedraw" href="#tikz.Scope.shadedraw">shadedraw</a></code>
+</p>
+<section class="desc inherited"><p>shadedraw action …</p></section>
+</dd>
+<dt id="tikz.Picture.clip"><code class="name flex">
+<span>def <span class="ident">clip</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.clip" href="#tikz.Scope.clip">clip</a></code>
+</p>
+<section class="desc inherited"><p>clip action …</p></section>
+</dd>
+<dt id="tikz.Picture.useasboundingbox"><code class="name flex">
+<span>def <span class="ident">useasboundingbox</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.useasboundingbox" href="#tikz.Scope.useasboundingbox">useasboundingbox</a></code>
+</p>
+<section class="desc inherited"><p>useasboundingbox action …</p></section>
+</dd>
+<dt id="tikz.Picture.node"><code class="name flex">
+<span>def <span class="ident">node</span></span>(<span>self, contents, name=None, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.node" href="#tikz.Scope.node">node</a></code>
+</p>
+<section class="desc inherited"><p>node action …</p></section>
+</dd>
+<dt id="tikz.Picture.coordinate"><code class="name flex">
+<span>def <span class="ident">coordinate</span></span>(<span>self, name, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.coordinate" href="#tikz.Scope.coordinate">coordinate</a></code>
+</p>
+<section class="desc inherited"><p>coordinate action …</p></section>
+</dd>
+<dt id="tikz.Picture.definecolor"><code class="name flex">
+<span>def <span class="ident">definecolor</span></span>(<span>self, name, colormodel, colorspec)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.definecolor" href="#tikz.Scope.definecolor">definecolor</a></code>
+</p>
+<section class="desc inherited"><p>define a new color from a color specification …</p></section>
+</dd>
+<dt id="tikz.Picture.colorlet"><code class="name flex">
+<span>def <span class="ident">colorlet</span></span>(<span>self, name, colorexpr)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.colorlet" href="#tikz.Scope.colorlet">colorlet</a></code>
+</p>
+<section class="desc inherited"><p>define a new color from a color expression …</p></section>
+</dd>
+<dt id="tikz.Picture.tikzset"><code class="name flex">
+<span>def <span class="ident">tikzset</span></span>(<span>self, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.tikzset" href="#tikz.Scope.tikzset">tikzset</a></code>
+</p>
+<section class="desc inherited"><p>set options that apply for the rest of the current environment …</p></section>
+</dd>
+<dt id="tikz.Picture.style"><code class="name flex">
+<span>def <span class="ident">style</span></span>(<span>self, name, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.style" href="#tikz.Scope.style">style</a></code>
+</p>
+<section class="desc inherited"><p>define style …</p></section>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.LatexException"><code class="flex name class">
+<span>class <span class="ident">LatexException</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>error in the external LaTeX process</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LatexException(Exception):
+    &#34;&#34;&#34;
+    error in the external LaTeX process
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#function">Function</a></li>
+<li><a href="#design">Design</a></li>
+<li><a href="#color">Color</a></li>
+</ul>
 </div>
-</div>
-
-
-          </div>
-          
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2020, Carsten Allefeld.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-      
-      |
-      <a href="_sources/index.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
-    
-
-    
-  </body>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="tikz.cycle" href="#tikz.cycle">cycle</a></code></li>
+<li><code><a title="tikz.options" href="#tikz.options">options</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="tikz.cfg" href="#tikz.cfg">cfg</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi">display_dpi</a></code></li>
+<li><code><a title="tikz.cfg.file_dpi" href="#tikz.cfg.file_dpi">file_dpi</a></code></li>
+<li><code><a title="tikz.cfg.latex" href="#tikz.cfg.latex">latex</a></code></li>
+<li><code><a title="tikz.cfg.demo_template" href="#tikz.cfg.demo_template">demo_template</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.Raw" href="#tikz.Raw">Raw</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.Raw.code" href="#tikz.Raw.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.moveto" href="#tikz.moveto">moveto</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.moveto.code" href="#tikz.moveto.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.lineto" href="#tikz.lineto">lineto</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.lineto.code" href="#tikz.lineto.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.line" href="#tikz.line">line</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.line.code" href="#tikz.line.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.curveto" href="#tikz.curveto">curveto</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.curveto.code" href="#tikz.curveto.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.rectangle" href="#tikz.rectangle">rectangle</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.rectangle.code" href="#tikz.rectangle.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.circle" href="#tikz.circle">circle</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.circle.code" href="#tikz.circle.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.arc" href="#tikz.arc">arc</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.arc.code" href="#tikz.arc.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.grid" href="#tikz.grid">grid</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.grid.code" href="#tikz.grid.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.parabola" href="#tikz.parabola">parabola</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.parabola.code" href="#tikz.parabola.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.sin" href="#tikz.sin">sin</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.sin.code" href="#tikz.sin.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.cos" href="#tikz.cos">cos</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.cos.code" href="#tikz.cos.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.topath" href="#tikz.topath">topath</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.topath.code" href="#tikz.topath.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.node" href="#tikz.node">node</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.node.code" href="#tikz.node.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.coordinate" href="#tikz.coordinate">coordinate</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.coordinate.code" href="#tikz.coordinate.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.plot" href="#tikz.plot">plot</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.plot.code" href="#tikz.plot.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.Action" href="#tikz.Action">Action</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.Action.code" href="#tikz.Action.code">code</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code></h4>
+<ul class="two-column">
+<li><code><a title="tikz.Scope.add_scope" href="#tikz.Scope.add_scope">add_scope</a></code></li>
+<li><code><a title="tikz.Scope.code" href="#tikz.Scope.code">code</a></code></li>
+<li><code><a title="tikz.Scope.path" href="#tikz.Scope.path">path</a></code></li>
+<li><code><a title="tikz.Scope.draw" href="#tikz.Scope.draw">draw</a></code></li>
+<li><code><a title="tikz.Scope.fill" href="#tikz.Scope.fill">fill</a></code></li>
+<li><code><a title="tikz.Scope.filldraw" href="#tikz.Scope.filldraw">filldraw</a></code></li>
+<li><code><a title="tikz.Scope.pattern" href="#tikz.Scope.pattern">pattern</a></code></li>
+<li><code><a title="tikz.Scope.shade" href="#tikz.Scope.shade">shade</a></code></li>
+<li><code><a title="tikz.Scope.shadedraw" href="#tikz.Scope.shadedraw">shadedraw</a></code></li>
+<li><code><a title="tikz.Scope.clip" href="#tikz.Scope.clip">clip</a></code></li>
+<li><code><a title="tikz.Scope.useasboundingbox" href="#tikz.Scope.useasboundingbox">useasboundingbox</a></code></li>
+<li><code><a title="tikz.Scope.node" href="#tikz.Scope.node">node</a></code></li>
+<li><code><a title="tikz.Scope.coordinate" href="#tikz.Scope.coordinate">coordinate</a></code></li>
+<li><code><a title="tikz.Scope.definecolor" href="#tikz.Scope.definecolor">definecolor</a></code></li>
+<li><code><a title="tikz.Scope.colorlet" href="#tikz.Scope.colorlet">colorlet</a></code></li>
+<li><code><a title="tikz.Scope.tikzset" href="#tikz.Scope.tikzset">tikzset</a></code></li>
+<li><code><a title="tikz.Scope.style" href="#tikz.Scope.style">style</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.Picture" href="#tikz.Picture">Picture</a></code></h4>
+<ul class="two-column">
+<li><code><a title="tikz.Picture.usetikzlibrary" href="#tikz.Picture.usetikzlibrary">usetikzlibrary</a></code></li>
+<li><code><a title="tikz.Picture.code" href="#tikz.Picture.code">code</a></code></li>
+<li><code><a title="tikz.Picture.document_code" href="#tikz.Picture.document_code">document_code</a></code></li>
+<li><code><a title="tikz.Picture.write_image" href="#tikz.Picture.write_image">write_image</a></code></li>
+<li><code><a title="tikz.Picture.demo" href="#tikz.Picture.demo">demo</a></code></li>
+<li><code><a title="tikz.Picture.add_scope" href="#tikz.Picture.add_scope">add_scope</a></code></li>
+<li><code><a title="tikz.Picture.path" href="#tikz.Picture.path">path</a></code></li>
+<li><code><a title="tikz.Picture.draw" href="#tikz.Picture.draw">draw</a></code></li>
+<li><code><a title="tikz.Picture.fill" href="#tikz.Picture.fill">fill</a></code></li>
+<li><code><a title="tikz.Picture.filldraw" href="#tikz.Picture.filldraw">filldraw</a></code></li>
+<li><code><a title="tikz.Picture.pattern" href="#tikz.Picture.pattern">pattern</a></code></li>
+<li><code><a title="tikz.Picture.shade" href="#tikz.Picture.shade">shade</a></code></li>
+<li><code><a title="tikz.Picture.shadedraw" href="#tikz.Picture.shadedraw">shadedraw</a></code></li>
+<li><code><a title="tikz.Picture.clip" href="#tikz.Picture.clip">clip</a></code></li>
+<li><code><a title="tikz.Picture.useasboundingbox" href="#tikz.Picture.useasboundingbox">useasboundingbox</a></code></li>
+<li><code><a title="tikz.Picture.node" href="#tikz.Picture.node">node</a></code></li>
+<li><code><a title="tikz.Picture.coordinate" href="#tikz.Picture.coordinate">coordinate</a></code></li>
+<li><code><a title="tikz.Picture.definecolor" href="#tikz.Picture.definecolor">definecolor</a></code></li>
+<li><code><a title="tikz.Picture.colorlet" href="#tikz.Picture.colorlet">colorlet</a></code></li>
+<li><code><a title="tikz.Picture.tikzset" href="#tikz.Picture.tikzset">tikzset</a></code></li>
+<li><code><a title="tikz.Picture.style" href="#tikz.Picture.style">style</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.LatexException" href="#tikz.LatexException">LatexException</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
 </html>
