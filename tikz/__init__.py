@@ -70,7 +70,7 @@ class cfg:
         '    </div>',
         '    <pre',
         '        style="width:47%;margin:0;padding:10px;float:right;'
-        + 'white-space:pre-wrap"',
+        + 'white-space:pre-wrap;font-size:smaller"',
         '        >{1}</pre>',
         '  </div>',
         '  <div style="clear:both"></div>',
