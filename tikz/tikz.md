@@ -25,7 +25,7 @@ TikZ' basic design comprises
 
 Path actions and other commands are grouped in [<code>scope</code> environments](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1). In addition, there are options which can be attached to a path action, path operation, or environment but can also be embedded in a path specification. In the following it is explained how these TikZ stuctures are mapped to Python in this module.
 
-![](tikz.svg){width=100%}
+![](design.svg){width=100%}
 
 Coordinate
 

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Publish pdoc documentation for GitHub Pages.
+
+MODULE="tikz"
+PACKAGEDIR="/home/ca/work/Projects/pytikz"
+
+# determine documentation directory
+DOCS="$PACKAGEDIR/docs"
+
+# determine templates directory
+TEMPLATES="$PACKAGEDIR/gendoc/templates"
+
+# delete old pages
+rm "$DOCS/"**/*.html
+
+# create pages for modules
+cd "$PACKAGEDIR"
+pdoc --config sort_identifiers=False --config show_inherited_members=True \
+    --force --template-dir "$TEMPLATES" --html -o "$DOCS" "$MODULE"
+
+# create file that tells GitHub to just copy the files
+touch "$DOCS/".nojekyll
