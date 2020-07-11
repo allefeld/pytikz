@@ -4,6 +4,19 @@
 
 - split notebook into several, move to subdir
 
+- release / PyPI upload?
+
+- entry on homepage
+
+
+# Idea for TikZ figure
+
+- `Figure` is a subclass of `Picture` and replaces it in use
+
+- `Figure` *has* a `Layout`.
+
+-   The `Layout` starts with defaults for padding upon creation. Every time the figure is rendered, it extracts adjusted padding values and recomputes. If the layout changed, it renders again.
+
 
 # Idea for a more complete solution to document a Python package:
 
