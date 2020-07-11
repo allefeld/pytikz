@@ -353,15 +353,12 @@ class rectangle(Operation):
 
     see [§14.4](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.4)
     """
-    def __init__(self, coord, opt=None, **kwoptions):
+    def __init__(self, coord):
         # normalize coordinate
         self.coord = _coordinate(coord)
-        self.opt = opt
-        self.kwoptions = kwoptions
 
     def code(self):
-        return ('rectangle' + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + _coordinate_code(self.coord))
+        return ('rectangle ' + _coordinate_code(self.coord))
 
 
 class circle(Operation):
