@@ -1010,6 +1010,11 @@ class Picture(Scope):
         # make sure it gets deleted
         atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
 
+    def _add_preamble(self, code):
+        "add code to preamble, checking for duplicates"
+        if code not in self.preamble:
+            self.preamble.append(code)
+
     def usetikzlibrary(self, name):
         """
         use TikZ library
@@ -1023,9 +1028,7 @@ class Picture(Scope):
         see
         [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
         """
-        code = r'\usetikzlibrary{' + name + '}'
-        if code not in self.preamble:
-            self.preamble.append(code)
+        self._add_preamble(r'\usetikzlibrary{' + name + '}')
 
     def usepackage(self, name, options=None):
         """
@@ -1042,8 +1045,7 @@ class Picture(Scope):
         if options is not None:
             code += '[' + options + ']'
         code += '{' + name + '}'
-        if code not in self.preamble:
-            self.preamble.append(code)
+        self._add_preamble(code)
 
     def code(self):
         "returns TikZ code"
@@ -1053,16 +1055,20 @@ class Picture(Scope):
 
     def document_code(self):
         "returns LaTeX/TikZ code for a complete compilable document"
-        return (
-                '\n'.join([
-                    r'\documentclass{article}',
-                    r'\usepackage{tikz}',
-                    r'\usetikzlibrary{external}',
-                    r'\tikzexternalize']) + '\n'
-                + '\n'.join(self.preamble) + '\n'
-                + r'\begin{document}' + '\n'
-                + self.code() + '\n'
-                + r'\end{document}' + '\n')
+        # standard preamble
+        codelines = [
+            r'\documentclass{article}',
+            r'\usepackage{tikz}',
+            r'\usetikzlibrary{external}',
+            r'\tikzexternalize']            
+        # user-added preamble
+        codelines += self.preamble
+        # document body
+        codelines += [
+            r'\begin{document}',
+            self.code(),
+            r'\end{document}']
+        return '\n'.join(codelines)
 
     def _create_pdf(self):
         "ensure that an up-to-date PDF file exists"
@@ -1090,7 +1096,7 @@ class Picture(Scope):
         # create LaTeX file
         temp_tex = self.tempdir + sep + 'tikz.tex'
         with open(temp_tex, 'w') as f:
-            f.write(code)
+            f.write(code + '\n')
 
         # process LaTeX file into PDF
         completed = subprocess.run(
@@ -1101,6 +1107,7 @@ class Picture(Scope):
             cwd=self.tempdir,
             capture_output=True,
             text=True)
+        self.latex_completed = completed
         if completed.returncode != 0:
             raise LatexError('LaTeX has failed\n' + completed.stdout)
 
