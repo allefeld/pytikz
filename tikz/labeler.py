@@ -61,10 +61,13 @@ class ExtendedWilkinson:
     def legibility(self, lmin, lmax, lstep):
         return 1
 
+    def score(self, s, c, d, l):
+        # combined score
+        return self.w[0] * s + self.w[1] * c + self.w[2] * d + self.w[3] * l
+
     # optimization algorithm
 
     def extended(self, dmin, dmax, m, only_loose=False):
-        w = self.w
         eps = float_info.epsilon * 100
 
         if dmin > dmax:
@@ -82,7 +85,7 @@ class ExtendedWilkinson:
                 # i is `match(q, Q)[1]` and replaces `q, Q` in function calls
                 sm = self.simplicity_max(i, j)
 
-                if w[0]*sm + w[1] + w[2] + w[3] < best['score']:
+                if self.score(sm, 1, 1, 1) < best['score']:
                     # to break out of i *and* j
                     j = inf
                     break
@@ -90,7 +93,7 @@ class ExtendedWilkinson:
                 for k in count(start=2):      # loop over tick counts
                     dm = self.density_max(k, m)
 
-                    if w[0]*sm + w[1] + w[2]*dm + w[3] < best['score']:
+                    if self.score(sm, 1, dm, 1) < best['score']:
                         break
 
                     delta = (dmax - dmin) / (k + 1) / (j * q)
@@ -100,7 +103,7 @@ class ExtendedWilkinson:
 
                         cm = self.coverage_max(dmin, dmax, step * (k - 1))
 
-                        if w[0]*sm + w[1]*cm + w[2]*dm + w[3] < best['score']:
+                        if self.score(sm, cm, dm, 1) < best['score']:
                             break
 
                         min_start = floor(dmax / step) * j - (k - 1) * j
@@ -116,11 +119,10 @@ class ExtendedWilkinson:
 
                             s = self.simplicity(i, j, lmin, lmax, lstep)
                             c = self.coverage(dmin, dmax, lmin, lmax)
-
-                            g = self.density(k, m, dmin, dmax, lmin, lmax)
+                            d = self.density(k, m, dmin, dmax, lmin, lmax)
                             l = self.legibility(lmin, lmax, lstep)                  # noqa E741
 
-                            score = w[0]*s + w[1]*c + w[2]*g + w[3]*l
+                            score = self.score(s, c, d, l)
 
                             if (score > best['score']
                                 and (not only_loose
@@ -131,12 +133,12 @@ class ExtendedWilkinson:
                                     lmax=lmax,
                                     lstep=lstep,
                                     score=score,
-                                    # j=j,
-                                    # i=i,
-                                    # q=q,
-                                    # k=k,
-                                    # z=z,
-                                    # start=start,
+                                    j=j,
+                                    i=i,
+                                    q=q,
+                                    k=k,
+                                    z=z,
+                                    start=start,
                                     )
             if j == inf:
                 # additionally break out of j
