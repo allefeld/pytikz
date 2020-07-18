@@ -67,7 +67,7 @@ class ExtendedWilkinson:
 
     # optimization algorithm
 
-    def extended(self, dmin, dmax, m, only_loose=False):
+    def extended(self, dmin, dmax, m, only_loose):
         eps = float_info.epsilon * 100
 
         if dmin > dmax:
@@ -75,19 +75,24 @@ class ExtendedWilkinson:
 
         if dmax - dmin < eps:
             # If the range is near the floating point limit,
-            # let seq generate some equally spaced steps.
-            return range(m) / (m - 1) * (dmax - dmin) + dmin
+            # generate some equally spaced steps.
+            best = dict(
+                lmin=dmin,
+                lmax=dmax,
+                lstep=(dmax - dmin) / (m - 1)
+            )
+            return best
 
         best = dict(score=-2)
 
         # We combine the j and q loops into one to enable breaking out of both
         # simultaneously, by iterating over a generator, and we create an
-        # index i corresponding to q at the same time.
+        # index i corresponding to q at the same time. i is `match(q, Q)[1]`
+        # and replaces `q, Q` in function calls.
         JIQ = ((j, i, q)
                for j in count(start=1)
                for i, q in enumerate(self.Q, start=1))
         for j, i, q in JIQ:
-            # i is `match(q, Q)[1]` and replaces `q, Q` in function calls
             sm = self.simplicity_max(i, j)
 
             if self.score(sm, 1, 1, 1) < best['score']:
@@ -120,34 +125,31 @@ class ExtendedWilkinson:
                         lmax = lmin + step * (k - 1)
                         lstep = step
 
+                        if only_loose:
+                            if lmin > dmin or lmax < dmax:
+                                continue
+
                         s = self.simplicity(i, j, lmin, lmax, lstep)
                         c = self.coverage(dmin, dmax, lmin, lmax)
                         d = self.density(k, m, dmin, dmax, lmin, lmax)
-                        l = self.legibility(lmin, lmax, lstep)                  # noqa E741
+                        l = self.legibility(lmin, lmax, lstep)                      # noqa E741
 
                         score = self.score(s, c, d, l)
 
-                        if (score > best['score']
-                            and (not only_loose
-                                    or (lmin <= dmin and lmax >= dmax))):
-
+                        if score > best['score']:
                             best = dict(
                                 lmin=lmin,
                                 lmax=lmax,
                                 lstep=lstep,
-                                score=score,
-                                j=j,
-                                i=i,
-                                q=q,
-                                k=k,
-                                z=z,
-                                start=start,
-                                )
+                                score=score
+                            )
 
         return best
-        # return [
-        #     index * best['lstep'] + best['lmin']
-        #     for index in
-        #     range(round((best['lmax'] - best['lmin']) / best['lstep']) + 1)]
+
+    def labels(self, dmin, dmax, m, only_loose=False):
+        best = self.extended(dmin, dmax, m, only_loose)
+        mp = round((best['lmax'] - best['lmin']) / best['lstep']) + 1
+        values = [index * best['lstep'] + best['lmin'] for index in range(mp)]
+        return best, values
 
 # without 'legibility' quite fast, 1.33 ms on average
