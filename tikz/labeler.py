@@ -80,69 +80,69 @@ class ExtendedWilkinson:
 
         best = dict(score=-2)
 
-        for j in count(start=1):
-            for i, q in enumerate(self.Q, start=1):
-                # i is `match(q, Q)[1]` and replaces `q, Q` in function calls
-                sm = self.simplicity_max(i, j)
+        # We combine the j and q loops into one to enable breaking out of both
+        # simultaneously, by iterating over a generator, and we create an
+        # index i corresponding to q at the same time.
+        JIQ = ((j, i, q)
+               for j in count(start=1)
+               for i, q in enumerate(self.Q, start=1))
+        for j, i, q in JIQ:
+            # i is `match(q, Q)[1]` and replaces `q, Q` in function calls
+            sm = self.simplicity_max(i, j)
 
-                if self.score(sm, 1, 1, 1) < best['score']:
-                    # to break out of i *and* j
-                    j = inf
+            if self.score(sm, 1, 1, 1) < best['score']:
+                break
+
+            for k in count(start=2):      # loop over tick counts
+                dm = self.density_max(k, m)
+
+                if self.score(sm, 1, dm, 1) < best['score']:
                     break
 
-                for k in count(start=2):      # loop over tick counts
-                    dm = self.density_max(k, m)
+                delta = (dmax - dmin) / (k + 1) / (j * q)
 
-                    if self.score(sm, 1, dm, 1) < best['score']:
+                for z in count(start=ceil(log10(delta))):
+                    step = q * j * 10**z
+
+                    cm = self.coverage_max(dmin, dmax, step * (k - 1))
+
+                    if self.score(sm, cm, dm, 1) < best['score']:
                         break
 
-                    delta = (dmax - dmin) / (k + 1) / (j * q)
+                    min_start = floor(dmax / step) * j - (k - 1) * j
+                    max_start = ceil(dmin / step) * j
 
-                    for z in count(start=ceil(log10(delta))):
-                        step = q * j * 10**z
+                    if min_start > max_start:
+                        continue
 
-                        cm = self.coverage_max(dmin, dmax, step * (k - 1))
+                    for start in range(min_start, max_start + 1):
+                        lmin = start * step / j
+                        lmax = lmin + step * (k - 1)
+                        lstep = step
 
-                        if self.score(sm, cm, dm, 1) < best['score']:
-                            break
+                        s = self.simplicity(i, j, lmin, lmax, lstep)
+                        c = self.coverage(dmin, dmax, lmin, lmax)
+                        d = self.density(k, m, dmin, dmax, lmin, lmax)
+                        l = self.legibility(lmin, lmax, lstep)                  # noqa E741
 
-                        min_start = floor(dmax / step) * j - (k - 1) * j
-                        max_start = ceil(dmin / step) * j
+                        score = self.score(s, c, d, l)
 
-                        if min_start > max_start:
-                            continue
+                        if (score > best['score']
+                            and (not only_loose
+                                    or (lmin <= dmin and lmax >= dmax))):
 
-                        for start in range(min_start, max_start + 1):
-                            lmin = start * step / j
-                            lmax = lmin + step * (k - 1)
-                            lstep = step
-
-                            s = self.simplicity(i, j, lmin, lmax, lstep)
-                            c = self.coverage(dmin, dmax, lmin, lmax)
-                            d = self.density(k, m, dmin, dmax, lmin, lmax)
-                            l = self.legibility(lmin, lmax, lstep)                  # noqa E741
-
-                            score = self.score(s, c, d, l)
-
-                            if (score > best['score']
-                                and (not only_loose
-                                     or (lmin <= dmin and lmax >= dmax))):
-
-                                best = dict(
-                                    lmin=lmin,
-                                    lmax=lmax,
-                                    lstep=lstep,
-                                    score=score,
-                                    j=j,
-                                    i=i,
-                                    q=q,
-                                    k=k,
-                                    z=z,
-                                    start=start,
-                                    )
-            if j == inf:
-                # additionally break out of j
-                break
+                            best = dict(
+                                lmin=lmin,
+                                lmax=lmax,
+                                lstep=lstep,
+                                score=score,
+                                j=j,
+                                i=i,
+                                q=q,
+                                k=k,
+                                z=z,
+                                start=start,
+                                )
 
         return best
         # return [
