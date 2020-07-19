@@ -6,11 +6,11 @@ from decimal import Decimal as D
 
 class ExtendedWilkinson:
     """
-    An Extension of Wilkinson's Algorithm for Position Tick Labels on Axes
+    Extended-Wilkinson algorithm for ticks and tick labels
 
-    The "Extended-Wilkinson" algorithm described in the paper
-    Talbot, J., Lin, S., & Hanrahan, P. (2010). An extension of Wilkinson’s
-    algorithm for positioning tick labels on axes. IEEE VGTC, 16(6), 1036-1043.
+    Following Talbot, J., Lin, S., & Hanrahan, P. (2010). An extension of
+    Wilkinson’s algorithm for positioning tick labels on axes. *IEEE Trans.
+    Vis. Comput. Graph.*, 16(6), 1036-1043.
 
     Parameters: target font size `fs_t`, minimum font size `fs_min`.
 
@@ -18,12 +18,11 @@ class ExtendedWilkinson:
     https://rdrr.io/rforge/labeling/src/R/labeling.R
     """
 
-    Q = [1, 5, 2, D('2.5'), 4, 3]
+    Q = [D(1), D(5), D(2), D('2.5'), D(4), D(3)]
     """
     preference-ordered list of nice step sizes
 
-    Optimally, values should be in an exact format, i.e. of type `int` or
-    `decimal.Decimal`.
+    Values must be of type `decimal.Decimal`.
     """
 
     w = [0.25, 0.2, 0.5, 0.05]
@@ -152,19 +151,53 @@ class ExtendedWilkinson:
         return best
         # without 'legibility' quite fast, 1.33 ms on average
 
-    def _values(self, q, start, j, z, k, **kwargs):
-        return [float(q) * (start + j * ind) * 10 ** z for ind in range(k)]
-
-    def _decimal_values(self, q, start, j, z, k, **kwargs):
-        return [q * (start + j * ind) * D(10) ** z for ind in range(k)]
-
-    def _labels(self, **kwargs):
-        decimal_values = self._decimal_values(**kwargs)
-        return ['{:f}'.format(dv.normalize()) for dv in decimal_values]
-
     def ticks(self, dmin, dmax, m, only_loose=False):
+        # run optimization
         best = self._extended(dmin, dmax, m, only_loose)
-        values = self._values(**best)
-        labels = self._labels(**best)
-        return values, labels, best
+        # store result for debugging
+        self.last_best = best
+        # create ticks
+        param = [best[key] for key in ['q', 'start', 'j', 'z', 'k']]
+        ticks = Ticks(*param)
+        return ticks
 
+
+class Ticks:
+    "represents a set of tick values"
+    def __init__(self, q, start, j, z, k):
+        self.q = q
+        self.start = start
+        self.j = j
+        self.z = z
+        self.k = k
+
+    def values(self):
+        "get tick values as floats"
+        return [float(self.q) * (self.start + self.j * ind) * 10 ** self.z
+                for ind in range(self.k)]
+
+    def _decimal(self, z0=0):
+        "get tick values as `Decimal`s, relative to decadic power `z0`"
+        return [self.q * (self.start + self.j * ind) * D(10) ** (self.z - z0)
+                for ind in range(self.k)]
+
+    # For the moment, we only implement the formats 'Decimal' and 'Factored
+    # Scientific'.
+
+    def labels_Decimal(self):
+        "get labels in 'Decimal' format"
+        # get values
+        dvs = self._decimal()
+        # create labels
+        return ['{:f}'.format(dv.normalize()) for dv in dvs]
+
+    def labels_Scientific(self):
+        "get labels in 'Scientific format'"
+        # get values
+        dvs = self._decimal()
+        # get largest power of 10 than can be factored out
+        z0 = min([floor(log10(abs(dv))) for dv in dvs if dv != 0])
+        # get values adjusted to that power
+        dvs = self._decimal(z0=z0)
+        # create labels
+        return ['{:f}'.format(dv.normalize()) for dv in dvs], '{:d}'.format(z0)
