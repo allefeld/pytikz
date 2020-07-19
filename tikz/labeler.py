@@ -34,13 +34,18 @@ class ExtendedWilkinson:
 
     # scoring functions, including the approximations for limiting the search
 
-    def _simplicity(self, i, j, lmin, lmax, lstep):
-        eps = float_info.epsilon * 100
-        v = ((lmin % lstep < eps or lstep - (lmin % lstep) < eps)
-             and lmin <= 0 and lmax >= 0) * 1
+    def _simplicity(self, i, start, j, k):
+        # v: is zero included in the ticks?
+        # modifications
+        # - (lmin % lstep < eps or lstep - (lmin % lstep) < eps),
+        #   means lmin / lstep = start / j is an integer
+        # - lmin <= 0 means start <=0
+        # - lmax >= 0 means start + j * (k - 1) >= 0
+        v = (start % j == 0 and start <= 0 and start + j * (k - 1) >= 0) * 1
         return 1 - (i - 1) / (len(self.Q) - 1) - j + v
 
     def _simplicity_max(self, i, j):
+        # _simplicity maximized over v
         return 1 - (i - 1) / (len(self.Q) - 1) - j + 1
 
     def _coverage(self, dmin, dmax, lmin, lmax):
@@ -48,19 +53,25 @@ class ExtendedWilkinson:
                 / (0.1 * (dmax - dmin))**2)
 
     def _coverage_max(self, dmin, dmax, span):
+        # _coverage maximized over lmin for given span = lmax - lmin
         range = dmax - dmin
         if span > range:
             half = (span - range) / 2
             return 1 - 0.5 * (2 * half ** 2) / (0.1 * range)**2
         else:
+            # TODO: check consistency with _coverage
             return 1
 
     def _density(self, k, m, dmin, dmax, lmin, lmax):
         r = (k - 1) / (lmax - lmin)
         rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
+        # TODO: not sure about rt
+        # replace m by rt anyway, then I think it should be
+        # r = (k-1) / (length * (lmax-lmin)) * (max(lmax,dmax)-min(dmin,lmin))
         return 2 - max((r / rt, rt / r))
 
     def _density_max(self, k, m):
+        # TODO: if m is replaced by rt, this needs to change, too
         return 2 - (k - 1) / (m - 1) if k >= m else 1
 
     def _legibility(self, lmin, lmax, lstep):
@@ -128,7 +139,7 @@ class ExtendedWilkinson:
                             if lmin > dmin or lmax < dmax:
                                 continue
 
-                        s = self._simplicity(i, j, lmin, lmax, lstep)
+                        s = self._simplicity(i, start, j, k)
                         c = self._coverage(dmin, dmax, lmin, lmax)
                         d = self._density(k, m, dmin, dmax, lmin, lmax)
                         l = self._legibility(lmin, lmax, lstep)                      # noqa E741
