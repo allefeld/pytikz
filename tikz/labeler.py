@@ -26,9 +26,10 @@ class ExtendedWilkinson:
     w = [0.25, 0.2, 0.5, 0.05]
     "weights for the subscores simplicity, coverage, density, and legibility"
 
-    def __init__(self, fs_t, fs_min, only_loose=True):
+    def __init__(self, fs_t, fs_min, rt, only_loose=True):
         self.fs_t = fs_t
         self.fs_min = fs_min
+        self.rt = rt
         self.only_loose = only_loose
 
     # scoring functions, including the approximations for limiting the search
@@ -44,7 +45,8 @@ class ExtendedWilkinson:
         return 1 - (i - 1) / (len(self.Q) - 1) - j + v
 
     def _simplicity_max(self, i, j):
-        # _simplicity maximized over v
+        # upper bound on _simplicity w.r.t. k, z, start
+        # = w.r.t. v
         return 1 - (i - 1) / (len(self.Q) - 1) - j + 1
 
     def _coverage(self, dmin, dmax, lmin, lmax):
@@ -52,28 +54,30 @@ class ExtendedWilkinson:
                 / (0.1 * (dmax - dmin))**2)
 
     def _coverage_max(self, dmin, dmax, span):
-        # _coverage maximized over lmin for given span = lmax - lmin
+        # upper bound on _coverage w.r.t. start
         range = dmax - dmin
         if span > range:
             half = (span - range) / 2
             return 1 - 0.5 * (2 * half ** 2) / (0.1 * range)**2
         else:
-            # TODO: check consistency with _coverage
+            # From original code, which I don't understand.
+            # Probably just the trivial upper bound.
             return 1
 
     def _density(self, k, m, dmin, dmax, lmin, lmax):
         r = (k - 1) / (lmax - lmin)
         rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
-        # TODO: not sure about rt
-        # replace m by rt anyway, then I think it should be
-        # r = (k-1) / (length * (lmax-lmin)) * (max(lmax,dmax)-min(dmin,lmin))
         return 2 - max((r / rt, rt / r))
 
     def _density_max(self, k, m):
-        # TODO: if m is replaced by rt, this needs to change, too
-        return 2 - (k - 1) / (m - 1) if k >= m else 1
+        # From original code, which I don't understand.
+        if k >= m:
+            return 2 - (k - 1) / (m - 1)
+        else:
+            # Probably just the trivial upper bound.
+            return 1
 
-    def _legibility(self, lmin, lmax, lstep):
+    def _legibility(self):
         return 1
 
     def _score(self, s, c, d, l):
@@ -133,6 +137,10 @@ class ExtendedWilkinson:
                         lmin = start * step / j
                         lmax = lmin + step * (k - 1)
                         lstep = step
+                        # In terms of loop variables:
+                        # lmin = q * start * 10**z
+                        # lmax = q * (start + j * (k - 1)) * 10 ** z
+                        # lstep = float(q) * j * 10**z
 
                         if self.only_loose:
                             if lmin > dmin or lmax < dmax:
@@ -141,7 +149,7 @@ class ExtendedWilkinson:
                         s = self._simplicity(i, start, j, k)
                         c = self._coverage(dmin, dmax, lmin, lmax)
                         d = self._density(k, m, dmin, dmax, lmin, lmax)
-                        l = self._legibility(lmin, lmax, lstep)                      # noqa E741
+                        l = self._legibility()                                      # noqa E741
 
                         score = self._score(s, c, d, l)
 
@@ -161,7 +169,24 @@ class ExtendedWilkinson:
         return best
         # without 'legibility' quite fast, 1.33 ms on average
 
-    def ticks(self, dmin, dmax, m):
+    def ticks(self, dmin, dmax, length):
+        # The 'extended' algorithm is defined in terms of m, the target number
+        # of ticks. It optimizes w.r.t. the ratio between the two quantities
+        #   r = (k - 1) / (lmax - lmin)
+        #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
+        # I want to instead specify the physical density (e.g. in 1/cm), stored
+        # as a class attribute self.rt, and the parameter length (e.g. in cm).
+        # Assuming that the axis spans min(dmin, lmin) to max(lmax, dmax),
+        # while the ticks span lmin to lmax, the optimization should use the
+        # ratio of
+        #   r = (k - 1) / (length * (lmax - lmin))
+        #       * (max(lmax, dmax) - min(dmin, lmin))
+        # to self.rt.
+        # It turns out that the two ratios are equivalent if one sets
+        #    m = self.rt * length + 1
+        # Instead of modifying the score function, we make the translation
+        # here:
+        m = self.rt * length + 1
         # run optimization
         best = self._extended(dmin, dmax, m)
         # store result for debugging
