@@ -12,8 +12,6 @@ class ExtendedWilkinson:
     Wilkinson’s algorithm for positioning tick labels on axes. *IEEE Trans.
     Vis. Comput. Graph.*, 16(6), 1036-1043.
 
-    Parameters: target font size `fs_t`, minimum font size `fs_min`.
-
     Translated by Carsten Allefeld from the R code by Justin Talbot, see
     https://rdrr.io/rforge/labeling/src/R/labeling.R
     """
@@ -28,9 +26,10 @@ class ExtendedWilkinson:
     w = [0.25, 0.2, 0.5, 0.05]
     "weights for the subscores simplicity, coverage, density, and legibility"
 
-    def __init__(self, fs_t, fs_min):
+    def __init__(self, fs_t, fs_min, only_loose=True):
         self.fs_t = fs_t
         self.fs_min = fs_min
+        self.only_loose = only_loose
 
     # scoring functions, including the approximations for limiting the search
 
@@ -83,7 +82,7 @@ class ExtendedWilkinson:
 
     # optimization algorithm
 
-    def _extended(self, dmin, dmax, m, only_loose):
+    def _extended(self, dmin, dmax, m):
         eps = float_info.epsilon * 100
 
         if dmin > dmax:
@@ -96,7 +95,7 @@ class ExtendedWilkinson:
         best = dict(score=-2)
 
         # We combine the j and q loops into one to enable breaking out of both
-        # simultaneously, by iterating over a generator, and we create an
+        # simultaneously, by iterating over a generator; and we create an
         # index i corresponding to q at the same time. i is `match(q, Q)[1]`
         # and replaces `q, Q` in function calls.
         JIQ = ((j, i, q)
@@ -135,7 +134,7 @@ class ExtendedWilkinson:
                         lmax = lmin + step * (k - 1)
                         lstep = step
 
-                        if only_loose:
+                        if self.only_loose:
                             if lmin > dmin or lmax < dmax:
                                 continue
 
@@ -162,9 +161,9 @@ class ExtendedWilkinson:
         return best
         # without 'legibility' quite fast, 1.33 ms on average
 
-    def ticks(self, dmin, dmax, m, only_loose=False):
+    def ticks(self, dmin, dmax, m):
         # run optimization
-        best = self._extended(dmin, dmax, m, only_loose)
+        best = self._extended(dmin, dmax, m)
         # store result for debugging
         self.last_best = best
         # create ticks
