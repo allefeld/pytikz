@@ -9,12 +9,7 @@ notebook seamless.
    :start-line: 4
 """
 
-
-# TODO:
-# - type hinting
-# - all docstring triple-quoted, with blank line after
-# - docstring for: class (not `__init__`), method, function; package, module
-# - variables are documented in the class/module/package docstring
+# Copyright (C) 2020 Carsten Allefeld
 
 import atexit
 import base64
@@ -33,7 +28,7 @@ import numpy as np
 
 
 class cfg:
-    "configuration variables"
+    "tikz configuration variables"
 
     display_dpi = 192
     """
@@ -49,13 +44,9 @@ class cfg:
     The default is 300.
     """
 
-    latex = 'pdflatex'
+    latex = 'xelatex'
     """
     name of the executable used to compile the LaTeX document
-
-    This can be any version of LaTeX that produces PDF output. The fastest
-    appears to be pdfLaTeX, but choosing another version may be necessary for
-    specific features.
     """
 
     demo_template = '\n'.join([
@@ -124,7 +115,7 @@ def _tuple(obj): return isinstance(obj, tuple)
 def _numeric(obj): return isinstance(obj, numbers.Real)
 def _str_or_numeric(obj): return _str(obj) or _numeric(obj)
 def _ndarray(obj): return isinstance(obj, np.ndarray)
-def _list(obj): return isinstance(obj, list)                        # noqa E302
+def _list(obj): return isinstance(obj, list)                                        # noqa E302
 
 
 def _coordinate(coord):
@@ -1010,8 +1001,17 @@ class Picture(Scope):
         # make sure it gets deleted
         atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
 
-    def _add_preamble(self, code):
-        "add code to preamble, checking for duplicates"
+    def add_preamble(self, code):
+        """
+        add code to preamble
+
+        Adds arbitrary LaTeX code to the document preamble. Since the code will
+        typically contain backslash characters, use of a Python 'raw' string is
+        recommended.
+
+        If the method is called multiple times with the same arguments, the
+        code is only added once.
+        """
         if code not in self.preamble:
             self.preamble.append(code)
 
@@ -1028,7 +1028,7 @@ class Picture(Scope):
         see
         [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
         """
-        self._add_preamble(r'\usetikzlibrary{' + name + '}')
+        self.add_preamble(r'\usetikzlibrary{' + name + '}')
 
     def usepackage(self, name, options=None):
         """
@@ -1045,7 +1045,18 @@ class Picture(Scope):
         if options is not None:
             code += '[' + options + ']'
         code += '{' + name + '}'
-        self._add_preamble(code)
+        self.add_preamble(code)
+
+    def fira(self):
+        """
+        set font to Fira, also for math
+
+        Warning: Fira Math works only with xelatex and lualatex!
+        """
+        self.usepackage('FiraSans', 'sfdefault')
+        self.usepackage('unicode-math', 'mathrm=sym')
+        self.add_preamble(r'\setmathfont{Fira Math}[math-style=ISO,'
+                          'bold-style=ISO,nabla=upright,partial=upright]')
 
     def code(self):
         "returns TikZ code"
@@ -1060,7 +1071,7 @@ class Picture(Scope):
             r'\documentclass{article}',
             r'\usepackage{tikz}',
             r'\usetikzlibrary{external}',
-            r'\tikzexternalize']            
+            r'\tikzexternalize']
         # user-added preamble
         codelines += self.preamble
         # document body
@@ -1155,7 +1166,7 @@ class Picture(Scope):
             print(f'format {ext[1:]} is not supported')
 
     def _repr_png_(self, dpi=None):
-        "represent of picture as PNG for notebook"
+        "represent Picture as PNG for notebook"
         self._create_pdf()
         if dpi is None:
             dpi = cfg.display_dpi
@@ -1164,6 +1175,16 @@ class Picture(Scope):
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
+
+    def show(self, dpi=None):
+        """
+        show picture in the notebook
+
+        The optional argument `dpi` can be used to override the default
+        `cfg.display_dpi`.
+        """
+        IPython.display.display(
+            IPython.display.Image(data=self._repr_png_(dpi=dpi)))
 
     def demo(self, dpi=None):
         """
@@ -1187,8 +1208,9 @@ class Picture(Scope):
                 message = message[tikz_error:]
             print(message)
         code_escaped = html.escape(self.code())
-        IPython.display.display(IPython.display.HTML(
-            cfg.demo_template.format(png_base64, code_escaped)))
+        IPython.display.display(
+            IPython.display.HTML(
+                cfg.demo_template.format(png_base64, code_escaped)))
 
 
 class LatexError(Exception):
