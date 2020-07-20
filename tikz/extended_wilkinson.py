@@ -1,20 +1,21 @@
+"""
+Extended-Wilkinson algorithm for ticks and tick labels
+
+Following Talbot, J., Lin, S., & Hanrahan, P. (2010). An extension of
+Wilkinson’s algorithm for positioning tick labels on axes. *IEEE Trans.
+Vis. Comput. Graph.*, 16(6), 1036-1043.
+
+Translated by Carsten Allefeld from the R code by Justin Talbot, see
+https://rdrr.io/rforge/labeling/src/R/labeling.R
+"""
+
 from math import log10, ceil, floor
 from itertools import count
-from sys import float_info
 from decimal import Decimal as D
 
 
-class ExtendedWilkinson:
-    """
-    Extended-Wilkinson algorithm for ticks and tick labels
-
-    Following Talbot, J., Lin, S., & Hanrahan, P. (2010). An extension of
-    Wilkinson’s algorithm for positioning tick labels on axes. *IEEE Trans.
-    Vis. Comput. Graph.*, 16(6), 1036-1043.
-
-    Translated by Carsten Allefeld from the R code by Justin Talbot, see
-    https://rdrr.io/rforge/labeling/src/R/labeling.R
-    """
+class cfg:
+    "tikz.extended_wilkinson configuration variables"
 
     Q = [D(1), D(5), D(2), D('2.5'), D(4), D(3)]
     """
@@ -25,6 +26,10 @@ class ExtendedWilkinson:
 
     w = [0.25, 0.2, 0.5, 0.05]
     "weights for the subscores simplicity, coverage, density, and legibility"
+
+
+class TicksGenerator:
+    "choose ticks values and labels"
 
     def __init__(self, fs_t, fs_min, rt, only_loose=True, normalize=True):
         self.fs_t = fs_t
@@ -43,12 +48,12 @@ class ExtendedWilkinson:
         # - lmin <= 0 means start <=0
         # - lmax >= 0 means start + j * (k - 1) >= 0
         v = (start % j == 0 and start <= 0 and start + j * (k - 1) >= 0) * 1
-        return 1 - (i - 1) / (len(self.Q) - 1) - j + v
+        return 1 - (i - 1) / (len(cfg.Q) - 1) - j + v
 
     def _simplicity_max(self, i, j):
         # upper bound on _simplicity w.r.t. k, z, start
         # = w.r.t. v
-        return 1 - (i - 1) / (len(self.Q) - 1) - j + 1
+        return 1 - (i - 1) / (len(cfg.Q) - 1) - j + 1
 
     def _coverage(self, dmin, dmax, lmin, lmax):
         return (1 - 0.5 * ((dmax - lmax)**2 + (dmin - lmin)**2)
@@ -84,22 +89,35 @@ class ExtendedWilkinson:
 
     def _score(self, s, c, d, l):
         # combined score
-        return self.w[0] * s + self.w[1] * c + self.w[2] * d + self.w[3] * l
+        return cfg.w[0] * s + cfg.w[1] * c + cfg.w[2] * d + cfg.w[3] * l
 
     # optimization algorithm
 
-    def _extended(self, dmin, dmax, m):
+    def ticks(self, dmin, dmax, length=None, m=None):
+        if m is None:
+            # The implementation here is based on the R code, which is defined
+            # in terms of `m`, the target number of ticks. It optimizes w.r.t.
+            # the ratio between the two quantities
+            #   r = (k - 1) / (lmax - lmin)
+            #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
+            # We want to instead specify the physical density (e.g. in 1/cm),
+            # stored as a class attribute `self.rt`, and the parameter `length`
+            # (e.g. in cm). Assuming that the axis spans `min(dmin, lmin)` to
+            # `max(lmax, dmax)`, while the ticks span lmin to lmax, the
+            # optimization should use the ratio of
+            #   r = (k - 1) / (length * (lmax - lmin))
+            #       * (max(lmax, dmax) - min(dmin, lmin))
+            # to `self.rt`.
+            # It turns out that the two ratios are equivalent if one sets
+            m = self.rt * length + 1
+
         # without 'legibility' quite fast, around 1 ms
-        eps = float_info.epsilon * 100
 
         if dmin > dmax:
             dmin, dmax = dmax, dmin
 
-        if dmax - dmin < eps:
-            return None
-
         # threshold for optimization
-        best = dict(score=-2)
+        best_score = -2
 
         # We combine the j and q loops into one to enable breaking out of both
         # simultaneously, by iterating over a generator; and we create an
@@ -107,17 +125,17 @@ class ExtendedWilkinson:
         # and replaces `q, Q` in function calls.
         JIQ = ((j, i, q)
                for j in count(start=1)
-               for i, q in enumerate(self.Q, start=1))
+               for i, q in enumerate(cfg.Q, start=1))
         for j, i, q in JIQ:
             sm = self._simplicity_max(i, j)
 
-            if self._score(sm, 1, 1, 1) < best['score']:
+            if self._score(sm, 1, 1, 1) < best_score:
                 break
 
             for k in count(start=2):      # loop over tick counts
                 dm = self._density_max(k, m)
 
-                if self._score(sm, 1, dm, 1) < best['score']:
+                if self._score(sm, 1, dm, 1) < best_score:
                     break
 
                 delta = (dmax - dmin) / (k + 1) / (j * float(q))
@@ -127,7 +145,7 @@ class ExtendedWilkinson:
 
                     cm = self._coverage_max(dmin, dmax, step * (k - 1))
 
-                    if self._score(sm, cm, dm, 1) < best['score']:
+                    if self._score(sm, cm, dm, 1) < best_score:
                         break
 
                     min_start = floor(dmax / step) * j - (k - 1) * j
@@ -139,7 +157,8 @@ class ExtendedWilkinson:
                     for start in range(min_start, max_start + 1):
                         lmin = start * step / j
                         lmax = lmin + step * (k - 1)
-                        lstep = step
+                        # lstep = step
+
                         # In terms of loop variables:
                         # lmin = q * start * 10**z
                         # lmax = q * (start + j * (k - 1)) * 10 ** z
@@ -152,55 +171,22 @@ class ExtendedWilkinson:
                         s = self._simplicity(i, start, j, k)
                         c = self._coverage(dmin, dmax, lmin, lmax)
                         d = self._density(k, m, dmin, dmax, lmin, lmax)
-                        l = self._legibility()                                      # noqa E741
 
-                        score = self._score(s, c, d, l)
+                        score = self._score(s, c, d, 1)
 
-                        if score > best['score']:
-                            best = dict(
-                                lmin=lmin,
-                                lmax=lmax,
-                                lstep=lstep,
-                                score=score,
-                                k=k,
-                                q=q,
-                                start=start,
-                                j=j,
-                                z=z
-                            )
+                        if score < best_score:
+                            continue
 
-        return best
+                        best_score = score
+                        ticklabels = Ticks(
+                            q, start, j, z, k,
+                            self.normalize)
 
-    def ticks(self, dmin, dmax, length):
-        # The 'extended' algorithm is defined in terms of m, the target number
-        # of ticks. It optimizes w.r.t. the ratio between the two quantities
-        #   r = (k - 1) / (lmax - lmin)
-        #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
-        # I want to instead specify the physical density (e.g. in 1/cm), stored
-        # as a class attribute self.rt, and the parameter length (e.g. in cm).
-        # Assuming that the axis spans min(dmin, lmin) to max(lmax, dmax),
-        # while the ticks span lmin to lmax, the optimization should use the
-        # ratio of
-        #   r = (k - 1) / (length * (lmax - lmin))
-        #       * (max(lmax, dmax) - min(dmin, lmin))
-        # to self.rt.
-        # It turns out that the two ratios are equivalent if one sets
-        #    m = self.rt * length + 1
-        # Instead of modifying the score function, we make the translation
-        # here:
-        m = self.rt * length + 1
-        # run optimization
-        best = self._extended(dmin, dmax, m)
-        # store result for debugging
-        self.last_best = best
-        # create ticks
-        param = [best[key] for key in ['q', 'start', 'j', 'z', 'k']]
-        ticks = Ticks(*param, normalize=self.normalize)
-        return ticks
+        return ticklabels
 
 
 class Ticks:
-    "represents a set of tick values"
+    "represent tick values and labels"
     def __init__(self, q, start, j, z, k, normalize):
         self.q = q
         self.start = start
