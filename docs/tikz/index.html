@@ -105,12 +105,6 @@ notebook seamless.
 &#34;&#34;&#34;
 
 
-# TODO:
-# - type hinting
-# - all docstring triple-quoted, with blank line after
-# - docstring for: class (not `__init__`), method, function; package, module
-# - variables are documented in the class/module/package docstring
-
 import atexit
 import base64
 import hashlib
@@ -128,7 +122,7 @@ import numpy as np
 
 
 class cfg:
-    &#34;configuration variables&#34;
+    &#34;tikz configuration variables&#34;
 
     display_dpi = 192
     &#34;&#34;&#34;
@@ -144,13 +138,9 @@ class cfg:
     The default is 300.
     &#34;&#34;&#34;
 
-    latex = &#39;pdflatex&#39;
+    latex = &#39;xelatex&#39;
     &#34;&#34;&#34;
     name of the executable used to compile the LaTeX document
-
-    This can be any version of LaTeX that produces PDF output. The fastest
-    appears to be pdfLaTeX, but choosing another version may be necessary for
-    specific features.
     &#34;&#34;&#34;
 
     demo_template = &#39;\n&#39;.join([
@@ -219,7 +209,7 @@ def _tuple(obj): return isinstance(obj, tuple)
 def _numeric(obj): return isinstance(obj, numbers.Real)
 def _str_or_numeric(obj): return _str(obj) or _numeric(obj)
 def _ndarray(obj): return isinstance(obj, np.ndarray)
-def _list(obj): return isinstance(obj, list)                        # noqa E302
+def _list(obj): return isinstance(obj, list)                                        # noqa E302
 
 
 def _coordinate(coord):
@@ -448,15 +438,12 @@ class rectangle(Operation):
 
     see [§14.4](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.4)
     &#34;&#34;&#34;
-    def __init__(self, coord, opt=None, **kwoptions):
+    def __init__(self, coord):
         # normalize coordinate
         self.coord = _coordinate(coord)
-        self.opt = opt
-        self.kwoptions = kwoptions
 
     def code(self):
-        return (&#39;rectangle&#39; + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))
+        return (&#39;rectangle &#39; + _coordinate_code(self.coord))
 
 
 class circle(Operation):
@@ -1108,6 +1095,20 @@ class Picture(Scope):
         # make sure it gets deleted
         atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
 
+    def add_preamble(self, code):
+        &#34;&#34;&#34;
+        add code to preamble
+
+        Adds arbitrary LaTeX code to the document preamble. Since the code will
+        typically contain backslash characters, use of a Python &#39;raw&#39; string is
+        recommended.
+
+        If the method is called multiple times with the same arguments, the
+        code is only added once.
+        &#34;&#34;&#34;
+        if code not in self.preamble:
+            self.preamble.append(code)
+
     def usetikzlibrary(self, name):
         &#34;&#34;&#34;
         use TikZ library
@@ -1121,9 +1122,7 @@ class Picture(Scope):
         see
         [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
         &#34;&#34;&#34;
-        code = r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;
-        if code not in self.preamble:
-            self.preamble.append(code)
+        self.add_preamble(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)
 
     def usepackage(self, name, options=None):
         &#34;&#34;&#34;
@@ -1140,8 +1139,18 @@ class Picture(Scope):
         if options is not None:
             code += &#39;[&#39; + options + &#39;]&#39;
         code += &#39;{&#39; + name + &#39;}&#39;
-        if code not in self.preamble:
-            self.preamble.append(code)
+        self.add_preamble(code)
+
+    def fira(self):
+        &#34;&#34;&#34;
+        set font to Fira, also for math
+
+        Warning: Fira Math works only with xelatex and lualatex!
+        &#34;&#34;&#34;
+        self.usepackage(&#39;FiraSans&#39;, &#39;sfdefault&#39;)
+        self.usepackage(&#39;unicode-math&#39;, &#39;mathrm=sym&#39;)
+        self.add_preamble(r&#39;\setmathfont{Fira Math}[math-style=ISO,&#39;
+                          &#39;bold-style=ISO,nabla=upright,partial=upright]&#39;)
 
     def code(self):
         &#34;returns TikZ code&#34;
@@ -1151,16 +1160,20 @@ class Picture(Scope):
 
     def document_code(self):
         &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
-        return (
-                &#39;\n&#39;.join([
-                    r&#39;\documentclass{article}&#39;,
-                    r&#39;\usepackage{tikz}&#39;,
-                    r&#39;\usetikzlibrary{external}&#39;,
-                    r&#39;\tikzexternalize&#39;]) + &#39;\n&#39;
-                + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
-                + r&#39;\begin{document}&#39; + &#39;\n&#39;
-                + self.code() + &#39;\n&#39;
-                + r&#39;\end{document}&#39; + &#39;\n&#39;)
+        # standard preamble
+        codelines = [
+            r&#39;\documentclass{article}&#39;,
+            r&#39;\usepackage{tikz}&#39;,
+            r&#39;\usetikzlibrary{external}&#39;,
+            r&#39;\tikzexternalize&#39;]
+        # user-added preamble
+        codelines += self.preamble
+        # document body
+        codelines += [
+            r&#39;\begin{document}&#39;,
+            self.code(),
+            r&#39;\end{document}&#39;]
+        return &#39;\n&#39;.join(codelines)
 
     def _create_pdf(self):
         &#34;ensure that an up-to-date PDF file exists&#34;
@@ -1188,7 +1201,7 @@ class Picture(Scope):
         # create LaTeX file
         temp_tex = self.tempdir + sep + &#39;tikz.tex&#39;
         with open(temp_tex, &#39;w&#39;) as f:
-            f.write(code)
+            f.write(code + &#39;\n&#39;)
 
         # process LaTeX file into PDF
         completed = subprocess.run(
@@ -1199,6 +1212,7 @@ class Picture(Scope):
             cwd=self.tempdir,
             capture_output=True,
             text=True)
+        self.latex_completed = completed
         if completed.returncode != 0:
             raise LatexError(&#39;LaTeX has failed\n&#39; + completed.stdout)
 
@@ -1246,7 +1260,7 @@ class Picture(Scope):
             print(f&#39;format {ext[1:]} is not supported&#39;)
 
     def _repr_png_(self, dpi=None):
-        &#34;represent of picture as PNG for notebook&#34;
+        &#34;represent Picture as PNG for notebook&#34;
         self._create_pdf()
         if dpi is None:
             dpi = cfg.display_dpi
@@ -1255,6 +1269,16 @@ class Picture(Scope):
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
+    
+    def show(self, dpi=None):
+        &#34;&#34;&#34;
+        show picture in the notebook
+
+        The optional argument `dpi` can be used to override the default
+        `cfg.display_dpi`.
+        &#34;&#34;&#34;
+        IPython.display.display(
+            IPython.display.Image(data=self._repr_png_(dpi=dpi)))
 
     def demo(self, dpi=None):
         &#34;&#34;&#34;
@@ -1278,8 +1302,9 @@ class Picture(Scope):
                 message = message[tikz_error:]
             print(message)
         code_escaped = html.escape(self.code())
-        IPython.display.display(IPython.display.HTML(
-            cfg.demo_template.format(png_base64, code_escaped)))
+        IPython.display.display(
+            IPython.display.HTML(
+                cfg.demo_template.format(png_base64, code_escaped)))
 
 
 class LatexError(Exception):
@@ -1290,6 +1315,23 @@ class LatexError(Exception):
 </details>
 </section>
 <section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="tikz.extended_wilkinson" href="extended_wilkinson.html">tikz.extended_wilkinson</a></code></dt>
+<dd>
+<section class="desc"><p>Extended-Wilkinson algorithm for ticks and tick labels …</p></section>
+</dd>
+<dt><code class="name"><a title="tikz.figure" href="figure.html">tikz.figure</a></code></dt>
+<dd>
+<section class="desc"><p>specific parameters:
+-
+width
+-
+rows/columns for each view
+-
+aspect ratio for each view …</p></section>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -1344,13 +1386,13 @@ path (unless they are path-global).</p></section>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>configuration variables</p></section>
+<section class="desc"><p>tikz configuration variables</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class cfg:
-    &#34;configuration variables&#34;
+    &#34;tikz configuration variables&#34;
 
     display_dpi = 192
     &#34;&#34;&#34;
@@ -1366,13 +1408,9 @@ path (unless they are path-global).</p></section>
     The default is 300.
     &#34;&#34;&#34;
 
-    latex = &#39;pdflatex&#39;
+    latex = &#39;xelatex&#39;
     &#34;&#34;&#34;
     name of the executable used to compile the LaTeX document
-
-    This can be any version of LaTeX that produces PDF output. The fastest
-    appears to be pdfLaTeX, but choosing another version may be necessary for
-    specific features.
     &#34;&#34;&#34;
 
     demo_template = &#39;\n&#39;.join([
@@ -1410,10 +1448,7 @@ path (unless they are path-global).</p></section>
 </dd>
 <dt id="tikz.cfg.latex"><code class="name">var <span class="ident">latex</span></code></dt>
 <dd>
-<section class="desc"><p>name of the executable used to compile the LaTeX document</p>
-<p>This can be any version of LaTeX that produces PDF output. The fastest
-appears to be pdfLaTeX, but choosing another version may be necessary for
-specific features.</p></section>
+<section class="desc"><p>name of the executable used to compile the LaTeX document</p></section>
 </dd>
 <dt id="tikz.cfg.demo_template"><code class="name">var <span class="ident">demo_template</span></code></dt>
 <dd>
@@ -1793,7 +1828,7 @@ horizontal, then vertical, or <code>'|-'</code> for first vertical, then horizon
 </dd>
 <dt id="tikz.rectangle"><code class="flex name class">
 <span>class <span class="ident">rectangle</span></span>
-<span>(</span><span>coord, opt=None, **kwoptions)</span>
+<span>(</span><span>coord)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>rectangle operation</p>
@@ -1811,15 +1846,12 @@ horizontal, then vertical, or <code>'|-'</code> for first vertical, then horizon
 
     see [§14.4](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsection.14.4)
     &#34;&#34;&#34;
-    def __init__(self, coord, opt=None, **kwoptions):
+    def __init__(self, coord):
         # normalize coordinate
         self.coord = _coordinate(coord)
-        self.opt = opt
-        self.kwoptions = kwoptions
 
     def code(self):
-        return (&#39;rectangle&#39; + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+        return (&#39;rectangle &#39; + _coordinate_code(self.coord))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1841,8 +1873,7 @@ horizontal, then vertical, or <code>'|-'</code> for first vertical, then horizon
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def code(self):
-    return (&#39;rectangle&#39; + _options_code(opt=self.opt, **self.kwoptions)
-            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+    return (&#39;rectangle &#39; + _coordinate_code(self.coord))</code></pre>
 </details>
 </dd>
 </dl>
@@ -3420,6 +3451,20 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         # make sure it gets deleted
         atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
 
+    def add_preamble(self, code):
+        &#34;&#34;&#34;
+        add code to preamble
+
+        Adds arbitrary LaTeX code to the document preamble. Since the code will
+        typically contain backslash characters, use of a Python &#39;raw&#39; string is
+        recommended.
+
+        If the method is called multiple times with the same arguments, the
+        code is only added once.
+        &#34;&#34;&#34;
+        if code not in self.preamble:
+            self.preamble.append(code)
+
     def usetikzlibrary(self, name):
         &#34;&#34;&#34;
         use TikZ library
@@ -3433,9 +3478,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         see
         [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
         &#34;&#34;&#34;
-        code = r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;
-        if code not in self.preamble:
-            self.preamble.append(code)
+        self.add_preamble(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)
 
     def usepackage(self, name, options=None):
         &#34;&#34;&#34;
@@ -3452,8 +3495,18 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         if options is not None:
             code += &#39;[&#39; + options + &#39;]&#39;
         code += &#39;{&#39; + name + &#39;}&#39;
-        if code not in self.preamble:
-            self.preamble.append(code)
+        self.add_preamble(code)
+
+    def fira(self):
+        &#34;&#34;&#34;
+        set font to Fira, also for math
+
+        Warning: Fira Math works only with xelatex and lualatex!
+        &#34;&#34;&#34;
+        self.usepackage(&#39;FiraSans&#39;, &#39;sfdefault&#39;)
+        self.usepackage(&#39;unicode-math&#39;, &#39;mathrm=sym&#39;)
+        self.add_preamble(r&#39;\setmathfont{Fira Math}[math-style=ISO,&#39;
+                          &#39;bold-style=ISO,nabla=upright,partial=upright]&#39;)
 
     def code(self):
         &#34;returns TikZ code&#34;
@@ -3463,16 +3516,20 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 
     def document_code(self):
         &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
-        return (
-                &#39;\n&#39;.join([
-                    r&#39;\documentclass{article}&#39;,
-                    r&#39;\usepackage{tikz}&#39;,
-                    r&#39;\usetikzlibrary{external}&#39;,
-                    r&#39;\tikzexternalize&#39;]) + &#39;\n&#39;
-                + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
-                + r&#39;\begin{document}&#39; + &#39;\n&#39;
-                + self.code() + &#39;\n&#39;
-                + r&#39;\end{document}&#39; + &#39;\n&#39;)
+        # standard preamble
+        codelines = [
+            r&#39;\documentclass{article}&#39;,
+            r&#39;\usepackage{tikz}&#39;,
+            r&#39;\usetikzlibrary{external}&#39;,
+            r&#39;\tikzexternalize&#39;]
+        # user-added preamble
+        codelines += self.preamble
+        # document body
+        codelines += [
+            r&#39;\begin{document}&#39;,
+            self.code(),
+            r&#39;\end{document}&#39;]
+        return &#39;\n&#39;.join(codelines)
 
     def _create_pdf(self):
         &#34;ensure that an up-to-date PDF file exists&#34;
@@ -3500,7 +3557,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         # create LaTeX file
         temp_tex = self.tempdir + sep + &#39;tikz.tex&#39;
         with open(temp_tex, &#39;w&#39;) as f:
-            f.write(code)
+            f.write(code + &#39;\n&#39;)
 
         # process LaTeX file into PDF
         completed = subprocess.run(
@@ -3511,6 +3568,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
             cwd=self.tempdir,
             capture_output=True,
             text=True)
+        self.latex_completed = completed
         if completed.returncode != 0:
             raise LatexError(&#39;LaTeX has failed\n&#39; + completed.stdout)
 
@@ -3558,7 +3616,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
             print(f&#39;format {ext[1:]} is not supported&#39;)
 
     def _repr_png_(self, dpi=None):
-        &#34;represent of picture as PNG for notebook&#34;
+        &#34;represent Picture as PNG for notebook&#34;
         self._create_pdf()
         if dpi is None:
             dpi = cfg.display_dpi
@@ -3567,6 +3625,16 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
+    
+    def show(self, dpi=None):
+        &#34;&#34;&#34;
+        show picture in the notebook
+
+        The optional argument `dpi` can be used to override the default
+        `cfg.display_dpi`.
+        &#34;&#34;&#34;
+        IPython.display.display(
+            IPython.display.Image(data=self._repr_png_(dpi=dpi)))
 
     def demo(self, dpi=None):
         &#34;&#34;&#34;
@@ -3590,15 +3658,49 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
                 message = message[tikz_error:]
             print(message)
         code_escaped = html.escape(self.code())
-        IPython.display.display(IPython.display.HTML(
-            cfg.demo_template.format(png_base64, code_escaped)))</code></pre>
+        IPython.display.display(
+            IPython.display.HTML(
+                cfg.demo_template.format(png_base64, code_escaped)))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Scope" href="#tikz.Scope">Scope</a></li>
 </ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="tikz.figure.Figure" href="figure.html#tikz.figure.Figure">Figure</a></li>
+</ul>
 <h3>Methods</h3>
 <dl>
+<dt id="tikz.Picture.add_preamble"><code class="name flex">
+<span>def <span class="ident">add_preamble</span></span>(<span>self, code)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>add code to preamble</p>
+<p>Adds arbitrary LaTeX code to the document preamble. Since the code will
+typically contain backslash characters, use of a Python 'raw' string is
+recommended.</p>
+<p>If the method is called multiple times with the same arguments, the
+code is only added once.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_preamble(self, code):
+    &#34;&#34;&#34;
+    add code to preamble
+
+    Adds arbitrary LaTeX code to the document preamble. Since the code will
+    typically contain backslash characters, use of a Python &#39;raw&#39; string is
+    recommended.
+
+    If the method is called multiple times with the same arguments, the
+    code is only added once.
+    &#34;&#34;&#34;
+    if code not in self.preamble:
+        self.preamble.append(code)</code></pre>
+</details>
+</dd>
 <dt id="tikz.Picture.usetikzlibrary"><code class="name flex">
 <span>def <span class="ident">usetikzlibrary</span></span>(<span>self, name)</span>
 </code></dt>
@@ -3627,9 +3729,7 @@ arguments, only one such command is added.</p>
     see
     [Part V](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#part.5)
     &#34;&#34;&#34;
-    code = r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;
-    if code not in self.preamble:
-        self.preamble.append(code)</code></pre>
+    self.add_preamble(r&#39;\usetikzlibrary{&#39; + name + &#39;}&#39;)</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.usepackage"><code class="name flex">
@@ -3661,8 +3761,29 @@ arguments, only one such command is added.</p></section>
     if options is not None:
         code += &#39;[&#39; + options + &#39;]&#39;
     code += &#39;{&#39; + name + &#39;}&#39;
-    if code not in self.preamble:
-        self.preamble.append(code)</code></pre>
+    self.add_preamble(code)</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.fira"><code class="name flex">
+<span>def <span class="ident">fira</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>set font to Fira, also for math</p>
+<p>Warning: Fira Math works only with xelatex and lualatex!</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fira(self):
+    &#34;&#34;&#34;
+    set font to Fira, also for math
+
+    Warning: Fira Math works only with xelatex and lualatex!
+    &#34;&#34;&#34;
+    self.usepackage(&#39;FiraSans&#39;, &#39;sfdefault&#39;)
+    self.usepackage(&#39;unicode-math&#39;, &#39;mathrm=sym&#39;)
+    self.add_preamble(r&#39;\setmathfont{Fira Math}[math-style=ISO,&#39;
+                      &#39;bold-style=ISO,nabla=upright,partial=upright]&#39;)</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.code"><code class="name flex">
@@ -3696,16 +3817,20 @@ arguments, only one such command is added.</p></section>
 </summary>
 <pre><code class="python">def document_code(self):
     &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
-    return (
-            &#39;\n&#39;.join([
-                r&#39;\documentclass{article}&#39;,
-                r&#39;\usepackage{tikz}&#39;,
-                r&#39;\usetikzlibrary{external}&#39;,
-                r&#39;\tikzexternalize&#39;]) + &#39;\n&#39;
-            + &#39;\n&#39;.join(self.preamble) + &#39;\n&#39;
-            + r&#39;\begin{document}&#39; + &#39;\n&#39;
-            + self.code() + &#39;\n&#39;
-            + r&#39;\end{document}&#39; + &#39;\n&#39;)</code></pre>
+    # standard preamble
+    codelines = [
+        r&#39;\documentclass{article}&#39;,
+        r&#39;\usepackage{tikz}&#39;,
+        r&#39;\usetikzlibrary{external}&#39;,
+        r&#39;\tikzexternalize&#39;]
+    # user-added preamble
+    codelines += self.preamble
+    # document body
+    codelines += [
+        r&#39;\begin{document}&#39;,
+        self.code(),
+        r&#39;\end{document}&#39;]
+    return &#39;\n&#39;.join(codelines)</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.write_image"><code class="name flex">
@@ -3766,6 +3891,28 @@ SVG, the PDF is converted to SVG.</p>
         print(f&#39;format {ext[1:]} is not supported&#39;)</code></pre>
 </details>
 </dd>
+<dt id="tikz.Picture.show"><code class="name flex">
+<span>def <span class="ident">show</span></span>(<span>self, dpi=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>show picture in the notebook</p>
+<p>The optional argument <code>dpi</code> can be used to override the default
+<a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi"><code>cfg.display_dpi</code></a>.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show(self, dpi=None):
+    &#34;&#34;&#34;
+    show picture in the notebook
+
+    The optional argument `dpi` can be used to override the default
+    `cfg.display_dpi`.
+    &#34;&#34;&#34;
+    IPython.display.display(
+        IPython.display.Image(data=self._repr_png_(dpi=dpi)))</code></pre>
+</details>
+</dd>
 <dt id="tikz.Picture.demo"><code class="name flex">
 <span>def <span class="ident">demo</span></span>(<span>self, dpi=None)</span>
 </code></dt>
@@ -3803,8 +3950,9 @@ override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi
             message = message[tikz_error:]
         print(message)
     code_escaped = html.escape(self.code())
-    IPython.display.display(IPython.display.HTML(
-        cfg.demo_template.format(png_base64, code_escaped)))</code></pre>
+    IPython.display.display(
+        IPython.display.HTML(
+            cfg.demo_template.format(png_base64, code_escaped)))</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.add_scope"><code class="name flex">
@@ -4008,6 +4156,12 @@ style="width:100%;padding-left:40px;padding-right:40px">
 </ul>
 </div>
 <ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="tikz.extended_wilkinson" href="extended_wilkinson.html">tikz.extended_wilkinson</a></code></li>
+<li><code><a title="tikz.figure" href="figure.html">tikz.figure</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="tikz.cycle" href="#tikz.cycle">cycle</a></code></li>
@@ -4158,11 +4312,14 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li>
 <h4><code><a title="tikz.Picture" href="#tikz.Picture">Picture</a></code></h4>
 <ul class="two-column">
+<li><code><a title="tikz.Picture.add_preamble" href="#tikz.Picture.add_preamble">add_preamble</a></code></li>
 <li><code><a title="tikz.Picture.usetikzlibrary" href="#tikz.Picture.usetikzlibrary">usetikzlibrary</a></code></li>
 <li><code><a title="tikz.Picture.usepackage" href="#tikz.Picture.usepackage">usepackage</a></code></li>
+<li><code><a title="tikz.Picture.fira" href="#tikz.Picture.fira">fira</a></code></li>
 <li><code><a title="tikz.Picture.code" href="#tikz.Picture.code">code</a></code></li>
 <li><code><a title="tikz.Picture.document_code" href="#tikz.Picture.document_code">document_code</a></code></li>
 <li><code><a title="tikz.Picture.write_image" href="#tikz.Picture.write_image">write_image</a></code></li>
+<li><code><a title="tikz.Picture.show" href="#tikz.Picture.show">show</a></code></li>
 <li><code><a title="tikz.Picture.demo" href="#tikz.Picture.demo">demo</a></code></li>
 <li><code><a title="tikz.Picture.add_scope" href="#tikz.Picture.add_scope">add_scope</a></code></li>
 <li><code><a title="tikz.Picture.path" href="#tikz.Picture.path">path</a></code></li>

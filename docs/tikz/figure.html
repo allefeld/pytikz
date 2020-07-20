@@ -1,0 +1,1315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>tikz.figure API documentation</title>
+<meta name="description" content="specific parameters:
+-
+width
+-
+rows/columns for each view
+-
+aspect ratio for each view …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>tikz.figure</code></h1>
+</header>
+<section id="section-intro">
+<p>specific parameters:
+-
+width
+-
+rows/columns for each view
+-
+aspect ratio for each view</p>
+<p>implicit:
+-
+numbers of rows and columns
+-
+numbers of rows and columns</p>
+<p>generic parameters:
+-
+horizontal margin, vertical margin
+-
+horizontal gap, vertical gap
+-
+left padding, right padding
+-
+below padding, above padding</p>
+<p>results:
+-
+column widths
+-
+row heights
+-
+&hellip;</p>
+<p>all lengths in cm, or whatever the <code>xy</code> coordinate system has been set to</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+specific parameters:
+-   width
+-   rows/columns for each view
+-   aspect ratio for each view
+
+implicit:
+-   numbers of rows and columns
+-   numbers of rows and columns
+
+generic parameters:
+-   horizontal margin, vertical margin
+-   horizontal gap, vertical gap
+-   left padding, right padding
+-   below padding, above padding
+
+results:
+-   column widths
+-   row heights
+-   ...
+
+all lengths in cm, or whatever the `xy` coordinate system has been set to
+&#34;&#34;&#34;
+
+import numpy as np
+import collections
+from tikz import Picture, rectangle, options
+
+
+class cfg:
+    &#34;tikz.figure configuration variables&#34;
+
+    width = 16
+    &#34;width of figure, default 16&#34;
+    margin_horizontal = 0.5
+    &#34;horizontal margin of figure, default 0.5&#34;
+    margin_vertical = 0.5
+    &#34;vertical margin of figure, default 0.5&#34;
+    gap_horizontal = 0.5
+    &#34;horizontal gap between views, default 0.5&#34;
+    gap_vertical = 0.5
+    &#34;vertical gap between views, default 0.5&#34;
+    padding_left = 1
+    &#34;left view padding, default 1&#34;
+    padding_right = 0.5
+    &#34;right view padding, default 1&#34;
+    padding_bottom = 1
+    &#34;bottom view padding, default 1&#34;
+    padding_top = 0.5
+    &#34;top view padding, default 0.5&#34;
+
+
+class Box:
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+
+    def _draw(self, env, label=None, opt=None, **kwoptions):
+        &#34;draw Box into environment&#34;
+        env.draw((self.x, self.y),
+                 rectangle((self.x + self.w, self.y + self.h)),
+                 opt=opt, **kwoptions)
+        if label is not None:
+            env.node(label, at=(self.x, self.y + self.h),
+                     anchor=&#39;north west&#39;, font=r&#39;\tiny&#39;)
+
+
+class View:
+    def __init__(self, outer=None, inner=None):
+        self.outer = outer
+        self.inner = inner
+
+    def locate(self, outer, inner):
+        self.outer = outer
+        self.inner = inner
+
+    def _draw(self, env, label=None):
+        &#34;draw View into environment&#34;
+        self.outer._draw(env, label, opacity=0.5)
+        self.inner._draw(env)
+
+
+# TODO:
+# additional Layout subclasses:
+# - simple GridLayout (like Matlab&#39;s subplot)
+# - function to split existing View into grid (similar to Matlab&#39;s plotmatrix)
+#   – is that compatible with automatic spacing? Yes, parameters just need to
+#   be interpreted consistently.
+#
+# Axis should provide a method to insert another axis (an inset), based on an
+# independent View (not bound to a Figure / managed by a Layout). Boxes of such
+# a view should either be specified in data coordinates or in local coordinates
+# relative to the Axis&#39; inner Box.
+#
+# An Axis is always based on a View, but a View can used for several Axis&#39;,
+# e.g. a second y-scale.
+#
+# Maybe no automatic spacing, but interpretable information when scale
+# decoration boxes get crowded (&#34;overfull by ...&#34;).
+
+
+class Layout:
+    &#34;&#34;&#34;
+    superclass for layout classes
+
+    Every subclass has to ensure that
+    - there is a member `views` that contains a list of `View` objects,
+    - there are members `width` and `height` which specify the dimensions,
+    - if computations are necessary to ensure these members are up-to-date,
+      they are implemented in a method overriding `_compute`.
+    &#34;&#34;&#34;
+    def _compute(self):
+        pass
+
+    def get_views(self):
+        self._compute()
+        return self.views
+
+    def get_dimensions(self):
+        self._compute()
+        return self.width, self.height
+
+    def _draw(self, env):
+        &#34;draw Layout into environment&#34;
+        env.draw((0, 0), rectangle((self.width, self.height)))
+        env.node(&#39;Layout&#39;, at=(0, self.height),
+                 anchor=&#39;north west&#39;, font=r&#39;\tiny&#39;)
+        for i in range(len(self.views)):
+            self.views[i]._draw(env, f&#39;View {i}&#39;)
+
+    def _repr_png_(self, dpi=None):
+        &#34;represent Layout as PNG for notebook&#34;
+        self._compute()
+        pic = Picture()
+        self._draw(pic)
+        return pic._repr_png_(dpi=dpi)
+
+
+class SimpleLayout(Layout):
+    &#34;layout with a single view&#34;
+    def __init__(self, **parameters):
+        # process Layout parameters and get defaults
+        self.width = parameters.get(&#39;width&#39;, cfg.width)
+        mh = parameters.get(&#39;margin_horizontal&#39;, parameters.get(
+            &#39;margin&#39;, cfg.margin_horizontal))
+        mv = parameters.get(&#39;margin_vertical&#39;, parameters.get(
+            &#39;margin&#39;, cfg.margin_vertical))
+        pl = parameters.get(&#39;padding_left&#39;, cfg.padding_left)
+        pr = parameters.get(&#39;padding_right&#39;, cfg.padding_right)
+        pb = parameters.get(&#39;padding_bottom&#39;, cfg.padding_bottom)
+        pt = parameters.get(&#39;padding_top&#39;, cfg.padding_top)
+        ar = parameters.get(&#39;aspect_ratio&#39;, 4/3)
+        # compute
+        iw = self.width - 2 * mh - pl - pr
+        ih = iw / ar
+        ow = iw + pl + pr
+        oh = ih + pb + pt
+        ox = mh
+        oy = mv
+        ix = ox + pl
+        iy = oy + pb
+        self.height = oh + 2 * mv
+        # create boxes and view
+        outer = Box(ox, oy, ow, oh)
+        inner = Box(ix, iy, iw, ih)
+        self.views = [View(outer, inner)]
+
+
+class FlexibleGridLayout(Layout):
+    &#34;layout where views encompass one or more of the cells of a flexible grid&#34;
+    def __init__(self, **parameters):
+        # process Layout parameters and get defaults
+        self.width = parameters.get(&#39;width&#39;, cfg.width)
+        self.mh = parameters.get(&#39;margin_horizontal&#39;, parameters.get(
+            &#39;margin&#39;, cfg.margin_horizontal))
+        self.mv = parameters.get(&#39;margin_vertical&#39;, parameters.get(
+            &#39;margin&#39;, cfg.margin_vertical))
+        self.gh = parameters.get(&#39;gap_horizontal&#39;, parameters.get(
+            &#39;gap&#39;, cfg.gap_horizontal))
+        self.gv = parameters.get(&#39;gap_vertical&#39;, parameters.get(
+            &#39;gap&#39;, cfg.gap_vertical))
+        self.pl = parameters.get(&#39;padding_left&#39;, cfg.padding_left)
+        self.pr = parameters.get(&#39;padding_right&#39;, cfg.padding_right)
+        self.pb = parameters.get(&#39;padding_bottom&#39;, cfg.padding_bottom)
+        self.pt = parameters.get(&#39;padding_top&#39;, cfg.padding_top)
+        # initialize list of Views and view parameters
+        self.views = []
+        self.rf = []    # rows from
+        self.rt = []    # rows to
+        self.cf = []    # columns from
+        self.ct = []    # columns to
+        self.ar = []    # aspect ratio
+
+    def add_view(self, rows, cols, aspect_ratio=None):
+        # support specification of single row/col as scalar
+        if not isinstance(rows, collections.abc.Iterable):
+            rows = [rows]
+        if not isinstance(cols, collections.abc.Iterable):
+            cols = [cols]
+        # store extent w.r.t. grid &amp; aspect ratio
+        self.rf.append(min(rows))
+        self.rt.append(max(rows))
+        self.cf.append(min(cols))
+        self.ct.append(max(cols))
+        self.ar.append(aspect_ratio)
+        # create &amp; store empty View object
+        v = View()
+        self.views.append(v)
+
+    def _compute(self):
+        # What we have to compute are the outer and inner box of each view. To
+        # do so, we need to know the height of each row and the width of each
+        # column. The constraints that allow to compute these unknowns u are
+        # linear, which means they can be expressed by a matrix equation,
+        # A u = b. The rows of u / columns of A correspond to first the the
+        # row heights and then the column widths, and the rows of A / rows of
+        # b correspond to the constraints.
+
+        # compute number of rows/cols from maximal view row/col index
+        nr = max(self.rt) + 1
+        nc = max(self.ct) + 1
+
+        # constraints: one global, and one per view
+        n = 1 + len(self.views)
+        A = np.zeros(shape=(n, nr + nc))
+        b = np.zeros(shape=(n, 1))
+        # global constraint
+        # The column widths, margins and gaps have to add up to the width.
+        A[0, :] = np.hstack((np.zeros(nr), np.ones(nc)))
+        b[0] = self.width - 2 * self.mh - (nc - 1) * self.gh
+        # per-view constraints
+        for i in range(len(self.views)):
+            # unpack for shorter code
+            rf = self.rf[i]
+            rt = self.rt[i]
+            cf = self.cf[i]
+            ct = self.ct[i]
+            ar = self.ar[i]
+            # ignore views with unspecified aspect ratio
+            if ar is None:
+                continue
+            # row heights included in view
+            h = np.zeros(nr)
+            h[rf: rt + 1] = 1
+            nvr = sum(h)
+            # column widths included in view
+            w = np.zeros(nc)
+            w[cf: ct + 1] = 1
+            nvc = sum(w)
+            # constraint
+            A[i + 1, :] = np.hstack((-ar * h, w))
+            b[i + 1] = ((self.pl + self.pr - (nvc - 1) * self.gh)
+                        - ar * (self.pt + self.pb - (nvr - 1) * self.gv))
+
+        # check constraints
+        rank = np.linalg.matrix_rank(A)
+        if rank &lt; nr + nc:
+            print(&#39;Warning: The Layout is underdetermined.&#39;)
+
+        # solve expression
+        u = np.linalg.pinv(A) @ b
+
+        # extract row heights and column widths
+        rh = list(u[:nr].flat)
+        cw = list(u[nr:].flat)
+
+        # height of figure
+        self.height = sum(rh) + 2 * self.mh + (nr - 1) * self.gv
+
+        # check fulfillment of global constraint
+        tol = 2.54 / 72.3 / 65536   # 1 TeX scaled point
+        actual_width = sum(cw) + 2 * self.mh + (nc - 1) * self.gh
+        if abs(actual_width - self.width) &gt; tol:
+            print(f&#39;Warning: Layout width is {actual_width}.&#39;)
+
+        # compute position of view boxes
+        for i in range(len(self.views)):
+            # unpack for shorter code
+            rf = self.rf[i]
+            rt = self.rt[i]
+            cf = self.cf[i]
+            ct = self.ct[i]
+            ar = self.ar[i]
+            # outer box
+            ox = self.mh + sum(cw[:cf]) + cf * self.gh
+            oy = self.mv + sum(rh[:rf]) + rf * self.gv
+            ow = sum(cw[cf: ct + 1]) + (ct - cf) * self.gh
+            oh = sum(rh[rf: rt + 1]) + (rt - rf) * self.gv
+            oy = self.height - oy - oh
+            outer = Box(ox, oy, ow, oh)
+            # inner box
+            ix = ox + self.pl
+            iy = oy + self.pb
+            iw = ow - self.pl - self.pr
+            ih = oh - self.pt - self.pb
+            inner = Box(ix, iy, iw, ih)
+            # assign Boxes to View
+            self.views[i].locate(outer, inner)
+
+            # check fulfillment of per-view constraint
+            if ar is None:
+                continue
+            if abs(iw - ar * ih) &gt; tol:
+                print(f&#39;Warning: View {i} aspect ratio is {iw / ih}.&#39;)
+
+
+class Figure(Picture):
+    def __init__(self, layout=None, opt=None, **kwoptions):
+        super().__init__(opt=opt, **kwoptions)
+        if layout is None:
+            layout = SimpleLayout()
+        self.layout = layout
+        # ensure minimum bounding box of figure
+        self.width, self.height = layout.get_dimensions()
+        self.path((0, 0), (self.width, self.height))
+        # use font Fira
+        self.fira()
+
+    def draw_layout(self):
+        &#34;draw layout&#34;
+        scope = self.add_scope(color=&#39;red&#39;)
+        self.layout._draw(scope)
+
+    def title(self, label, margin_vertical=None):
+        # TODO: use another parameter name, and corresponding cfg?
+        if margin_vertical is None:
+            margin_vertical = cfg.margin_vertical
+        scope = self.add_scope()
+        # position title such that descenders touch Layout
+        scope.node(label, at=(self.width / 2, self.height),
+                   anchor=&#39;base&#39;, yshift=&#39;depth(&#34;gjpqy&#34;)&#39;, name=&#39;title&#39;,
+                   outer_sep=0, inner_sep=0)
+        # extend bounding box such that there is space above capital letters
+        # and ascenders
+        scope.path(&#39;(title.base)&#39;, options(yshift=&#39;height(&#34;HAbdfhk&#34;)&#39;),
+                   f&#39;+(0,{margin_vertical})&#39;)
+        # Alternatively, one could set the height and depth of the node,
+        # see https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.4.4
+        # Also, predefine this height and depth for ease of use? – No, because
+        # it depends on the font size. But maybe define macros.</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="tikz.figure.cfg"><code class="flex name class">
+<span>class <span class="ident">cfg</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>tikz.figure configuration variables</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class cfg:
+    &#34;tikz.figure configuration variables&#34;
+
+    width = 16
+    &#34;width of figure, default 16&#34;
+    margin_horizontal = 0.5
+    &#34;horizontal margin of figure, default 0.5&#34;
+    margin_vertical = 0.5
+    &#34;vertical margin of figure, default 0.5&#34;
+    gap_horizontal = 0.5
+    &#34;horizontal gap between views, default 0.5&#34;
+    gap_vertical = 0.5
+    &#34;vertical gap between views, default 0.5&#34;
+    padding_left = 1
+    &#34;left view padding, default 1&#34;
+    padding_right = 0.5
+    &#34;right view padding, default 1&#34;
+    padding_bottom = 1
+    &#34;bottom view padding, default 1&#34;
+    padding_top = 0.5
+    &#34;top view padding, default 0.5&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="tikz.figure.cfg.width"><code class="name">var <span class="ident">width</span></code></dt>
+<dd>
+<section class="desc"><p>width of figure, default 16</p></section>
+</dd>
+<dt id="tikz.figure.cfg.margin_horizontal"><code class="name">var <span class="ident">margin_horizontal</span></code></dt>
+<dd>
+<section class="desc"><p>horizontal margin of figure, default 0.5</p></section>
+</dd>
+<dt id="tikz.figure.cfg.margin_vertical"><code class="name">var <span class="ident">margin_vertical</span></code></dt>
+<dd>
+<section class="desc"><p>vertical margin of figure, default 0.5</p></section>
+</dd>
+<dt id="tikz.figure.cfg.gap_horizontal"><code class="name">var <span class="ident">gap_horizontal</span></code></dt>
+<dd>
+<section class="desc"><p>horizontal gap between views, default 0.5</p></section>
+</dd>
+<dt id="tikz.figure.cfg.gap_vertical"><code class="name">var <span class="ident">gap_vertical</span></code></dt>
+<dd>
+<section class="desc"><p>vertical gap between views, default 0.5</p></section>
+</dd>
+<dt id="tikz.figure.cfg.padding_left"><code class="name">var <span class="ident">padding_left</span></code></dt>
+<dd>
+<section class="desc"><p>left view padding, default 1</p></section>
+</dd>
+<dt id="tikz.figure.cfg.padding_right"><code class="name">var <span class="ident">padding_right</span></code></dt>
+<dd>
+<section class="desc"><p>right view padding, default 1</p></section>
+</dd>
+<dt id="tikz.figure.cfg.padding_bottom"><code class="name">var <span class="ident">padding_bottom</span></code></dt>
+<dd>
+<section class="desc"><p>bottom view padding, default 1</p></section>
+</dd>
+<dt id="tikz.figure.cfg.padding_top"><code class="name">var <span class="ident">padding_top</span></code></dt>
+<dd>
+<section class="desc"><p>top view padding, default 0.5</p></section>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.figure.Box"><code class="flex name class">
+<span>class <span class="ident">Box</span></span>
+<span>(</span><span>x, y, w, h)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Box:
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+
+    def _draw(self, env, label=None, opt=None, **kwoptions):
+        &#34;draw Box into environment&#34;
+        env.draw((self.x, self.y),
+                 rectangle((self.x + self.w, self.y + self.h)),
+                 opt=opt, **kwoptions)
+        if label is not None:
+            env.node(label, at=(self.x, self.y + self.h),
+                     anchor=&#39;north west&#39;, font=r&#39;\tiny&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.figure.View"><code class="flex name class">
+<span>class <span class="ident">View</span></span>
+<span>(</span><span>outer=None, inner=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class View:
+    def __init__(self, outer=None, inner=None):
+        self.outer = outer
+        self.inner = inner
+
+    def locate(self, outer, inner):
+        self.outer = outer
+        self.inner = inner
+
+    def _draw(self, env, label=None):
+        &#34;draw View into environment&#34;
+        self.outer._draw(env, label, opacity=0.5)
+        self.inner._draw(env)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.figure.View.locate"><code class="name flex">
+<span>def <span class="ident">locate</span></span>(<span>self, outer, inner)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def locate(self, outer, inner):
+    self.outer = outer
+    self.inner = inner</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.figure.Layout"><code class="flex name class">
+<span>class <span class="ident">Layout</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>superclass for layout classes</p>
+<p>Every subclass has to ensure that
+- there is a member <code>views</code> that contains a list of <a title="tikz.figure.View" href="#tikz.figure.View"><code>View</code></a> objects,
+- there are members <code>width</code> and <code>height</code> which specify the dimensions,
+- if computations are necessary to ensure these members are up-to-date,
+they are implemented in a method overriding <code>_compute</code>.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Layout:
+    &#34;&#34;&#34;
+    superclass for layout classes
+
+    Every subclass has to ensure that
+    - there is a member `views` that contains a list of `View` objects,
+    - there are members `width` and `height` which specify the dimensions,
+    - if computations are necessary to ensure these members are up-to-date,
+      they are implemented in a method overriding `_compute`.
+    &#34;&#34;&#34;
+    def _compute(self):
+        pass
+
+    def get_views(self):
+        self._compute()
+        return self.views
+
+    def get_dimensions(self):
+        self._compute()
+        return self.width, self.height
+
+    def _draw(self, env):
+        &#34;draw Layout into environment&#34;
+        env.draw((0, 0), rectangle((self.width, self.height)))
+        env.node(&#39;Layout&#39;, at=(0, self.height),
+                 anchor=&#39;north west&#39;, font=r&#39;\tiny&#39;)
+        for i in range(len(self.views)):
+            self.views[i]._draw(env, f&#39;View {i}&#39;)
+
+    def _repr_png_(self, dpi=None):
+        &#34;represent Layout as PNG for notebook&#34;
+        self._compute()
+        pic = Picture()
+        self._draw(pic)
+        return pic._repr_png_(dpi=dpi)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="tikz.figure.SimpleLayout" href="#tikz.figure.SimpleLayout">SimpleLayout</a></li>
+<li><a title="tikz.figure.FlexibleGridLayout" href="#tikz.figure.FlexibleGridLayout">FlexibleGridLayout</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.figure.Layout.get_views"><code class="name flex">
+<span>def <span class="ident">get_views</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_views(self):
+    self._compute()
+    return self.views</code></pre>
+</details>
+</dd>
+<dt id="tikz.figure.Layout.get_dimensions"><code class="name flex">
+<span>def <span class="ident">get_dimensions</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_dimensions(self):
+    self._compute()
+    return self.width, self.height</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.figure.SimpleLayout"><code class="flex name class">
+<span>class <span class="ident">SimpleLayout</span></span>
+<span>(</span><span>**parameters)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>layout with a single view</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SimpleLayout(Layout):
+    &#34;layout with a single view&#34;
+    def __init__(self, **parameters):
+        # process Layout parameters and get defaults
+        self.width = parameters.get(&#39;width&#39;, cfg.width)
+        mh = parameters.get(&#39;margin_horizontal&#39;, parameters.get(
+            &#39;margin&#39;, cfg.margin_horizontal))
+        mv = parameters.get(&#39;margin_vertical&#39;, parameters.get(
+            &#39;margin&#39;, cfg.margin_vertical))
+        pl = parameters.get(&#39;padding_left&#39;, cfg.padding_left)
+        pr = parameters.get(&#39;padding_right&#39;, cfg.padding_right)
+        pb = parameters.get(&#39;padding_bottom&#39;, cfg.padding_bottom)
+        pt = parameters.get(&#39;padding_top&#39;, cfg.padding_top)
+        ar = parameters.get(&#39;aspect_ratio&#39;, 4/3)
+        # compute
+        iw = self.width - 2 * mh - pl - pr
+        ih = iw / ar
+        ow = iw + pl + pr
+        oh = ih + pb + pt
+        ox = mh
+        oy = mv
+        ix = ox + pl
+        iy = oy + pb
+        self.height = oh + 2 * mv
+        # create boxes and view
+        outer = Box(ox, oy, ow, oh)
+        inner = Box(ix, iy, iw, ih)
+        self.views = [View(outer, inner)]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.figure.Layout" href="#tikz.figure.Layout">Layout</a></li>
+</ul>
+</dd>
+<dt id="tikz.figure.FlexibleGridLayout"><code class="flex name class">
+<span>class <span class="ident">FlexibleGridLayout</span></span>
+<span>(</span><span>**parameters)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>layout where views encompass one or more of the cells of a flexible grid</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FlexibleGridLayout(Layout):
+    &#34;layout where views encompass one or more of the cells of a flexible grid&#34;
+    def __init__(self, **parameters):
+        # process Layout parameters and get defaults
+        self.width = parameters.get(&#39;width&#39;, cfg.width)
+        self.mh = parameters.get(&#39;margin_horizontal&#39;, parameters.get(
+            &#39;margin&#39;, cfg.margin_horizontal))
+        self.mv = parameters.get(&#39;margin_vertical&#39;, parameters.get(
+            &#39;margin&#39;, cfg.margin_vertical))
+        self.gh = parameters.get(&#39;gap_horizontal&#39;, parameters.get(
+            &#39;gap&#39;, cfg.gap_horizontal))
+        self.gv = parameters.get(&#39;gap_vertical&#39;, parameters.get(
+            &#39;gap&#39;, cfg.gap_vertical))
+        self.pl = parameters.get(&#39;padding_left&#39;, cfg.padding_left)
+        self.pr = parameters.get(&#39;padding_right&#39;, cfg.padding_right)
+        self.pb = parameters.get(&#39;padding_bottom&#39;, cfg.padding_bottom)
+        self.pt = parameters.get(&#39;padding_top&#39;, cfg.padding_top)
+        # initialize list of Views and view parameters
+        self.views = []
+        self.rf = []    # rows from
+        self.rt = []    # rows to
+        self.cf = []    # columns from
+        self.ct = []    # columns to
+        self.ar = []    # aspect ratio
+
+    def add_view(self, rows, cols, aspect_ratio=None):
+        # support specification of single row/col as scalar
+        if not isinstance(rows, collections.abc.Iterable):
+            rows = [rows]
+        if not isinstance(cols, collections.abc.Iterable):
+            cols = [cols]
+        # store extent w.r.t. grid &amp; aspect ratio
+        self.rf.append(min(rows))
+        self.rt.append(max(rows))
+        self.cf.append(min(cols))
+        self.ct.append(max(cols))
+        self.ar.append(aspect_ratio)
+        # create &amp; store empty View object
+        v = View()
+        self.views.append(v)
+
+    def _compute(self):
+        # What we have to compute are the outer and inner box of each view. To
+        # do so, we need to know the height of each row and the width of each
+        # column. The constraints that allow to compute these unknowns u are
+        # linear, which means they can be expressed by a matrix equation,
+        # A u = b. The rows of u / columns of A correspond to first the the
+        # row heights and then the column widths, and the rows of A / rows of
+        # b correspond to the constraints.
+
+        # compute number of rows/cols from maximal view row/col index
+        nr = max(self.rt) + 1
+        nc = max(self.ct) + 1
+
+        # constraints: one global, and one per view
+        n = 1 + len(self.views)
+        A = np.zeros(shape=(n, nr + nc))
+        b = np.zeros(shape=(n, 1))
+        # global constraint
+        # The column widths, margins and gaps have to add up to the width.
+        A[0, :] = np.hstack((np.zeros(nr), np.ones(nc)))
+        b[0] = self.width - 2 * self.mh - (nc - 1) * self.gh
+        # per-view constraints
+        for i in range(len(self.views)):
+            # unpack for shorter code
+            rf = self.rf[i]
+            rt = self.rt[i]
+            cf = self.cf[i]
+            ct = self.ct[i]
+            ar = self.ar[i]
+            # ignore views with unspecified aspect ratio
+            if ar is None:
+                continue
+            # row heights included in view
+            h = np.zeros(nr)
+            h[rf: rt + 1] = 1
+            nvr = sum(h)
+            # column widths included in view
+            w = np.zeros(nc)
+            w[cf: ct + 1] = 1
+            nvc = sum(w)
+            # constraint
+            A[i + 1, :] = np.hstack((-ar * h, w))
+            b[i + 1] = ((self.pl + self.pr - (nvc - 1) * self.gh)
+                        - ar * (self.pt + self.pb - (nvr - 1) * self.gv))
+
+        # check constraints
+        rank = np.linalg.matrix_rank(A)
+        if rank &lt; nr + nc:
+            print(&#39;Warning: The Layout is underdetermined.&#39;)
+
+        # solve expression
+        u = np.linalg.pinv(A) @ b
+
+        # extract row heights and column widths
+        rh = list(u[:nr].flat)
+        cw = list(u[nr:].flat)
+
+        # height of figure
+        self.height = sum(rh) + 2 * self.mh + (nr - 1) * self.gv
+
+        # check fulfillment of global constraint
+        tol = 2.54 / 72.3 / 65536   # 1 TeX scaled point
+        actual_width = sum(cw) + 2 * self.mh + (nc - 1) * self.gh
+        if abs(actual_width - self.width) &gt; tol:
+            print(f&#39;Warning: Layout width is {actual_width}.&#39;)
+
+        # compute position of view boxes
+        for i in range(len(self.views)):
+            # unpack for shorter code
+            rf = self.rf[i]
+            rt = self.rt[i]
+            cf = self.cf[i]
+            ct = self.ct[i]
+            ar = self.ar[i]
+            # outer box
+            ox = self.mh + sum(cw[:cf]) + cf * self.gh
+            oy = self.mv + sum(rh[:rf]) + rf * self.gv
+            ow = sum(cw[cf: ct + 1]) + (ct - cf) * self.gh
+            oh = sum(rh[rf: rt + 1]) + (rt - rf) * self.gv
+            oy = self.height - oy - oh
+            outer = Box(ox, oy, ow, oh)
+            # inner box
+            ix = ox + self.pl
+            iy = oy + self.pb
+            iw = ow - self.pl - self.pr
+            ih = oh - self.pt - self.pb
+            inner = Box(ix, iy, iw, ih)
+            # assign Boxes to View
+            self.views[i].locate(outer, inner)
+
+            # check fulfillment of per-view constraint
+            if ar is None:
+                continue
+            if abs(iw - ar * ih) &gt; tol:
+                print(f&#39;Warning: View {i} aspect ratio is {iw / ih}.&#39;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.figure.Layout" href="#tikz.figure.Layout">Layout</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.figure.FlexibleGridLayout.add_view"><code class="name flex">
+<span>def <span class="ident">add_view</span></span>(<span>self, rows, cols, aspect_ratio=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_view(self, rows, cols, aspect_ratio=None):
+    # support specification of single row/col as scalar
+    if not isinstance(rows, collections.abc.Iterable):
+        rows = [rows]
+    if not isinstance(cols, collections.abc.Iterable):
+        cols = [cols]
+    # store extent w.r.t. grid &amp; aspect ratio
+    self.rf.append(min(rows))
+    self.rt.append(max(rows))
+    self.cf.append(min(cols))
+    self.ct.append(max(cols))
+    self.ar.append(aspect_ratio)
+    # create &amp; store empty View object
+    v = View()
+    self.views.append(v)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tikz.figure.Figure"><code class="flex name class">
+<span>class <span class="ident">Figure</span></span>
+<span>(</span><span>layout=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>tikzpicture environment</p>
+<p>This is the central class of the module. A picture is created by
+instantiating <code>Picture</code> and calling its methods. The object represents both
+the whole LaTeX document and its single <code>tikzpicture</code> environment.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1">§12.2.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Figure(Picture):
+    def __init__(self, layout=None, opt=None, **kwoptions):
+        super().__init__(opt=opt, **kwoptions)
+        if layout is None:
+            layout = SimpleLayout()
+        self.layout = layout
+        # ensure minimum bounding box of figure
+        self.width, self.height = layout.get_dimensions()
+        self.path((0, 0), (self.width, self.height))
+        # use font Fira
+        self.fira()
+
+    def draw_layout(self):
+        &#34;draw layout&#34;
+        scope = self.add_scope(color=&#39;red&#39;)
+        self.layout._draw(scope)
+
+    def title(self, label, margin_vertical=None):
+        # TODO: use another parameter name, and corresponding cfg?
+        if margin_vertical is None:
+            margin_vertical = cfg.margin_vertical
+        scope = self.add_scope()
+        # position title such that descenders touch Layout
+        scope.node(label, at=(self.width / 2, self.height),
+                   anchor=&#39;base&#39;, yshift=&#39;depth(&#34;gjpqy&#34;)&#39;, name=&#39;title&#39;,
+                   outer_sep=0, inner_sep=0)
+        # extend bounding box such that there is space above capital letters
+        # and ascenders
+        scope.path(&#39;(title.base)&#39;, options(yshift=&#39;height(&#34;HAbdfhk&#34;)&#39;),
+                   f&#39;+(0,{margin_vertical})&#39;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></li>
+<li><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.figure.Figure.draw_layout"><code class="name flex">
+<span>def <span class="ident">draw_layout</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>draw layout</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def draw_layout(self):
+    &#34;draw layout&#34;
+    scope = self.add_scope(color=&#39;red&#39;)
+    self.layout._draw(scope)</code></pre>
+</details>
+</dd>
+<dt id="tikz.figure.Figure.title"><code class="name flex">
+<span>def <span class="ident">title</span></span>(<span>self, label, margin_vertical=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def title(self, label, margin_vertical=None):
+    # TODO: use another parameter name, and corresponding cfg?
+    if margin_vertical is None:
+        margin_vertical = cfg.margin_vertical
+    scope = self.add_scope()
+    # position title such that descenders touch Layout
+    scope.node(label, at=(self.width / 2, self.height),
+               anchor=&#39;base&#39;, yshift=&#39;depth(&#34;gjpqy&#34;)&#39;, name=&#39;title&#39;,
+               outer_sep=0, inner_sep=0)
+    # extend bounding box such that there is space above capital letters
+    # and ascenders
+    scope.path(&#39;(title.base)&#39;, options(yshift=&#39;height(&#34;HAbdfhk&#34;)&#39;),
+               f&#39;+(0,{margin_vertical})&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.figure.Figure.add_preamble"><code class="name flex">
+<span>def <span class="ident">add_preamble</span></span>(<span>self, code)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.add_preamble" href="index.html#tikz.Picture.add_preamble">add_preamble</a></code>
+</p>
+<section class="desc inherited"><p>add code to preamble …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.usetikzlibrary"><code class="name flex">
+<span>def <span class="ident">usetikzlibrary</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.usetikzlibrary" href="index.html#tikz.Picture.usetikzlibrary">usetikzlibrary</a></code>
+</p>
+<section class="desc inherited"><p>use TikZ library …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.usepackage"><code class="name flex">
+<span>def <span class="ident">usepackage</span></span>(<span>self, name, options=None)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.usepackage" href="index.html#tikz.Picture.usepackage">usepackage</a></code>
+</p>
+<section class="desc inherited"><p>use LaTeX package …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.fira"><code class="name flex">
+<span>def <span class="ident">fira</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.fira" href="index.html#tikz.Picture.fira">fira</a></code>
+</p>
+<section class="desc inherited"><p>set font to Fira, also for math …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.code"><code class="name flex">
+<span>def <span class="ident">code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.code" href="index.html#tikz.Picture.code">code</a></code>
+</p>
+<section class="desc inherited"><p>returns TikZ code</p></section>
+</dd>
+<dt id="tikz.figure.Figure.document_code"><code class="name flex">
+<span>def <span class="ident">document_code</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.document_code" href="index.html#tikz.Picture.document_code">document_code</a></code>
+</p>
+<section class="desc inherited"><p>returns LaTeX/TikZ code for a complete compilable document</p></section>
+</dd>
+<dt id="tikz.figure.Figure.write_image"><code class="name flex">
+<span>def <span class="ident">write_image</span></span>(<span>self, filename, dpi=None)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.write_image" href="index.html#tikz.Picture.write_image">write_image</a></code>
+</p>
+<section class="desc inherited"><p>write picture to image file …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.show"><code class="name flex">
+<span>def <span class="ident">show</span></span>(<span>self, dpi=None)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.show" href="index.html#tikz.Picture.show">show</a></code>
+</p>
+<section class="desc inherited"><p>show picture in the notebook …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.demo"><code class="name flex">
+<span>def <span class="ident">demo</span></span>(<span>self, dpi=None)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.demo" href="index.html#tikz.Picture.demo">demo</a></code>
+</p>
+<section class="desc inherited"><p>show picture and code in the notebook …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.add_scope"><code class="name flex">
+<span>def <span class="ident">add_scope</span></span>(<span>self, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.add_scope" href="index.html#tikz.Picture.add_scope">add_scope</a></code>
+</p>
+<section class="desc inherited"><p>create and add scope to the current environment …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.path"><code class="name flex">
+<span>def <span class="ident">path</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.path" href="index.html#tikz.Picture.path">path</a></code>
+</p>
+<section class="desc inherited"><p>path action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.draw" href="index.html#tikz.Picture.draw">draw</a></code>
+</p>
+<section class="desc inherited"><p>draw action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.fill"><code class="name flex">
+<span>def <span class="ident">fill</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.fill" href="index.html#tikz.Picture.fill">fill</a></code>
+</p>
+<section class="desc inherited"><p>fill action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.filldraw"><code class="name flex">
+<span>def <span class="ident">filldraw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.filldraw" href="index.html#tikz.Picture.filldraw">filldraw</a></code>
+</p>
+<section class="desc inherited"><p>filldraw action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.pattern"><code class="name flex">
+<span>def <span class="ident">pattern</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.pattern" href="index.html#tikz.Picture.pattern">pattern</a></code>
+</p>
+<section class="desc inherited"><p>pattern action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.shade"><code class="name flex">
+<span>def <span class="ident">shade</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.shade" href="index.html#tikz.Picture.shade">shade</a></code>
+</p>
+<section class="desc inherited"><p>shade action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.shadedraw"><code class="name flex">
+<span>def <span class="ident">shadedraw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.shadedraw" href="index.html#tikz.Picture.shadedraw">shadedraw</a></code>
+</p>
+<section class="desc inherited"><p>shadedraw action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.clip"><code class="name flex">
+<span>def <span class="ident">clip</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.clip" href="index.html#tikz.Picture.clip">clip</a></code>
+</p>
+<section class="desc inherited"><p>clip action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.useasboundingbox"><code class="name flex">
+<span>def <span class="ident">useasboundingbox</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.useasboundingbox" href="index.html#tikz.Picture.useasboundingbox">useasboundingbox</a></code>
+</p>
+<section class="desc inherited"><p>useasboundingbox action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.node"><code class="name flex">
+<span>def <span class="ident">node</span></span>(<span>self, contents, name=None, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.node" href="index.html#tikz.Picture.node">node</a></code>
+</p>
+<section class="desc inherited"><p>node action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.coordinate"><code class="name flex">
+<span>def <span class="ident">coordinate</span></span>(<span>self, name, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.coordinate" href="index.html#tikz.Picture.coordinate">coordinate</a></code>
+</p>
+<section class="desc inherited"><p>coordinate action …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.definecolor"><code class="name flex">
+<span>def <span class="ident">definecolor</span></span>(<span>self, name, colormodel, colorspec)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.definecolor" href="index.html#tikz.Picture.definecolor">definecolor</a></code>
+</p>
+<section class="desc inherited"><p>define a new color from a color specification …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.colorlet"><code class="name flex">
+<span>def <span class="ident">colorlet</span></span>(<span>self, name, colorexpr)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.colorlet" href="index.html#tikz.Picture.colorlet">colorlet</a></code>
+</p>
+<section class="desc inherited"><p>define a new color from a color expression …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.tikzset"><code class="name flex">
+<span>def <span class="ident">tikzset</span></span>(<span>self, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.tikzset" href="index.html#tikz.Picture.tikzset">tikzset</a></code>
+</p>
+<section class="desc inherited"><p>set options that apply for the rest of the current environment …</p></section>
+</dd>
+<dt id="tikz.figure.Figure.style"><code class="name flex">
+<span>def <span class="ident">style</span></span>(<span>self, name, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.style" href="index.html#tikz.Picture.style">style</a></code>
+</p>
+<section class="desc inherited"><p>define style …</p></section>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<a href="https://github.com/allefeld/pytikz">
+<img src="../logo.png"
+style="width:100%;padding-left:40px;padding-right:40px">
+</a>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="tikz" href="index.html">tikz</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="tikz.figure.cfg" href="#tikz.figure.cfg">cfg</a></code></h4>
+<ul class="two-column">
+<li><code><a title="tikz.figure.cfg.width" href="#tikz.figure.cfg.width">width</a></code></li>
+<li><code><a title="tikz.figure.cfg.margin_horizontal" href="#tikz.figure.cfg.margin_horizontal">margin_horizontal</a></code></li>
+<li><code><a title="tikz.figure.cfg.margin_vertical" href="#tikz.figure.cfg.margin_vertical">margin_vertical</a></code></li>
+<li><code><a title="tikz.figure.cfg.gap_horizontal" href="#tikz.figure.cfg.gap_horizontal">gap_horizontal</a></code></li>
+<li><code><a title="tikz.figure.cfg.gap_vertical" href="#tikz.figure.cfg.gap_vertical">gap_vertical</a></code></li>
+<li><code><a title="tikz.figure.cfg.padding_left" href="#tikz.figure.cfg.padding_left">padding_left</a></code></li>
+<li><code><a title="tikz.figure.cfg.padding_right" href="#tikz.figure.cfg.padding_right">padding_right</a></code></li>
+<li><code><a title="tikz.figure.cfg.padding_bottom" href="#tikz.figure.cfg.padding_bottom">padding_bottom</a></code></li>
+<li><code><a title="tikz.figure.cfg.padding_top" href="#tikz.figure.cfg.padding_top">padding_top</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.figure.Box" href="#tikz.figure.Box">Box</a></code></h4>
+</li>
+<li>
+<h4><code><a title="tikz.figure.View" href="#tikz.figure.View">View</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.figure.View.locate" href="#tikz.figure.View.locate">locate</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.figure.Layout" href="#tikz.figure.Layout">Layout</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.figure.Layout.get_views" href="#tikz.figure.Layout.get_views">get_views</a></code></li>
+<li><code><a title="tikz.figure.Layout.get_dimensions" href="#tikz.figure.Layout.get_dimensions">get_dimensions</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.figure.SimpleLayout" href="#tikz.figure.SimpleLayout">SimpleLayout</a></code></h4>
+</li>
+<li>
+<h4><code><a title="tikz.figure.FlexibleGridLayout" href="#tikz.figure.FlexibleGridLayout">FlexibleGridLayout</a></code></h4>
+<ul class="">
+<li><code><a title="tikz.figure.FlexibleGridLayout.add_view" href="#tikz.figure.FlexibleGridLayout.add_view">add_view</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.figure.Figure" href="#tikz.figure.Figure">Figure</a></code></h4>
+<ul class="two-column">
+<li><code><a title="tikz.figure.Figure.draw_layout" href="#tikz.figure.Figure.draw_layout">draw_layout</a></code></li>
+<li><code><a title="tikz.figure.Figure.title" href="#tikz.figure.Figure.title">title</a></code></li>
+<li><code><a title="tikz.figure.Figure.add_preamble" href="index.html#tikz.figure.Figure.add_preamble">add_preamble</a></code></li>
+<li><code><a title="tikz.figure.Figure.usetikzlibrary" href="index.html#tikz.figure.Figure.usetikzlibrary">usetikzlibrary</a></code></li>
+<li><code><a title="tikz.figure.Figure.usepackage" href="index.html#tikz.figure.Figure.usepackage">usepackage</a></code></li>
+<li><code><a title="tikz.figure.Figure.fira" href="index.html#tikz.figure.Figure.fira">fira</a></code></li>
+<li><code><a title="tikz.figure.Figure.code" href="index.html#tikz.figure.Figure.code">code</a></code></li>
+<li><code><a title="tikz.figure.Figure.document_code" href="index.html#tikz.figure.Figure.document_code">document_code</a></code></li>
+<li><code><a title="tikz.figure.Figure.write_image" href="index.html#tikz.figure.Figure.write_image">write_image</a></code></li>
+<li><code><a title="tikz.figure.Figure.show" href="index.html#tikz.figure.Figure.show">show</a></code></li>
+<li><code><a title="tikz.figure.Figure.demo" href="index.html#tikz.figure.Figure.demo">demo</a></code></li>
+<li><code><a title="tikz.figure.Figure.add_scope" href="index.html#tikz.figure.Figure.add_scope">add_scope</a></code></li>
+<li><code><a title="tikz.figure.Figure.path" href="index.html#tikz.figure.Figure.path">path</a></code></li>
+<li><code><a title="tikz.figure.Figure.draw" href="index.html#tikz.figure.Figure.draw">draw</a></code></li>
+<li><code><a title="tikz.figure.Figure.fill" href="index.html#tikz.figure.Figure.fill">fill</a></code></li>
+<li><code><a title="tikz.figure.Figure.filldraw" href="index.html#tikz.figure.Figure.filldraw">filldraw</a></code></li>
+<li><code><a title="tikz.figure.Figure.pattern" href="index.html#tikz.figure.Figure.pattern">pattern</a></code></li>
+<li><code><a title="tikz.figure.Figure.shade" href="index.html#tikz.figure.Figure.shade">shade</a></code></li>
+<li><code><a title="tikz.figure.Figure.shadedraw" href="index.html#tikz.figure.Figure.shadedraw">shadedraw</a></code></li>
+<li><code><a title="tikz.figure.Figure.clip" href="index.html#tikz.figure.Figure.clip">clip</a></code></li>
+<li><code><a title="tikz.figure.Figure.useasboundingbox" href="index.html#tikz.figure.Figure.useasboundingbox">useasboundingbox</a></code></li>
+<li><code><a title="tikz.figure.Figure.node" href="index.html#tikz.figure.Figure.node">node</a></code></li>
+<li><code><a title="tikz.figure.Figure.coordinate" href="index.html#tikz.figure.Figure.coordinate">coordinate</a></code></li>
+<li><code><a title="tikz.figure.Figure.definecolor" href="index.html#tikz.figure.Figure.definecolor">definecolor</a></code></li>
+<li><code><a title="tikz.figure.Figure.colorlet" href="index.html#tikz.figure.Figure.colorlet">colorlet</a></code></li>
+<li><code><a title="tikz.figure.Figure.tikzset" href="index.html#tikz.figure.Figure.tikzset">tikzset</a></code></li>
+<li><code><a title="tikz.figure.Figure.style" href="index.html#tikz.figure.Figure.style">style</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
