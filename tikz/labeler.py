@@ -26,11 +26,12 @@ class ExtendedWilkinson:
     w = [0.25, 0.2, 0.5, 0.05]
     "weights for the subscores simplicity, coverage, density, and legibility"
 
-    def __init__(self, fs_t, fs_min, rt, only_loose=True):
+    def __init__(self, fs_t, fs_min, rt, only_loose=True, normalize=True):
         self.fs_t = fs_t
         self.fs_min = fs_min
         self.rt = rt
         self.only_loose = only_loose
+        self.normalize = normalize
 
     # scoring functions, including the approximations for limiting the search
 
@@ -194,18 +195,19 @@ class ExtendedWilkinson:
         self.last_best = best
         # create ticks
         param = [best[key] for key in ['q', 'start', 'j', 'z', 'k']]
-        ticks = Ticks(*param)
+        ticks = Ticks(*param, normalize=self.normalize)
         return ticks
 
 
 class Ticks:
     "represents a set of tick values"
-    def __init__(self, q, start, j, z, k):
+    def __init__(self, q, start, j, z, k, normalize):
         self.q = q
         self.start = start
         self.j = j
         self.z = z
         self.k = k
+        self.normalize = normalize
 
     def values(self):
         "get tick values as floats"
@@ -214,7 +216,10 @@ class Ticks:
 
     def _decimal(self, z0=0):
         "get tick values as `Decimal`s, relative to decadic power `z0`"
-        return [self.q * (self.start + self.j * ind) * D(10) ** (self.z - z0)
+        # The D('1E1') notation is necessary to keep the number of significant
+        # digits from q in the result.
+        return [self.q * (self.start + self.j * ind)
+                * D('1E1') ** (self.z - z0)
                 for ind in range(self.k)]
 
     # For the moment, we only implement the formats 'Decimal' and 'Factored
@@ -225,7 +230,11 @@ class Ticks:
         # get values
         dvs = self._decimal()
         # create labels
-        return ['{:f}'.format(dv.normalize()) for dv in dvs], None
+        if self.normalize:
+            labels = ['{:f}'.format(dv.normalize()) for dv in dvs]
+        else:
+            labels = ['{:f}'.format(dv) for dv in dvs]
+        return labels, None
 
     def labels_Scientific(self):
         "get labels in 'Scientific format'"
@@ -236,4 +245,9 @@ class Ticks:
         # get values adjusted to that power
         dvs = self._decimal(z0=z0)
         # create labels
-        return ['{:f}'.format(dv.normalize()) for dv in dvs], '{:d}'.format(z0)
+        if self.normalize:
+            labels = ['{:f}'.format(dv.normalize()) for dv in dvs]
+        else:
+            labels = ['{:f}'.format(dv) for dv in dvs]
+        plabel = '{:d}'.format(z0)
+        return labels, plabel
