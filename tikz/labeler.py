@@ -56,13 +56,14 @@ class ExtendedWilkinson:
     def _coverage_max(self, dmin, dmax, span):
         # upper bound on _coverage w.r.t. start
         range = dmax - dmin
-        if span > range:
-            half = (span - range) / 2
-            return 1 - 0.5 * (2 * half ** 2) / (0.1 * range)**2
-        else:
-            # From original code, which I don't understand.
-            # Probably just the trivial upper bound.
-            return 1
+        # The original code has a branching which I don't think is necessary.
+        # if span > range:
+        #     half = (span - range) / 2
+        #     return 1 - 0.5 * (2 * half ** 2) / (0.1 * range)**2
+        # else:
+        #     return 1
+        half = (span - range) / 2
+        return 1 - 0.5 * (2 * half ** 2) / (0.1 * range)**2
 
     def _density(self, k, m, dmin, dmax, lmin, lmax):
         r = (k - 1) / (lmax - lmin)
@@ -87,6 +88,7 @@ class ExtendedWilkinson:
     # optimization algorithm
 
     def _extended(self, dmin, dmax, m):
+        # without 'legibility' quite fast, around 1 ms
         eps = float_info.epsilon * 100
 
         if dmin > dmax:
@@ -167,7 +169,6 @@ class ExtendedWilkinson:
                             )
 
         return best
-        # without 'legibility' quite fast, 1.33 ms on average
 
     def ticks(self, dmin, dmax, length):
         # The 'extended' algorithm is defined in terms of m, the target number
@@ -224,7 +225,7 @@ class Ticks:
         # get values
         dvs = self._decimal()
         # create labels
-        return ['{:f}'.format(dv.normalize()) for dv in dvs]
+        return ['{:f}'.format(dv.normalize()) for dv in dvs], None
 
     def labels_Scientific(self):
         "get labels in 'Scientific format'"
