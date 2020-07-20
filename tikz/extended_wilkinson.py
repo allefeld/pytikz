@@ -1,15 +1,17 @@
 """
 Extended-Wilkinson algorithm for ticks and tick labels
 
-Following Talbot, J., Lin, S., & Hanrahan, P. (2010). An extension of
+Implementation of Talbot, J., Lin, S., & Hanrahan, P. (2010). An extension of
 Wilkinson’s algorithm for positioning tick labels on axes. *IEEE Trans.
 Vis. Comput. Graph.*, 16(6), 1036-1043.
 
-Translated by Carsten Allefeld from the
+Translated from the
 [R code](https://rdrr.io/rforge/labeling/src/R/labeling.R)
 and [additional information](https://github.com/jtalbot/Labeling/issues/1)
 by Justin Talbot.
 """
+
+# Copyright (C) 2020 Carsten Allefeld
 
 from math import log10, ceil, floor
 from itertools import count
@@ -36,10 +38,10 @@ class cfg:
     default font metrics
 
     Font metrics are used to calculate the width and height of tick labels.
-    They are specified as a `dict` that contains the width of each character
-    that can occur in a tick label, where the character is the dictionary key,
-    as well as an 'offset' to be added to the total width, and a 'height'.
-    All numbers are in units of the font size.
+    They are specified as a `dict`, where each character that can occur in a
+    tick label is associated as a key  with the character's width, as well as
+    an 'offset' to be added to the total width, and a 'height'. All numbers
+    are in units of the font size.
 
     The default values are correct for TeX's 'Computer Modern Roman' in math
     mode.
@@ -55,18 +57,16 @@ class TicksGenerator:
     - `font_metrics`: see `cfg.font_metrics`
     - `only_loose`: whether the range of tick values is forced to encompass the
       range of data values
-    - `normalize`: whether trailing '0' decimals are stripped from tick labels
     """
 
     def __init__(self, font_sizes, density,
-                 font_metrics=None, only_loose=True, normalize=True):
+                 font_metrics=None, only_loose=True):
         if font_metrics is None:
             font_metrics = cfg.font_metrics
         self.font_sizes = sorted(font_sizes)
         self.rt = density
         self.font_metrics = font_metrics
         self.only_loose = only_loose
-        self.normalize = normalize
 
     # scoring functions, including the approximations for limiting the search
 
@@ -126,11 +126,10 @@ class TicksGenerator:
 
         - `dmin`, `dmax`: range of data values
         - `length`: physical length of the axis, in cm
-        - `horitontal`: whether the axis is oriented horizontally
+        - `horizontal`: whether the axis is oriented horizontally
 
         returns `Ticks` object
         """
-        # without 'legibility' quite fast, around 1 ms
 
         # The implementation here is based on the R code, which is defined
         # in terms of `m`, the target number of ticks. It optimizes w.r.t.
@@ -215,12 +214,14 @@ class TicksGenerator:
 
                         ticks = Ticks(
                             q, start, j, z, k,
-                            self.normalize,
                             self.font_sizes,
                             self.font_metrics,
                             length,
                             min(lmin, dmin), max(lmax, dmax),
                             horizontal)
+
+                        # Optimization for legibility is implemented in the
+                        # `Ticks` object upon creation.
                         l = ticks.opt_legibility                                    # noqa E741
 
                         score = self._score(s, c, d, l)
@@ -233,16 +234,14 @@ class TicksGenerator:
 
 class Ticks:
     "represent tick values and labels"
-    # TODO: privatize!
     def __init__(self, q, start, j, z, k,
-                 normalize, font_sizes, font_metrics,
+                 font_sizes, font_metrics,
                  length, amin, amax, horizontal):
         self.q = q
         self.start = start
         self.j = j
         self.z = z
         self.k = k
-        self.normalize = normalize
         self.amin = amin
         self.amax = amax
 
@@ -250,21 +249,6 @@ class Ticks:
 
     def _optimize(self, font_sizes, font_metrics, length, horizontal):
         "optimize legibility in terms of format, font size, and orientation"
-        # factors:
-        # - format: 'Decimal' or 'Factored Scientific'
-        #   0-extended is not implemented because it's a user option
-        # - font size: in the range fs_min to fs_t
-        # - orientation: 'horizontal' or 'vertical'
-        # parameters:
-        # - tick values
-        # - axis orientation
-        # - axis length
-        # subscores:
-        # - Format: depends on format and tick values
-        # - Font size: depends on font size
-        # - Orientation: depends on orientation
-        # - Overlap: depends on tick labels (and therefore format and tick
-        #   values), font size, orientation, and axis orientation
 
         # tick values
         values = self.values()
@@ -297,7 +281,7 @@ class Ticks:
                     leg_fs = 1
                 else:
                     leg_fs = 0.2 * (fs - fs_min + 1) / (fs_t - fs_min)
-                
+
                 # distance between ticks, in units of font size
                 step = (
                     float(self.q) * self.j * 10 ** self.z   # numerical
@@ -335,7 +319,7 @@ class Ticks:
                         leg_ov = 2 - 1.5 / dist
                     else:
                         leg_ov = float('-inf')
-                    
+
                     # total legibility score
                     leg = (leg_f + leg_fs + leg_or + leg_ov) / 4
 
@@ -382,10 +366,7 @@ class Ticks:
         # get values
         dvs = self._decimal()
         # create labels
-        if self.normalize:
-            labels = ['{:f}'.format(dv.normalize()) for dv in dvs]
-        else:
-            labels = ['{:f}'.format(dv) for dv in dvs]
+        labels = ['{:f}'.format(dv) for dv in dvs]
         return labels
 
     def _labels_Scientific(self):
@@ -397,9 +378,6 @@ class Ticks:
         # get values adjusted to that power
         dvs = self._decimal(z0=z0)
         # create labels
-        if self.normalize:
-            labels = ['{:f}'.format(dv.normalize()) for dv in dvs]
-        else:
-            labels = ['{:f}'.format(dv) for dv in dvs]
+        labels = ['{:f}'.format(dv) for dv in dvs]
         plabel = '{:d}'.format(z0)
         return labels, plabel
