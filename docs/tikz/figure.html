@@ -83,6 +83,8 @@ results:
 all lengths in cm, or whatever the `xy` coordinate system has been set to
 &#34;&#34;&#34;
 
+# Copyright (C) 2020 Carsten Allefeld
+
 import numpy as np
 import collections
 from tikz import Picture, rectangle, options
@@ -331,7 +333,9 @@ class FlexibleGridLayout(Layout):
         self.height = sum(rh) + 2 * self.mh + (nr - 1) * self.gv
 
         # check fulfillment of global constraint
-        tol = 2.54 / 72.3 / 65536   # 1 TeX scaled point
+        # Tolerance: We choose TeX&#39;s internal unit, the scaled point &#34;sp&#34;, see
+        # The TeXbook, p. 57.
+        tol = 2.54 / 72.27 / 65536
         actual_width = sum(cw) + 2 * self.mh + (nc - 1) * self.gh
         if abs(actual_width - self.width) &gt; tol:
             print(f&#39;Warning: Layout width is {actual_width}.&#39;)
@@ -378,6 +382,7 @@ class Figure(Picture):
         self.path((0, 0), (self.width, self.height))
         # use font Fira
         self.fira()
+        # TODO: create `TicksGenerator`, with Fira metrics
 
     def draw_layout(self):
         &#34;draw layout&#34;
@@ -797,7 +802,9 @@ they are implemented in a method overriding <code>_compute</code>.</p></section>
         self.height = sum(rh) + 2 * self.mh + (nr - 1) * self.gv
 
         # check fulfillment of global constraint
-        tol = 2.54 / 72.3 / 65536   # 1 TeX scaled point
+        # Tolerance: We choose TeX&#39;s internal unit, the scaled point &#34;sp&#34;, see
+        # The TeXbook, p. 57.
+        tol = 2.54 / 72.27 / 65536
         actual_width = sum(cw) + 2 * self.mh + (nc - 1) * self.gh
         if abs(actual_width - self.width) &gt; tol:
             print(f&#39;Warning: Layout width is {actual_width}.&#39;)
@@ -892,6 +899,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         self.path((0, 0), (self.width, self.height))
         # use font Fira
         self.fira()
+        # TODO: create `TicksGenerator`, with Fira metrics
 
     def draw_layout(self):
         &#34;draw layout&#34;

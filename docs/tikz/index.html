@@ -104,6 +104,7 @@ notebook seamless.
    :start-line: 4
 &#34;&#34;&#34;
 
+# Copyright (C) 2020 Carsten Allefeld
 
 import atexit
 import base64
@@ -1269,7 +1270,7 @@ class Picture(Scope):
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
-    
+
     def show(self, dpi=None):
         &#34;&#34;&#34;
         show picture in the notebook
@@ -1319,7 +1320,7 @@ class LatexError(Exception):
 <dl>
 <dt><code class="name"><a title="tikz.extended_wilkinson" href="extended_wilkinson.html">tikz.extended_wilkinson</a></code></dt>
 <dd>
-<section class="desc"><p>Extended-Wilkinson algorithm for ticks and tick labels …</p></section>
+<section class="desc"><p>Extended-Wilkinson algorithm for tick values and labels …</p></section>
 </dd>
 <dt><code class="name"><a title="tikz.figure" href="figure.html">tikz.figure</a></code></dt>
 <dd>
@@ -3625,7 +3626,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
-    
+
     def show(self, dpi=None):
         &#34;&#34;&#34;
         show picture in the notebook

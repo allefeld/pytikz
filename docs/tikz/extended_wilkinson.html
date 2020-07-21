@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
 <title>tikz.extended_wilkinson API documentation</title>
-<meta name="description" content="Extended-Wilkinson algorithm for ticks and tick labels …" />
+<meta name="description" content="Extended-Wilkinson algorithm for tick values and labels …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -20,30 +20,54 @@
 <h1 class="title">Module <code>tikz.extended_wilkinson</code></h1>
 </header>
 <section id="section-intro">
-<p>Extended-Wilkinson algorithm for ticks and tick labels</p>
-<p>Following Talbot, J., Lin, S., &amp; Hanrahan, P. (2010). An extension of
-Wilkinson’s algorithm for positioning tick labels on axes. <em>IEEE Trans.
-Vis. Comput. Graph.</em>, 16(6), 1036-1043.</p>
-<p>Translated by Carsten Allefeld from the R code by Justin Talbot, see
-<a href="https://rdrr.io/rforge/labeling/src/R/labeling.R">https://rdrr.io/rforge/labeling/src/R/labeling.R</a>
-using additional information provided by the author, see
-<a href="https://github.com/jtalbot/Labeling/issues/1">https://github.com/jtalbot/Labeling/issues/1</a></p>
+<p>Extended-Wilkinson algorithm for tick values and labels</p>
+<p>Implementation of J. Talbot, S. Lin, &amp; P. Hanrahan, An Extension of
+Wilkinson’s Algorithm for Positioning Tick Labels on Axes, <em>IEEE Trans.
+Vis. Comput. Graph.</em>, 16(6), 1036-1043, 2010.
+<a href="https://doi.org/10.1109/tvcg.2010.130">doi:10.1109/TVCG.2010.130</a></p>
+<p>Based on the
+<a href="https://rdrr.io/rforge/labeling/src/R/labeling.R">R implementation</a>
+and <a href="https://github.com/jtalbot/Labeling/issues/1">additional information</a>
+by Justin Talbot.</p>
+<p>Other than the R code, this implementation includes the <em>legibility</em> score,
+and the result provides detailed information about the optimal presentation of
+tick values as labels. In line with that, the parameter target number of ticks
+<code>m</code> has been replaced by a target physical tick density (ρ<sub>t</sub> in the
+paper).</p>
+<p>Compared to the paper, there are two limitations: Of the eight label formats,
+only 'Decimal' and 'Factored scientific' are implemented; and tick labels are
+always '0-extended', i.e. if stripping of trailing zeros is desired, it must be
+performed by the user.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
-Extended-Wilkinson algorithm for ticks and tick labels
+Extended-Wilkinson algorithm for tick values and labels
 
-Following Talbot, J., Lin, S., &amp; Hanrahan, P. (2010). An extension of
-Wilkinson’s algorithm for positioning tick labels on axes. *IEEE Trans.
-Vis. Comput. Graph.*, 16(6), 1036-1043.
+Implementation of J. Talbot, S. Lin, &amp; P. Hanrahan, An Extension of
+Wilkinson’s Algorithm for Positioning Tick Labels on Axes, *IEEE Trans.
+Vis. Comput. Graph.*, 16(6), 1036-1043, 2010.
+[doi:10.1109/TVCG.2010.130](https://doi.org/10.1109/tvcg.2010.130)
 
-Translated by Carsten Allefeld from the R code by Justin Talbot, see
-  https://rdrr.io/rforge/labeling/src/R/labeling.R
-using additional information provided by the author, see
-  https://github.com/jtalbot/Labeling/issues/1
+Based on the
+[R implementation](https://rdrr.io/rforge/labeling/src/R/labeling.R)
+and [additional information](https://github.com/jtalbot/Labeling/issues/1)
+by Justin Talbot.
+
+Other than the R code, this implementation includes the *legibility* score,
+and the result provides detailed information about the optimal presentation of
+tick values as labels. In line with that, the parameter target number of ticks
+`m` has been replaced by a target physical tick density (ρ&lt;sub&gt;t&lt;/sub&gt; in the
+paper).
+
+Compared to the paper, there are two limitations: Of the eight label formats,
+only &#39;Decimal&#39; and &#39;Factored scientific&#39; are implemented; and tick labels are
+always &#39;0-extended&#39;, i.e. if stripping of trailing zeros is desired, it must be
+performed by the user.
 &#34;&#34;&#34;
+
+# Copyright (C) 2020 Carsten Allefeld
 
 from math import log10, ceil, floor
 from itertools import count
@@ -51,28 +75,75 @@ from decimal import Decimal as D
 
 
 class cfg:
-    &#34;tikz.extended_wilkinson configuration variables&#34;
+    &#34;`tikz.extended_wilkinson` configuration variables&#34;
 
     Q = [D(1), D(5), D(2), D(&#39;2.5&#39;), D(4), D(3)]
     &#34;&#34;&#34;
     preference-ordered list of nice step sizes
 
-    Values must be of type `decimal.Decimal`.
+    Values must be of type `decimal.Decimal`. The default step sizes are 1, 5,
+    2, 2.5, 4, and 3.
     &#34;&#34;&#34;
 
     w = [0.25, 0.2, 0.5, 0.05]
-    &#34;weights for the subscores simplicity, coverage, density, and legibility&#34;
+    &#34;&#34;&#34;
+    list of weights of score components
+
+    The default weights are 0.25 for *simplicity*, 0.2 for *coverage*, 0.5 for
+    *density*, and 0.05 for *legibility*.
+    &#34;&#34;&#34;
+
+    font_metrics = {&#39;offset&#39;: 0.1, &#39;-&#39;: 0.678, &#39;1&#39;: 0.5, &#39;2&#39;: 0.5, &#39;3&#39;: 0.5,
+                    &#39;4&#39;: 0.5, &#39;5&#39;: 0.5, &#39;6&#39;: 0.5, &#39;7&#39;: 0.5, &#39;8&#39;: 0.5, &#39;9&#39;: 0.5,
+                    &#39;0&#39;: 0.5, &#39;.&#39;: 0.278, &#39;height&#39;: 0.728}
+    &#34;&#34;&#34;
+    default font metrics
+
+    Font metrics are used to calculate the width and height of tick labels.
+    They are specified as a `dict`, where each character that can occur in a
+    tick label (`&#39;-&#39;`, `&#39;0&#39;`–`&#39;9&#39;`, `&#39;.&#39;`) is a key associated with the
+    character&#39;s width; it also contains an `&#39;offset&#39;` to be added to the total
+    width, and a `&#39;height&#39;`. All numbers are in units of the font size.
+
+    The default values are for La/TeX&#39;s standard math font (Computer Modern
+    Roman).
+    &#34;&#34;&#34;
 
 
 class TicksGenerator:
-    &#34;generator of tick values and labels&#34;
+    &#34;&#34;&#34;
+    generator of tick values and labels
 
-    def __init__(self, fs_t, fs_min, rt, only_loose=True, normalize=True):
-        self.fs_t = fs_t
-        self.fs_min = fs_min
-        self.rt = rt
+    This class stores parameters of tick generation that are likely to stay the
+    same across several axes:
+
+    `font_sizes`
+    :   admissible font sizes, in TeX pt (2.54 cm / 72.27)
+
+    `density`
+    :   target density of ticks, in cm&lt;sup&gt;–1&lt;/sup&gt;
+
+    `font_metrics`
+    :   used to calculate the width and height of tick labels,
+        see `cfg.font_metrics` (default)
+
+    `only_loose`
+    :   whether the range of tick values is forced to encompass the
+      range of data values
+
+    Ticks for a specific axis are generated by calling the
+    [`ticks()`](#tikz.extended_wilkinson.TicksGenerator.ticks) method on an
+    instance.
+    &#34;&#34;&#34;
+
+    def __init__(self, font_sizes, density,
+                 font_metrics=None, only_loose=True):
+        if font_metrics is None:
+            font_metrics = cfg.font_metrics
+        self.font_sizes = sorted(font_sizes)
+        self.rt = density
+        self.font_metrics = font_metrics
         self.only_loose = only_loose
-        self.normalize = normalize
 
     # scoring functions, including the approximations for limiting the search
 
@@ -126,31 +197,40 @@ class TicksGenerator:
 
     # optimization algorithm
 
-    def ticks(self, dmin, dmax, length=None, m=None):
+    def ticks(self, dmin, dmax, axis_length, axis_horizontal):
         &#34;&#34;&#34;
-        generate tick values and labels for a given axis
+        generate tick values and labels for a specific axis
 
-        returns `Ticks` object
+        `dmin`
+        :   data values lower bound
+
+        `dmax`
+        :   data values upper bound
+
+        `axis_length`
+        :   physical length of the axis, in cm
+
+        `axis_horizontal`
+        :   whether the axis is oriented horizontally (rather than vertically)
+
+        Returns a `Ticks` object.
         &#34;&#34;&#34;
 
-        if m is None:
-            # The implementation here is based on the R code, which is defined
-            # in terms of `m`, the target number of ticks. It optimizes w.r.t.
-            # the ratio between the two quantities
-            #   r = (k - 1) / (lmax - lmin)
-            #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
-            # We want to instead specify the physical density (e.g. in 1/cm),
-            # stored as a class attribute `self.rt`, and the parameter `length`
-            # (e.g. in cm). Assuming that the axis spans `min(dmin, lmin)` to
-            # `max(lmax, dmax)`, while the ticks span lmin to lmax, the
-            # optimization should use the ratio of
-            #   r = (k - 1) / (length * (lmax - lmin))
-            #       * (max(lmax, dmax) - min(dmin, lmin))
-            # to `self.rt`.
-            # It turns out that the two ratios are equivalent if one sets
-            m = self.rt * length + 1
-
-        # without &#39;legibility&#39; quite fast, around 1 ms
+        # The implementation here is based on the R code, which is defined
+        # in terms of `m`, the target number of ticks. It optimizes w.r.t.
+        # the ratio between the two quantities
+        #   r = (k - 1) / (lmax - lmin)
+        #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
+        # We want to instead specify the physical density (e.g. in 1/cm),
+        # stored as a class attribute `self.rt`, and the parameter `length`
+        # (e.g. in cm). Assuming that the axis spans `min(dmin, lmin)` to
+        # `max(lmax, dmax)`, while the ticks span lmin to lmax, the
+        # optimization should use the ratio of
+        #   r = (k - 1) / (length * (lmax - lmin))
+        #       * (max(lmax, dmax) - min(dmin, lmin))
+        # to `self.rt`.
+        # It turns out that the two ratios are equivalent if one sets
+        m = self.rt * axis_length + 1
 
         if dmin &gt; dmax:
             dmin, dmax = dmax, dmin
@@ -198,11 +278,6 @@ class TicksGenerator:
                         lmax = lmin + step * (k - 1)
                         # lstep = step
 
-                        # In terms of loop variables:
-                        # lmin = q * start * 10**z
-                        # lmax = q * (start + j * (k - 1)) * 10 ** z
-                        # lstep = float(q) * j * 10**z
-
                         if self.only_loose:
                             if lmin &gt; dmin or lmax &lt; dmax:
                                 continue
@@ -216,67 +291,210 @@ class TicksGenerator:
                         if score &lt; best_score:
                             continue
 
-                        best_score = score
-                        ticklabels = Ticks(
-                            q, start, j, z, k,
-                            self.normalize)
+                        # Exact tick values in terms of loop variables:
+                        #   lmin = q * start * 10**z
+                        #   lmax = q * (start + j * (k - 1)) * 10 ** z
+                        #   lstep = float(q) * j * 10**z
+                        decimal_values = [q * (start + j * ind)
+                                          * D(&#39;1E1&#39;) ** z
+                                          for ind in range(k)]
 
-        return ticklabels
+                        # Create `Ticks` object
+                        ticks = Ticks(
+                            amin=min(lmin, dmin),
+                            amax=max(lmax, dmax),
+                            decimal_values=decimal_values)
+                        # and initiate internal optimization for label
+                        # legibility.
+                        ticks._optimize(
+                            self.font_sizes,
+                            self.font_metrics,
+                            axis_length,
+                            axis_horizontal)
+
+                        l = ticks.opt_legibility                                    # noqa E741
+
+                        score = self._score(s, c, d, l)
+
+                        if score &gt; best_score:
+                            best_score = score
+
+        return ticks
 
 
 class Ticks:
-    &#34;represent tick values and labels&#34;
-    def __init__(self, q, start, j, z, k, normalize):
-        self.q = q
-        self.start = start
-        self.j = j
-        self.z = z
-        self.k = k
-        self.normalize = normalize
+    &#34;&#34;&#34;
+    represent tick values and labels
 
-    def _legibility(self):
-        return 1
+    This class is not intended to be instantiated by the user, but
+    `Ticks` objects are obtained via `TicksGenerator.ticks`.
+    &#34;&#34;&#34;
 
-    def values(self):
-        &#34;get tick values as floats&#34;
-        return [float(self.q) * (self.start + self.j * ind) * 10 ** self.z
-                for ind in range(self.k)]
+    def __init__(self, amin, amax, decimal_values,
+                 labels=None, plabel=None, font_size=None, horizontal=None):
+        self.amin = amin
+        &#34;axis lower bound&#34;
 
-    def _decimal(self, z0=0):
-        &#34;get tick values as `Decimal`s, relative to decadic power `z0`&#34;
-        # The D(&#39;1E1&#39;) notation is necessary to keep the number of significant
-        # digits from q in the result.
-        return [self.q * (self.start + self.j * ind)
-                * D(&#39;1E1&#39;) ** (self.z - z0)
-                for ind in range(self.k)]
+        self.amax = amax
+        &#34;axis upper bound&#34;
 
-    # For the moment, we only implement the formats &#39;Decimal&#39; and &#39;Factored
-    # Scientific&#39;.
+        self.values = [float(dv) for dv in decimal_values]
+        &#34;list of tick values&#34;
 
-    def labels_Decimal(self):
+        self.decimal_values = decimal_values
+        &#34;list of exact tick values, as `decimal.Decimal`s&#34;
+
+        self.labels = labels
+        &#34;list of tick labels strings&#34;
+
+        self.plabel = plabel
+        &#34;&#34;&#34;
+        power label string
+
+        If `plabel` is not `None`, it represents a decadic power factored from
+        the tick values. It is intended to be displayed in the form
+        10&lt;sup&gt;`plabel`&lt;/sup&gt; either at the side of the axis or as/with a unit
+        in the axis label.
+        &#34;&#34;&#34;
+
+        self.font_size = font_size
+        &#34;tick label font size, in TeX pt (2.54 cm / 72.27)&#34;
+
+        self.horizontal = horizontal
+        &#34;&#34;&#34;
+        whether the tick label is to be displayed in horizontal orientation
+        (rather than vertical)
+        &#34;&#34;&#34;
+
+    def _optimize(self, font_sizes, font_metrics,
+                  axis_length, axis_horizontal):
+        &#34;&#34;&#34;
+        optimize label legibility in terms of format, font size, and
+        orientation
+        &#34;&#34;&#34;
+
+        # tick values
+        values = self.values
+        # minimum font size
+        fs_min = font_sizes[0]
+        # target font size
+        fs_t = font_sizes[-1]
+
+        # optimization
+        self.opt_legibility = float(&#39;-inf&#39;)
+        # format
+        for f in range(2):
+            # legibility score for format
+            if f == 0:
+                # format &#39;Decimal&#39;
+                vls = [(1e-4 &lt; abs(v) &lt; 1e6) * 1 for v in values]
+                leg_f = sum(vls) / len(vls)
+            else:
+                # format &#39;Factored scientific&#39;
+                leg_f = 0.3
+
+            # tick labels
+            if f == 0:
+                # format &#39;Decimal&#39;
+                labels = self._labels_Decimal()
+                plabel = None
+            else:
+                # format &#39;Factored scientific&#39;
+                labels, plabel = self._labels_Scientific()
+
+            # widths and heights of tick labels, in units of font size
+            widths = [self._label_width(l, font_metrics) for l in labels]
+            heights = [self._label_height(l, font_metrics) for l in labels]
+
+            # font size
+            for fs in font_sizes:
+                # legibility score for font size
+                if fs == fs_t:
+                    leg_fs = 1
+                else:
+                    leg_fs = 0.2 * (fs - fs_min + 1) / (fs_t - fs_min)
+
+                # distance between ticks, in units of font size
+                step = (
+                    (values[1] - values[0])         # numerical
+                    / (self.amax - self.amin)       # relative to axis
+                    * axis_length                        # physical, in cm
+                    /
+                    (fs / 72.27 * 2.54)             # font size, in cm
+                    )
+
+                # orientation
+                for o in range(2):
+                    # legibility score for orientation
+                    if o == 0:              # horizontal orientation
+                        leg_or = 1
+                    else:                   # vertical orientation
+                        leg_or = -0.5
+
+                    # legibility score for overlap
+                    # extents of labels along the axis, in units of font size
+                    if (o == 0) == axis_horizontal:
+                        # label and axis have the same orientation
+                        extents = widths
+                    else:
+                        # label and axis have different orientations
+                        extents = heights
+                    # minimum distance between neighboring labels
+                    # We can apply the minimum here, since overlap legibility
+                    # is an increasing function of distance.
+                    dist = min(step - (extents[i] + extents[i + 1]) / 2
+                               for i in range(len(extents) - 1))
+                    # score; we interpret em as font size
+                    if dist &gt;= 1.5:
+                        leg_ov = 1
+                    elif dist &gt; 0:
+                        leg_ov = 2 - 1.5 / dist
+                    else:
+                        leg_ov = float(&#39;-inf&#39;)
+
+                    # total legibility score
+                    leg = (leg_f + leg_fs + leg_or + leg_ov) / 4
+
+                    # aggregate
+                    if leg &gt; self.opt_legibility:
+                        self.opt_legibility = leg
+                        self.labels = labels
+                        self.plabel = plabel
+                        self.font_size = fs
+                        self.horizontal = (o == 0)
+
+    def _label_width(self, label, font_metrics):
+        &#34;get width of tick label&#34;
+
+        w = sum(map(font_metrics.get, label)) + font_metrics[&#39;offset&#39;]
+        return w
+
+    def _label_height(self, label, font_metrics):
+        &#34;get height of tick label&#34;
+
+        h = font_metrics[&#39;height&#39;]
+        return h
+
+    def _labels_Decimal(self):
         &#34;get tick labels in &#39;Decimal&#39; format&#34;
-        # get values
-        dvs = self._decimal()
-        # create labels
-        if self.normalize:
-            labels = [&#39;{:f}&#39;.format(dv.normalize()) for dv in dvs]
-        else:
-            labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
-        return labels, None
 
-    def labels_Scientific(self):
-        &#34;get tick labels in &#39;Scientific format&#39;&#34;
         # get values
-        dvs = self._decimal()
+        dvs = self.decimal_values
+        # create labels
+        labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
+        return labels
+
+    def _labels_Scientific(self):
+        &#34;get tick labels in &#39;Scientific format&#39;&#34;
+
+        # get values
+        dvs = self.decimal_values
         # get largest power of 10 than can be factored out
         z0 = min([floor(log10(abs(dv))) for dv in dvs if dv != 0])
         # get values adjusted to that power
-        dvs = self._decimal(z0=z0)
+        dvs = [dv * D(&#39;1E1&#39;) ** (-z0) for dv in dvs]
         # create labels
-        if self.normalize:
-            labels = [&#39;{:f}&#39;.format(dv.normalize()) for dv in dvs]
-        else:
-            labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
+        labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
         plabel = &#39;{:d}&#39;.format(z0)
         return labels, plabel</code></pre>
 </details>
@@ -295,56 +513,134 @@ class Ticks:
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>tikz.extended_wilkinson configuration variables</p></section>
+<section class="desc"><p><a title="tikz.extended_wilkinson" href="#tikz.extended_wilkinson"><code>tikz.extended_wilkinson</code></a> configuration variables</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class cfg:
-    &#34;tikz.extended_wilkinson configuration variables&#34;
+    &#34;`tikz.extended_wilkinson` configuration variables&#34;
 
     Q = [D(1), D(5), D(2), D(&#39;2.5&#39;), D(4), D(3)]
     &#34;&#34;&#34;
     preference-ordered list of nice step sizes
 
-    Values must be of type `decimal.Decimal`.
+    Values must be of type `decimal.Decimal`. The default step sizes are 1, 5,
+    2, 2.5, 4, and 3.
     &#34;&#34;&#34;
 
     w = [0.25, 0.2, 0.5, 0.05]
-    &#34;weights for the subscores simplicity, coverage, density, and legibility&#34;</code></pre>
+    &#34;&#34;&#34;
+    list of weights of score components
+
+    The default weights are 0.25 for *simplicity*, 0.2 for *coverage*, 0.5 for
+    *density*, and 0.05 for *legibility*.
+    &#34;&#34;&#34;
+
+    font_metrics = {&#39;offset&#39;: 0.1, &#39;-&#39;: 0.678, &#39;1&#39;: 0.5, &#39;2&#39;: 0.5, &#39;3&#39;: 0.5,
+                    &#39;4&#39;: 0.5, &#39;5&#39;: 0.5, &#39;6&#39;: 0.5, &#39;7&#39;: 0.5, &#39;8&#39;: 0.5, &#39;9&#39;: 0.5,
+                    &#39;0&#39;: 0.5, &#39;.&#39;: 0.278, &#39;height&#39;: 0.728}
+    &#34;&#34;&#34;
+    default font metrics
+
+    Font metrics are used to calculate the width and height of tick labels.
+    They are specified as a `dict`, where each character that can occur in a
+    tick label (`&#39;-&#39;`, `&#39;0&#39;`–`&#39;9&#39;`, `&#39;.&#39;`) is a key associated with the
+    character&#39;s width; it also contains an `&#39;offset&#39;` to be added to the total
+    width, and a `&#39;height&#39;`. All numbers are in units of the font size.
+
+    The default values are for La/TeX&#39;s standard math font (Computer Modern
+    Roman).
+    &#34;&#34;&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
 <dt id="tikz.extended_wilkinson.cfg.Q"><code class="name">var <span class="ident">Q</span></code></dt>
 <dd>
 <section class="desc"><p>preference-ordered list of nice step sizes</p>
-<p>Values must be of type <code>decimal.Decimal</code>.</p></section>
+<p>Values must be of type <code>decimal.Decimal</code>. The default step sizes are 1, 5,
+2, 2.5, 4, and 3.</p></section>
 </dd>
 <dt id="tikz.extended_wilkinson.cfg.w"><code class="name">var <span class="ident">w</span></code></dt>
 <dd>
-<section class="desc"><p>weights for the subscores simplicity, coverage, density, and legibility</p></section>
+<section class="desc"><p>list of weights of score components</p>
+<p>The default weights are 0.25 for <em>simplicity</em>, 0.2 for <em>coverage</em>, 0.5 for
+<em>density</em>, and 0.05 for <em>legibility</em>.</p></section>
+</dd>
+<dt id="tikz.extended_wilkinson.cfg.font_metrics"><code class="name">var <span class="ident">font_metrics</span></code></dt>
+<dd>
+<section class="desc"><p>default font metrics</p>
+<p>Font metrics are used to calculate the width and height of tick labels.
+They are specified as a <code>dict</code>, where each character that can occur in a
+tick label (<code>'-'</code>, <code>'0'</code>–<code>'9'</code>, <code>'.'</code>) is a key associated with the
+character's width; it also contains an <code>'offset'</code> to be added to the total
+width, and a <code>'height'</code>. All numbers are in units of the font size.</p>
+<p>The default values are for La/TeX's standard math font (Computer Modern
+Roman).</p></section>
 </dd>
 </dl>
 </dd>
 <dt id="tikz.extended_wilkinson.TicksGenerator"><code class="flex name class">
 <span>class <span class="ident">TicksGenerator</span></span>
-<span>(</span><span>fs_t, fs_min, rt, only_loose=True, normalize=True)</span>
+<span>(</span><span>font_sizes, density, font_metrics=None, only_loose=True)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>generator of tick values and labels</p></section>
+<section class="desc"><p>generator of tick values and labels</p>
+<p>This class stores parameters of tick generation that are likely to stay the
+same across several axes:</p>
+<dl>
+<dt><code>font_sizes</code></dt>
+<dd>admissible font sizes, in TeX pt (2.54 cm / 72.27)</dd>
+<dt><code>density</code></dt>
+<dd>target density of ticks, in cm<sup>–1</sup></dd>
+<dt><code>font_metrics</code></dt>
+<dd>used to calculate the width and height of tick labels,
+see <a title="tikz.extended_wilkinson.cfg.font_metrics" href="#tikz.extended_wilkinson.cfg.font_metrics"><code>cfg.font_metrics</code></a> (default)</dd>
+<dt><code>only_loose</code></dt>
+<dd>whether the range of tick values is forced to encompass the
+range of data values</dd>
+</dl>
+<p>Ticks for a specific axis are generated by calling the
+<a href="#tikz.extended_wilkinson.TicksGenerator.ticks"><code>ticks()</code></a> method on an
+instance.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TicksGenerator:
-    &#34;generator of tick values and labels&#34;
+    &#34;&#34;&#34;
+    generator of tick values and labels
 
-    def __init__(self, fs_t, fs_min, rt, only_loose=True, normalize=True):
-        self.fs_t = fs_t
-        self.fs_min = fs_min
-        self.rt = rt
+    This class stores parameters of tick generation that are likely to stay the
+    same across several axes:
+
+    `font_sizes`
+    :   admissible font sizes, in TeX pt (2.54 cm / 72.27)
+
+    `density`
+    :   target density of ticks, in cm&lt;sup&gt;–1&lt;/sup&gt;
+
+    `font_metrics`
+    :   used to calculate the width and height of tick labels,
+        see `cfg.font_metrics` (default)
+
+    `only_loose`
+    :   whether the range of tick values is forced to encompass the
+      range of data values
+
+    Ticks for a specific axis are generated by calling the
+    [`ticks()`](#tikz.extended_wilkinson.TicksGenerator.ticks) method on an
+    instance.
+    &#34;&#34;&#34;
+
+    def __init__(self, font_sizes, density,
+                 font_metrics=None, only_loose=True):
+        if font_metrics is None:
+            font_metrics = cfg.font_metrics
+        self.font_sizes = sorted(font_sizes)
+        self.rt = density
+        self.font_metrics = font_metrics
         self.only_loose = only_loose
-        self.normalize = normalize
 
     # scoring functions, including the approximations for limiting the search
 
@@ -398,31 +694,40 @@ class Ticks:
 
     # optimization algorithm
 
-    def ticks(self, dmin, dmax, length=None, m=None):
+    def ticks(self, dmin, dmax, axis_length, axis_horizontal):
         &#34;&#34;&#34;
-        generate tick values and labels for a given axis
+        generate tick values and labels for a specific axis
 
-        returns `Ticks` object
+        `dmin`
+        :   data values lower bound
+
+        `dmax`
+        :   data values upper bound
+
+        `axis_length`
+        :   physical length of the axis, in cm
+
+        `axis_horizontal`
+        :   whether the axis is oriented horizontally (rather than vertically)
+
+        Returns a `Ticks` object.
         &#34;&#34;&#34;
 
-        if m is None:
-            # The implementation here is based on the R code, which is defined
-            # in terms of `m`, the target number of ticks. It optimizes w.r.t.
-            # the ratio between the two quantities
-            #   r = (k - 1) / (lmax - lmin)
-            #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
-            # We want to instead specify the physical density (e.g. in 1/cm),
-            # stored as a class attribute `self.rt`, and the parameter `length`
-            # (e.g. in cm). Assuming that the axis spans `min(dmin, lmin)` to
-            # `max(lmax, dmax)`, while the ticks span lmin to lmax, the
-            # optimization should use the ratio of
-            #   r = (k - 1) / (length * (lmax - lmin))
-            #       * (max(lmax, dmax) - min(dmin, lmin))
-            # to `self.rt`.
-            # It turns out that the two ratios are equivalent if one sets
-            m = self.rt * length + 1
-
-        # without &#39;legibility&#39; quite fast, around 1 ms
+        # The implementation here is based on the R code, which is defined
+        # in terms of `m`, the target number of ticks. It optimizes w.r.t.
+        # the ratio between the two quantities
+        #   r = (k - 1) / (lmax - lmin)
+        #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
+        # We want to instead specify the physical density (e.g. in 1/cm),
+        # stored as a class attribute `self.rt`, and the parameter `length`
+        # (e.g. in cm). Assuming that the axis spans `min(dmin, lmin)` to
+        # `max(lmax, dmax)`, while the ticks span lmin to lmax, the
+        # optimization should use the ratio of
+        #   r = (k - 1) / (length * (lmax - lmin))
+        #       * (max(lmax, dmax) - min(dmin, lmin))
+        # to `self.rt`.
+        # It turns out that the two ratios are equivalent if one sets
+        m = self.rt * axis_length + 1
 
         if dmin &gt; dmax:
             dmin, dmax = dmax, dmin
@@ -470,11 +775,6 @@ class Ticks:
                         lmax = lmin + step * (k - 1)
                         # lstep = step
 
-                        # In terms of loop variables:
-                        # lmin = q * start * 10**z
-                        # lmax = q * (start + j * (k - 1)) * 10 ** z
-                        # lstep = float(q) * j * 10**z
-
                         if self.only_loose:
                             if lmin &gt; dmin or lmax &lt; dmax:
                                 continue
@@ -488,50 +788,92 @@ class Ticks:
                         if score &lt; best_score:
                             continue
 
-                        best_score = score
-                        ticklabels = Ticks(
-                            q, start, j, z, k,
-                            self.normalize)
+                        # Exact tick values in terms of loop variables:
+                        #   lmin = q * start * 10**z
+                        #   lmax = q * (start + j * (k - 1)) * 10 ** z
+                        #   lstep = float(q) * j * 10**z
+                        decimal_values = [q * (start + j * ind)
+                                          * D(&#39;1E1&#39;) ** z
+                                          for ind in range(k)]
 
-        return ticklabels</code></pre>
+                        # Create `Ticks` object
+                        ticks = Ticks(
+                            amin=min(lmin, dmin),
+                            amax=max(lmax, dmax),
+                            decimal_values=decimal_values)
+                        # and initiate internal optimization for label
+                        # legibility.
+                        ticks._optimize(
+                            self.font_sizes,
+                            self.font_metrics,
+                            axis_length,
+                            axis_horizontal)
+
+                        l = ticks.opt_legibility                                    # noqa E741
+
+                        score = self._score(s, c, d, l)
+
+                        if score &gt; best_score:
+                            best_score = score
+
+        return ticks</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="tikz.extended_wilkinson.TicksGenerator.ticks"><code class="name flex">
-<span>def <span class="ident">ticks</span></span>(<span>self, dmin, dmax, length=None, m=None)</span>
+<span>def <span class="ident">ticks</span></span>(<span>self, dmin, dmax, axis_length, axis_horizontal)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>generate tick values and labels for a given axis</p>
-<p>returns <a title="tikz.extended_wilkinson.Ticks" href="#tikz.extended_wilkinson.Ticks"><code>Ticks</code></a> object</p></section>
+<section class="desc"><p>generate tick values and labels for a specific axis</p>
+<dl>
+<dt><code>dmin</code></dt>
+<dd>data values lower bound</dd>
+<dt><code>dmax</code></dt>
+<dd>data values upper bound</dd>
+<dt><code>axis_length</code></dt>
+<dd>physical length of the axis, in cm</dd>
+<dt><code>axis_horizontal</code></dt>
+<dd>whether the axis is oriented horizontally (rather than vertically)</dd>
+</dl>
+<p>Returns a <a title="tikz.extended_wilkinson.Ticks" href="#tikz.extended_wilkinson.Ticks"><code>Ticks</code></a> object.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def ticks(self, dmin, dmax, length=None, m=None):
+<pre><code class="python">def ticks(self, dmin, dmax, axis_length, axis_horizontal):
     &#34;&#34;&#34;
-    generate tick values and labels for a given axis
+    generate tick values and labels for a specific axis
 
-    returns `Ticks` object
+    `dmin`
+    :   data values lower bound
+
+    `dmax`
+    :   data values upper bound
+
+    `axis_length`
+    :   physical length of the axis, in cm
+
+    `axis_horizontal`
+    :   whether the axis is oriented horizontally (rather than vertically)
+
+    Returns a `Ticks` object.
     &#34;&#34;&#34;
 
-    if m is None:
-        # The implementation here is based on the R code, which is defined
-        # in terms of `m`, the target number of ticks. It optimizes w.r.t.
-        # the ratio between the two quantities
-        #   r = (k - 1) / (lmax - lmin)
-        #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
-        # We want to instead specify the physical density (e.g. in 1/cm),
-        # stored as a class attribute `self.rt`, and the parameter `length`
-        # (e.g. in cm). Assuming that the axis spans `min(dmin, lmin)` to
-        # `max(lmax, dmax)`, while the ticks span lmin to lmax, the
-        # optimization should use the ratio of
-        #   r = (k - 1) / (length * (lmax - lmin))
-        #       * (max(lmax, dmax) - min(dmin, lmin))
-        # to `self.rt`.
-        # It turns out that the two ratios are equivalent if one sets
-        m = self.rt * length + 1
-
-    # without &#39;legibility&#39; quite fast, around 1 ms
+    # The implementation here is based on the R code, which is defined
+    # in terms of `m`, the target number of ticks. It optimizes w.r.t.
+    # the ratio between the two quantities
+    #   r = (k - 1) / (lmax - lmin)
+    #   rt = (m - 1) / (max(lmax, dmax) - min(dmin, lmin))
+    # We want to instead specify the physical density (e.g. in 1/cm),
+    # stored as a class attribute `self.rt`, and the parameter `length`
+    # (e.g. in cm). Assuming that the axis spans `min(dmin, lmin)` to
+    # `max(lmax, dmax)`, while the ticks span lmin to lmax, the
+    # optimization should use the ratio of
+    #   r = (k - 1) / (length * (lmax - lmin))
+    #       * (max(lmax, dmax) - min(dmin, lmin))
+    # to `self.rt`.
+    # It turns out that the two ratios are equivalent if one sets
+    m = self.rt * axis_length + 1
 
     if dmin &gt; dmax:
         dmin, dmax = dmax, dmin
@@ -579,11 +921,6 @@ class Ticks:
                     lmax = lmin + step * (k - 1)
                     # lstep = step
 
-                    # In terms of loop variables:
-                    # lmin = q * start * 10**z
-                    # lmax = q * (start + j * (k - 1)) * 10 ** z
-                    # lstep = float(q) * j * 10**z
-
                     if self.only_loose:
                         if lmin &gt; dmin or lmax &lt; dmax:
                             continue
@@ -597,145 +934,265 @@ class Ticks:
                     if score &lt; best_score:
                         continue
 
-                    best_score = score
-                    ticklabels = Ticks(
-                        q, start, j, z, k,
-                        self.normalize)
+                    # Exact tick values in terms of loop variables:
+                    #   lmin = q * start * 10**z
+                    #   lmax = q * (start + j * (k - 1)) * 10 ** z
+                    #   lstep = float(q) * j * 10**z
+                    decimal_values = [q * (start + j * ind)
+                                      * D(&#39;1E1&#39;) ** z
+                                      for ind in range(k)]
 
-    return ticklabels</code></pre>
+                    # Create `Ticks` object
+                    ticks = Ticks(
+                        amin=min(lmin, dmin),
+                        amax=max(lmax, dmax),
+                        decimal_values=decimal_values)
+                    # and initiate internal optimization for label
+                    # legibility.
+                    ticks._optimize(
+                        self.font_sizes,
+                        self.font_metrics,
+                        axis_length,
+                        axis_horizontal)
+
+                    l = ticks.opt_legibility                                    # noqa E741
+
+                    score = self._score(s, c, d, l)
+
+                    if score &gt; best_score:
+                        best_score = score
+
+    return ticks</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
 <dt id="tikz.extended_wilkinson.Ticks"><code class="flex name class">
 <span>class <span class="ident">Ticks</span></span>
-<span>(</span><span>q, start, j, z, k, normalize)</span>
+<span>(</span><span>amin, amax, decimal_values, labels=None, plabel=None, font_size=None, horizontal=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>represent tick values and labels</p></section>
+<section class="desc"><p>represent tick values and labels</p>
+<p>This class is not intended to be instantiated by the user, but
+<a title="tikz.extended_wilkinson.Ticks" href="#tikz.extended_wilkinson.Ticks"><code>Ticks</code></a> objects are obtained via <a title="tikz.extended_wilkinson.TicksGenerator.ticks" href="#tikz.extended_wilkinson.TicksGenerator.ticks"><code>TicksGenerator.ticks()</code></a>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Ticks:
-    &#34;represent tick values and labels&#34;
-    def __init__(self, q, start, j, z, k, normalize):
-        self.q = q
-        self.start = start
-        self.j = j
-        self.z = z
-        self.k = k
-        self.normalize = normalize
+    &#34;&#34;&#34;
+    represent tick values and labels
 
-    def _legibility(self):
-        return 1
+    This class is not intended to be instantiated by the user, but
+    `Ticks` objects are obtained via `TicksGenerator.ticks`.
+    &#34;&#34;&#34;
 
-    def values(self):
-        &#34;get tick values as floats&#34;
-        return [float(self.q) * (self.start + self.j * ind) * 10 ** self.z
-                for ind in range(self.k)]
+    def __init__(self, amin, amax, decimal_values,
+                 labels=None, plabel=None, font_size=None, horizontal=None):
+        self.amin = amin
+        &#34;axis lower bound&#34;
 
-    def _decimal(self, z0=0):
-        &#34;get tick values as `Decimal`s, relative to decadic power `z0`&#34;
-        # The D(&#39;1E1&#39;) notation is necessary to keep the number of significant
-        # digits from q in the result.
-        return [self.q * (self.start + self.j * ind)
-                * D(&#39;1E1&#39;) ** (self.z - z0)
-                for ind in range(self.k)]
+        self.amax = amax
+        &#34;axis upper bound&#34;
 
-    # For the moment, we only implement the formats &#39;Decimal&#39; and &#39;Factored
-    # Scientific&#39;.
+        self.values = [float(dv) for dv in decimal_values]
+        &#34;list of tick values&#34;
 
-    def labels_Decimal(self):
+        self.decimal_values = decimal_values
+        &#34;list of exact tick values, as `decimal.Decimal`s&#34;
+
+        self.labels = labels
+        &#34;list of tick labels strings&#34;
+
+        self.plabel = plabel
+        &#34;&#34;&#34;
+        power label string
+
+        If `plabel` is not `None`, it represents a decadic power factored from
+        the tick values. It is intended to be displayed in the form
+        10&lt;sup&gt;`plabel`&lt;/sup&gt; either at the side of the axis or as/with a unit
+        in the axis label.
+        &#34;&#34;&#34;
+
+        self.font_size = font_size
+        &#34;tick label font size, in TeX pt (2.54 cm / 72.27)&#34;
+
+        self.horizontal = horizontal
+        &#34;&#34;&#34;
+        whether the tick label is to be displayed in horizontal orientation
+        (rather than vertical)
+        &#34;&#34;&#34;
+
+    def _optimize(self, font_sizes, font_metrics,
+                  axis_length, axis_horizontal):
+        &#34;&#34;&#34;
+        optimize label legibility in terms of format, font size, and
+        orientation
+        &#34;&#34;&#34;
+
+        # tick values
+        values = self.values
+        # minimum font size
+        fs_min = font_sizes[0]
+        # target font size
+        fs_t = font_sizes[-1]
+
+        # optimization
+        self.opt_legibility = float(&#39;-inf&#39;)
+        # format
+        for f in range(2):
+            # legibility score for format
+            if f == 0:
+                # format &#39;Decimal&#39;
+                vls = [(1e-4 &lt; abs(v) &lt; 1e6) * 1 for v in values]
+                leg_f = sum(vls) / len(vls)
+            else:
+                # format &#39;Factored scientific&#39;
+                leg_f = 0.3
+
+            # tick labels
+            if f == 0:
+                # format &#39;Decimal&#39;
+                labels = self._labels_Decimal()
+                plabel = None
+            else:
+                # format &#39;Factored scientific&#39;
+                labels, plabel = self._labels_Scientific()
+
+            # widths and heights of tick labels, in units of font size
+            widths = [self._label_width(l, font_metrics) for l in labels]
+            heights = [self._label_height(l, font_metrics) for l in labels]
+
+            # font size
+            for fs in font_sizes:
+                # legibility score for font size
+                if fs == fs_t:
+                    leg_fs = 1
+                else:
+                    leg_fs = 0.2 * (fs - fs_min + 1) / (fs_t - fs_min)
+
+                # distance between ticks, in units of font size
+                step = (
+                    (values[1] - values[0])         # numerical
+                    / (self.amax - self.amin)       # relative to axis
+                    * axis_length                        # physical, in cm
+                    /
+                    (fs / 72.27 * 2.54)             # font size, in cm
+                    )
+
+                # orientation
+                for o in range(2):
+                    # legibility score for orientation
+                    if o == 0:              # horizontal orientation
+                        leg_or = 1
+                    else:                   # vertical orientation
+                        leg_or = -0.5
+
+                    # legibility score for overlap
+                    # extents of labels along the axis, in units of font size
+                    if (o == 0) == axis_horizontal:
+                        # label and axis have the same orientation
+                        extents = widths
+                    else:
+                        # label and axis have different orientations
+                        extents = heights
+                    # minimum distance between neighboring labels
+                    # We can apply the minimum here, since overlap legibility
+                    # is an increasing function of distance.
+                    dist = min(step - (extents[i] + extents[i + 1]) / 2
+                               for i in range(len(extents) - 1))
+                    # score; we interpret em as font size
+                    if dist &gt;= 1.5:
+                        leg_ov = 1
+                    elif dist &gt; 0:
+                        leg_ov = 2 - 1.5 / dist
+                    else:
+                        leg_ov = float(&#39;-inf&#39;)
+
+                    # total legibility score
+                    leg = (leg_f + leg_fs + leg_or + leg_ov) / 4
+
+                    # aggregate
+                    if leg &gt; self.opt_legibility:
+                        self.opt_legibility = leg
+                        self.labels = labels
+                        self.plabel = plabel
+                        self.font_size = fs
+                        self.horizontal = (o == 0)
+
+    def _label_width(self, label, font_metrics):
+        &#34;get width of tick label&#34;
+
+        w = sum(map(font_metrics.get, label)) + font_metrics[&#39;offset&#39;]
+        return w
+
+    def _label_height(self, label, font_metrics):
+        &#34;get height of tick label&#34;
+
+        h = font_metrics[&#39;height&#39;]
+        return h
+
+    def _labels_Decimal(self):
         &#34;get tick labels in &#39;Decimal&#39; format&#34;
-        # get values
-        dvs = self._decimal()
-        # create labels
-        if self.normalize:
-            labels = [&#39;{:f}&#39;.format(dv.normalize()) for dv in dvs]
-        else:
-            labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
-        return labels, None
 
-    def labels_Scientific(self):
-        &#34;get tick labels in &#39;Scientific format&#39;&#34;
         # get values
-        dvs = self._decimal()
+        dvs = self.decimal_values
+        # create labels
+        labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
+        return labels
+
+    def _labels_Scientific(self):
+        &#34;get tick labels in &#39;Scientific format&#39;&#34;
+
+        # get values
+        dvs = self.decimal_values
         # get largest power of 10 than can be factored out
         z0 = min([floor(log10(abs(dv))) for dv in dvs if dv != 0])
         # get values adjusted to that power
-        dvs = self._decimal(z0=z0)
+        dvs = [dv * D(&#39;1E1&#39;) ** (-z0) for dv in dvs]
         # create labels
-        if self.normalize:
-            labels = [&#39;{:f}&#39;.format(dv.normalize()) for dv in dvs]
-        else:
-            labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
+        labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
         plabel = &#39;{:d}&#39;.format(z0)
         return labels, plabel</code></pre>
 </details>
-<h3>Methods</h3>
+<h3>Instance variables</h3>
 <dl>
-<dt id="tikz.extended_wilkinson.Ticks.values"><code class="name flex">
-<span>def <span class="ident">values</span></span>(<span>self)</span>
-</code></dt>
+<dt id="tikz.extended_wilkinson.Ticks.amin"><code class="name">var <span class="ident">amin</span></code></dt>
 <dd>
-<section class="desc"><p>get tick values as floats</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def values(self):
-    &#34;get tick values as floats&#34;
-    return [float(self.q) * (self.start + self.j * ind) * 10 ** self.z
-            for ind in range(self.k)]</code></pre>
-</details>
+<section class="desc"><p>axis lower bound</p></section>
 </dd>
-<dt id="tikz.extended_wilkinson.Ticks.labels_Decimal"><code class="name flex">
-<span>def <span class="ident">labels_Decimal</span></span>(<span>self)</span>
-</code></dt>
+<dt id="tikz.extended_wilkinson.Ticks.amax"><code class="name">var <span class="ident">amax</span></code></dt>
 <dd>
-<section class="desc"><p>get tick labels in 'Decimal' format</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def labels_Decimal(self):
-    &#34;get tick labels in &#39;Decimal&#39; format&#34;
-    # get values
-    dvs = self._decimal()
-    # create labels
-    if self.normalize:
-        labels = [&#39;{:f}&#39;.format(dv.normalize()) for dv in dvs]
-    else:
-        labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
-    return labels, None</code></pre>
-</details>
+<section class="desc"><p>axis upper bound</p></section>
 </dd>
-<dt id="tikz.extended_wilkinson.Ticks.labels_Scientific"><code class="name flex">
-<span>def <span class="ident">labels_Scientific</span></span>(<span>self)</span>
-</code></dt>
+<dt id="tikz.extended_wilkinson.Ticks.values"><code class="name">var <span class="ident">values</span></code></dt>
 <dd>
-<section class="desc"><p>get tick labels in 'Scientific format'</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def labels_Scientific(self):
-    &#34;get tick labels in &#39;Scientific format&#39;&#34;
-    # get values
-    dvs = self._decimal()
-    # get largest power of 10 than can be factored out
-    z0 = min([floor(log10(abs(dv))) for dv in dvs if dv != 0])
-    # get values adjusted to that power
-    dvs = self._decimal(z0=z0)
-    # create labels
-    if self.normalize:
-        labels = [&#39;{:f}&#39;.format(dv.normalize()) for dv in dvs]
-    else:
-        labels = [&#39;{:f}&#39;.format(dv) for dv in dvs]
-    plabel = &#39;{:d}&#39;.format(z0)
-    return labels, plabel</code></pre>
-</details>
+<section class="desc"><p>list of tick values</p></section>
+</dd>
+<dt id="tikz.extended_wilkinson.Ticks.decimal_values"><code class="name">var <span class="ident">decimal_values</span></code></dt>
+<dd>
+<section class="desc"><p>list of exact tick values, as <code>decimal.Decimal</code>s</p></section>
+</dd>
+<dt id="tikz.extended_wilkinson.Ticks.labels"><code class="name">var <span class="ident">labels</span></code></dt>
+<dd>
+<section class="desc"><p>list of tick labels strings</p></section>
+</dd>
+<dt id="tikz.extended_wilkinson.Ticks.plabel"><code class="name">var <span class="ident">plabel</span></code></dt>
+<dd>
+<section class="desc"><p>power label string</p>
+<p>If <code>plabel</code> is not <code>None</code>, it represents a decadic power factored from
+the tick values. It is intended to be displayed in the form
+10<sup><code>plabel</code></sup> either at the side of the axis or as/with a unit
+in the axis label.</p></section>
+</dd>
+<dt id="tikz.extended_wilkinson.Ticks.font_size"><code class="name">var <span class="ident">font_size</span></code></dt>
+<dd>
+<section class="desc"><p>tick label font size, in TeX pt (2.54 cm / 72.27)</p></section>
+</dd>
+<dt id="tikz.extended_wilkinson.Ticks.horizontal"><code class="name">var <span class="ident">horizontal</span></code></dt>
+<dd>
+<section class="desc"><p>whether the tick label is to be displayed in horizontal orientation
+(rather than vertical)</p></section>
 </dd>
 </dl>
 </dd>
@@ -764,6 +1221,7 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <ul class="">
 <li><code><a title="tikz.extended_wilkinson.cfg.Q" href="#tikz.extended_wilkinson.cfg.Q">Q</a></code></li>
 <li><code><a title="tikz.extended_wilkinson.cfg.w" href="#tikz.extended_wilkinson.cfg.w">w</a></code></li>
+<li><code><a title="tikz.extended_wilkinson.cfg.font_metrics" href="#tikz.extended_wilkinson.cfg.font_metrics">font_metrics</a></code></li>
 </ul>
 </li>
 <li>
@@ -774,10 +1232,15 @@ style="width:100%;padding-left:40px;padding-right:40px">
 </li>
 <li>
 <h4><code><a title="tikz.extended_wilkinson.Ticks" href="#tikz.extended_wilkinson.Ticks">Ticks</a></code></h4>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="tikz.extended_wilkinson.Ticks.amin" href="#tikz.extended_wilkinson.Ticks.amin">amin</a></code></li>
+<li><code><a title="tikz.extended_wilkinson.Ticks.amax" href="#tikz.extended_wilkinson.Ticks.amax">amax</a></code></li>
 <li><code><a title="tikz.extended_wilkinson.Ticks.values" href="#tikz.extended_wilkinson.Ticks.values">values</a></code></li>
-<li><code><a title="tikz.extended_wilkinson.Ticks.labels_Decimal" href="#tikz.extended_wilkinson.Ticks.labels_Decimal">labels_Decimal</a></code></li>
-<li><code><a title="tikz.extended_wilkinson.Ticks.labels_Scientific" href="#tikz.extended_wilkinson.Ticks.labels_Scientific">labels_Scientific</a></code></li>
+<li><code><a title="tikz.extended_wilkinson.Ticks.decimal_values" href="#tikz.extended_wilkinson.Ticks.decimal_values">decimal_values</a></code></li>
+<li><code><a title="tikz.extended_wilkinson.Ticks.labels" href="#tikz.extended_wilkinson.Ticks.labels">labels</a></code></li>
+<li><code><a title="tikz.extended_wilkinson.Ticks.plabel" href="#tikz.extended_wilkinson.Ticks.plabel">plabel</a></code></li>
+<li><code><a title="tikz.extended_wilkinson.Ticks.font_size" href="#tikz.extended_wilkinson.Ticks.font_size">font_size</a></code></li>
+<li><code><a title="tikz.extended_wilkinson.Ticks.horizontal" href="#tikz.extended_wilkinson.Ticks.horizontal">horizontal</a></code></li>
 </ul>
 </li>
 </ul>
