@@ -1,6 +1,7 @@
-# To Do
+# to do
 
-- test Google docstrings
+
+## package
 
 - split notebook into several, move to subdir
 
@@ -9,13 +10,29 @@
 - entry on homepage
 
 
-# Idea for TikZ figure
+## tikz
 
-- `Figure` is a subclass of `Picture` and replaces it in use
+- it would be nice if a click on the SVG would open the PDF in an external application (`webbrowser`, or https://stackoverflow.com/a/17317468/2056067)
 
-- `Figure` *has* a `Layout`.
 
--   The `Layout` starts with defaults for padding upon creation. Every time the figure is rendered, it extracts adjusted padding values and recomputes. If the layout changed, it renders again.
+## tikz.figure
+
+- Implement 'normalization'. Keep vertical alignment e.g. by `\phantom`izing the trailing decimal point and '0's.
+
+- If x- and y-axis have the save `dmin, dmax, alen`, just use the horizontal labeling for the vertical, too, but without rotation.
+
+- How to enforce isoscaling? Add `only_tight` or so to `extended_wilkinson`?
+
+- Maybe: The `Layout` starts with defaults for padding upon creation. Every time the figure is rendered, it extracts adjusted padding values and recomputes. If the layout changed, it renders again. – Or maybe no automatic spacing, but interpretable information when scale decoration boxes get crowded ("overfull by ...").
+
+- additional Layout subclasses:
+  - simple GridLayout (like Matlab's subplot)
+  - function to split existing View into grid (similar to Matlab's plotmatrix)  – is that compatible with automatic spacing? Yes, parameters just need to be interpreted consistently.
+
+- Axis should provide a method to insert another axis (an inset), based on an independent View (not bound to a Figure / managed by a Layout). Boxes of such a view should either be specified in data coordinates or in local coordinates relative to the Axis' inner Box.
+
+- An Axis is always based on a View, but a View can used for several Axis', e.g. a second y-scale.
+
 
 
 # Idea for a more complete solution to document a Python package:
