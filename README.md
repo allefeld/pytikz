@@ -1,4 +1,4 @@
-![](logo.png)
+![](docs/logo.png)
 
 
 # pytikz – A Python interface to Ti*k*Z
