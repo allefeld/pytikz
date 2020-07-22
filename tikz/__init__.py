@@ -30,11 +30,11 @@ import numpy as np
 class cfg:
     "tikz configuration variables"
 
-    display_dpi = 192
+    display_dpi = 96
     """
     resolution at which the graphic is rendered for display in the notebook
 
-    The default is 192, twice the standard monitor resolution.
+    The default is 96, the standard monitor resolution.
     """
 
     file_dpi = 300
@@ -1157,34 +1157,52 @@ class Picture(Scope):
             pix.writePNG(filename)
         elif ext.lower() == '.svg':
             # convert PDF to SVG using PyMuPDF
-            doc = fitz.open(self.temp_pdf)
-            page = doc.loadPage(0)
-            svg = page.getSVGimage()
+            svg = self.get_SVG()
             with open(filename, 'w') as f:
                 f.write(svg)
         else:
             print(f'format {ext[1:]} is not supported')
 
-    def _repr_png_(self, dpi=None):
-        "represent Picture as PNG for notebook"
+    def get_PDF(self):
+        "return PDF data of `Picture`"
+        self._create_pdf()
+        # convert PDF to SVG using PyMuPDF
+        with open(self.temp_pdf, 'rb') as f:
+            pdf = f.read()
+        return pdf
+
+    def get_SVG(self):
+        "return SVG data of `Picture`"
+        self._create_pdf()
+        # convert PDF to SVG using PyMuPDF
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        svg = page.getSVGimage()
+        return svg
+
+    def get_PNG(self, dpi=None):
+        "return PNG data of `Picture`"
         self._create_pdf()
         if dpi is None:
             dpi = cfg.display_dpi
+        # convert PDF to PNG using PyMuPDF
         zoom = dpi / 72
         doc = fitz.open(self.temp_pdf)
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
 
-    def show(self, dpi=None):
-        """
-        show picture in the notebook
-
-        The optional argument `dpi` can be used to override the default
-        `cfg.display_dpi`.
-        """
-        IPython.display.display(
-            IPython.display.Image(data=self._repr_png_(dpi=dpi)))
+    def _repr_mimebundle_(self, include, exclude, **kwargs):
+        "display image in notebook"
+        # For the "plot viewer" of vscode-python to be activated, apparently it
+        # is necessary to provide both a PNG and an SVG. Note that SVG
+        # rendering in the "plot viewer" is not entirely accurate, see
+        # https://github.com/microsoft/vscode-python/issues/13080
+        data = {
+            'image/png': self.get_PNG(),
+            'image/svg+xml': self.get_SVG()
+        }
+        return data
 
     def demo(self, dpi=None):
         """
@@ -1200,7 +1218,7 @@ class Picture(Scope):
         png_base64 = ''
         try:
             png_base64 = base64.b64encode(
-                self._repr_png_(dpi=dpi)).decode('ascii')
+                self.get_PNG(dpi=dpi)).decode('ascii')
         except LatexError as le:
             message = le.args[0]
             tikz_error = message.find('! ')
