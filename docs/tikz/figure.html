@@ -145,25 +145,6 @@ class View:
         self.inner._draw(env)
 
 
-# TODO:
-# additional Layout subclasses:
-# - simple GridLayout (like Matlab&#39;s subplot)
-# - function to split existing View into grid (similar to Matlab&#39;s plotmatrix)
-#   – is that compatible with automatic spacing? Yes, parameters just need to
-#   be interpreted consistently.
-#
-# Axis should provide a method to insert another axis (an inset), based on an
-# independent View (not bound to a Figure / managed by a Layout). Boxes of such
-# a view should either be specified in data coordinates or in local coordinates
-# relative to the Axis&#39; inner Box.
-#
-# An Axis is always based on a View, but a View can used for several Axis&#39;,
-# e.g. a second y-scale.
-#
-# Maybe no automatic spacing, but interpretable information when scale
-# decoration boxes get crowded (&#34;overfull by ...&#34;).
-
-
 class Layout:
     &#34;&#34;&#34;
     superclass for layout classes
@@ -198,7 +179,7 @@ class Layout:
         self._compute()
         pic = Picture()
         self._draw(pic)
-        return pic._repr_png_(dpi=dpi)
+        return pic.get_PNG(dpi=dpi)
 
 
 class SimpleLayout(Layout):
@@ -607,7 +588,7 @@ they are implemented in a method overriding <code>_compute</code>.</p></section>
         self._compute()
         pic = Picture()
         self._draw(pic)
-        return pic._repr_png_(dpi=dpi)</code></pre>
+        return pic.get_PNG(dpi=dpi)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -1036,15 +1017,35 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 </p>
 <section class="desc inherited"><p>write picture to image file …</p></section>
 </dd>
-<dt id="tikz.figure.Figure.show"><code class="name flex">
-<span>def <span class="ident">show</span></span>(<span>self, dpi=None)</span>
+<dt id="tikz.figure.Figure.get_PDF"><code class="name flex">
+<span>def <span class="ident">get_PDF</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
 <em>Inherited from:</em>
-<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.show" href="index.html#tikz.Picture.show">show</a></code>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.get_PDF" href="index.html#tikz.Picture.get_PDF">get_PDF</a></code>
 </p>
-<section class="desc inherited"><p>show picture in the notebook …</p></section>
+<section class="desc inherited"><p>return PDF data of <code>Picture</code></p></section>
+</dd>
+<dt id="tikz.figure.Figure.get_SVG"><code class="name flex">
+<span>def <span class="ident">get_SVG</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.get_SVG" href="index.html#tikz.Picture.get_SVG">get_SVG</a></code>
+</p>
+<section class="desc inherited"><p>return SVG data of <code>Picture</code></p></section>
+</dd>
+<dt id="tikz.figure.Figure.get_PNG"><code class="name flex">
+<span>def <span class="ident">get_PNG</span></span>(<span>self, dpi=None)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.get_PNG" href="index.html#tikz.Picture.get_PNG">get_PNG</a></code>
+</p>
+<section class="desc inherited"><p>return PNG data of <code>Picture</code></p></section>
 </dd>
 <dt id="tikz.figure.Figure.demo"><code class="name flex">
 <span>def <span class="ident">demo</span></span>(<span>self, dpi=None)</span>
@@ -1289,7 +1290,9 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li><code><a title="tikz.figure.Figure.code" href="index.html#tikz.figure.Figure.code">code</a></code></li>
 <li><code><a title="tikz.figure.Figure.document_code" href="index.html#tikz.figure.Figure.document_code">document_code</a></code></li>
 <li><code><a title="tikz.figure.Figure.write_image" href="index.html#tikz.figure.Figure.write_image">write_image</a></code></li>
-<li><code><a title="tikz.figure.Figure.show" href="index.html#tikz.figure.Figure.show">show</a></code></li>
+<li><code><a title="tikz.figure.Figure.get_PDF" href="index.html#tikz.figure.Figure.get_PDF">get_PDF</a></code></li>
+<li><code><a title="tikz.figure.Figure.get_SVG" href="index.html#tikz.figure.Figure.get_SVG">get_SVG</a></code></li>
+<li><code><a title="tikz.figure.Figure.get_PNG" href="index.html#tikz.figure.Figure.get_PNG">get_PNG</a></code></li>
 <li><code><a title="tikz.figure.Figure.demo" href="index.html#tikz.figure.Figure.demo">demo</a></code></li>
 <li><code><a title="tikz.figure.Figure.add_scope" href="index.html#tikz.figure.Figure.add_scope">add_scope</a></code></li>
 <li><code><a title="tikz.figure.Figure.path" href="index.html#tikz.figure.Figure.path">path</a></code></li>

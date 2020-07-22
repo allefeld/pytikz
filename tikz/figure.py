@@ -22,9 +22,11 @@ results:
 all lengths in cm, or whatever the `xy` coordinate system has been set to
 """
 
+# Copyright (C) 2020 Carsten Allefeld
+
 import numpy as np
 import collections
-from tikz import Picture, rectangle, node, options
+from tikz import Picture, rectangle, options
 
 
 class cfg:
@@ -82,25 +84,6 @@ class View:
         self.inner._draw(env)
 
 
-# TODO:
-# additional Layout subclasses:
-# - simple GridLayout (like Matlab's subplot)
-# - function to split existing View into grid (similar to Matlab's plotmatrix)
-#   – is that compatible with automatic spacing? Yes, parameters just need to
-#   be interpreted consistently.
-#
-# Axis should provide a method to insert another axis (an inset), based on an
-# independent View (not bound to a Figure / managed by a Layout). Boxes of such
-# a view should either be specified in data coordinates or in local coordinates
-# relative to the Axis' inner Box.
-#
-# An Axis is always based on a View, but a View can used for several Axis',
-# e.g. a second y-scale.
-#
-# Maybe no automatic spacing, but interpretable information when scale
-# decoration boxes get crowded ("overfull by ...").
-
-
 class Layout:
     """
     superclass for layout classes
@@ -135,7 +118,7 @@ class Layout:
         self._compute()
         pic = Picture()
         self._draw(pic)
-        return pic._repr_png_(dpi=dpi)
+        return pic.get_PNG(dpi=dpi)
 
 
 class SimpleLayout(Layout):
@@ -270,7 +253,9 @@ class FlexibleGridLayout(Layout):
         self.height = sum(rh) + 2 * self.mh + (nr - 1) * self.gv
 
         # check fulfillment of global constraint
-        tol = 2.54 / 72.3 / 65536   # 1 TeX scaled point
+        # Tolerance: We choose TeX's internal unit, the scaled point "sp", see
+        # The TeXbook, p. 57.
+        tol = 2.54 / 72.27 / 65536
         actual_width = sum(cw) + 2 * self.mh + (nc - 1) * self.gh
         if abs(actual_width - self.width) > tol:
             print(f'Warning: Layout width is {actual_width}.')
@@ -315,12 +300,9 @@ class Figure(Picture):
         # ensure minimum bounding box of figure
         self.width, self.height = layout.get_dimensions()
         self.path((0, 0), (self.width, self.height))
-        # set font to Fira, also for math
-        # Warning: Fira Math works only with xelatex and lualatex!
-        self.usepackage('FiraSans', 'sfdefault')
-        self.usepackage('unicode-math', 'mathrm=sym')
-        self.add_preamble(r'\setmathfont{Fira Math}[math-style=ISO,'
-                          'bold-style=ISO,nabla=upright,partial=upright]')
+        # use font Fira
+        self.fira()
+        # TODO: create `TicksGenerator`, with Fira metrics
 
     def draw_layout(self):
         "draw layout"

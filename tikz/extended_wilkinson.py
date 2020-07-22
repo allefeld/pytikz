@@ -280,7 +280,7 @@ class TicksGenerator:
 
 class Ticks:
     """
-    represent tick values and labels
+    represents tick values and labels
 
     This class is not intended to be instantiated by the user, but
     `Ticks` objects are obtained via `TicksGenerator.ticks`.

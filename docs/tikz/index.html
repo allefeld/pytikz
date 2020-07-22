@@ -125,11 +125,11 @@ import numpy as np
 class cfg:
     &#34;tikz configuration variables&#34;
 
-    display_dpi = 192
+    display_dpi = 96
     &#34;&#34;&#34;
     resolution at which the graphic is rendered for display in the notebook
 
-    The default is 192, twice the standard monitor resolution.
+    The default is 96, the standard monitor resolution.
     &#34;&#34;&#34;
 
     file_dpi = 300
@@ -1252,34 +1252,52 @@ class Picture(Scope):
             pix.writePNG(filename)
         elif ext.lower() == &#39;.svg&#39;:
             # convert PDF to SVG using PyMuPDF
-            doc = fitz.open(self.temp_pdf)
-            page = doc.loadPage(0)
-            svg = page.getSVGimage()
+            svg = self.get_SVG()
             with open(filename, &#39;w&#39;) as f:
                 f.write(svg)
         else:
             print(f&#39;format {ext[1:]} is not supported&#39;)
 
-    def _repr_png_(self, dpi=None):
-        &#34;represent Picture as PNG for notebook&#34;
+    def get_PDF(self):
+        &#34;return PDF data of `Picture`&#34;
+        self._create_pdf()
+        # convert PDF to SVG using PyMuPDF
+        with open(self.temp_pdf, &#39;rb&#39;) as f:
+            pdf = f.read()
+        return pdf
+
+    def get_SVG(self):
+        &#34;return SVG data of `Picture`&#34;
+        self._create_pdf()
+        # convert PDF to SVG using PyMuPDF
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        svg = page.getSVGimage()
+        return svg
+
+    def get_PNG(self, dpi=None):
+        &#34;return PNG data of `Picture`&#34;
         self._create_pdf()
         if dpi is None:
             dpi = cfg.display_dpi
+        # convert PDF to PNG using PyMuPDF
         zoom = dpi / 72
         doc = fitz.open(self.temp_pdf)
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
 
-    def show(self, dpi=None):
-        &#34;&#34;&#34;
-        show picture in the notebook
-
-        The optional argument `dpi` can be used to override the default
-        `cfg.display_dpi`.
-        &#34;&#34;&#34;
-        IPython.display.display(
-            IPython.display.Image(data=self._repr_png_(dpi=dpi)))
+    def _repr_mimebundle_(self, include, exclude, **kwargs):
+        &#34;display image in notebook&#34;
+        # For the &#34;plot viewer&#34; of vscode-python to be activated, apparently it
+        # is necessary to provide both a PNG and an SVG. Note that SVG
+        # rendering in the &#34;plot viewer&#34; is not entirely accurate, see
+        # https://github.com/microsoft/vscode-python/issues/13080
+        data = {
+            &#39;image/png&#39;: self.get_PNG(),
+            &#39;image/svg+xml&#39;: self.get_SVG()
+        }
+        return data
 
     def demo(self, dpi=None):
         &#34;&#34;&#34;
@@ -1295,7 +1313,7 @@ class Picture(Scope):
         png_base64 = &#39;&#39;
         try:
             png_base64 = base64.b64encode(
-                self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
+                self.get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
         except LatexError as le:
             message = le.args[0]
             tikz_error = message.find(&#39;! &#39;)
@@ -1395,11 +1413,11 @@ path (unless they are path-global).</p></section>
 <pre><code class="python">class cfg:
     &#34;tikz configuration variables&#34;
 
-    display_dpi = 192
+    display_dpi = 96
     &#34;&#34;&#34;
     resolution at which the graphic is rendered for display in the notebook
 
-    The default is 192, twice the standard monitor resolution.
+    The default is 96, the standard monitor resolution.
     &#34;&#34;&#34;
 
     file_dpi = 300
@@ -1440,7 +1458,7 @@ path (unless they are path-global).</p></section>
 <dt id="tikz.cfg.display_dpi"><code class="name">var <span class="ident">display_dpi</span></code></dt>
 <dd>
 <section class="desc"><p>resolution at which the graphic is rendered for display in the notebook</p>
-<p>The default is 192, twice the standard monitor resolution.</p></section>
+<p>The default is 96, the standard monitor resolution.</p></section>
 </dd>
 <dt id="tikz.cfg.file_dpi"><code class="name">var <span class="ident">file_dpi</span></code></dt>
 <dd>
@@ -3608,34 +3626,52 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
             pix.writePNG(filename)
         elif ext.lower() == &#39;.svg&#39;:
             # convert PDF to SVG using PyMuPDF
-            doc = fitz.open(self.temp_pdf)
-            page = doc.loadPage(0)
-            svg = page.getSVGimage()
+            svg = self.get_SVG()
             with open(filename, &#39;w&#39;) as f:
                 f.write(svg)
         else:
             print(f&#39;format {ext[1:]} is not supported&#39;)
 
-    def _repr_png_(self, dpi=None):
-        &#34;represent Picture as PNG for notebook&#34;
+    def get_PDF(self):
+        &#34;return PDF data of `Picture`&#34;
+        self._create_pdf()
+        # convert PDF to SVG using PyMuPDF
+        with open(self.temp_pdf, &#39;rb&#39;) as f:
+            pdf = f.read()
+        return pdf
+
+    def get_SVG(self):
+        &#34;return SVG data of `Picture`&#34;
+        self._create_pdf()
+        # convert PDF to SVG using PyMuPDF
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        svg = page.getSVGimage()
+        return svg
+
+    def get_PNG(self, dpi=None):
+        &#34;return PNG data of `Picture`&#34;
         self._create_pdf()
         if dpi is None:
             dpi = cfg.display_dpi
+        # convert PDF to PNG using PyMuPDF
         zoom = dpi / 72
         doc = fitz.open(self.temp_pdf)
         page = doc.loadPage(0)
         pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
         return pix.getPNGdata()
 
-    def show(self, dpi=None):
-        &#34;&#34;&#34;
-        show picture in the notebook
-
-        The optional argument `dpi` can be used to override the default
-        `cfg.display_dpi`.
-        &#34;&#34;&#34;
-        IPython.display.display(
-            IPython.display.Image(data=self._repr_png_(dpi=dpi)))
+    def _repr_mimebundle_(self, include, exclude, **kwargs):
+        &#34;display image in notebook&#34;
+        # For the &#34;plot viewer&#34; of vscode-python to be activated, apparently it
+        # is necessary to provide both a PNG and an SVG. Note that SVG
+        # rendering in the &#34;plot viewer&#34; is not entirely accurate, see
+        # https://github.com/microsoft/vscode-python/issues/13080
+        data = {
+            &#39;image/png&#39;: self.get_PNG(),
+            &#39;image/svg+xml&#39;: self.get_SVG()
+        }
+        return data
 
     def demo(self, dpi=None):
         &#34;&#34;&#34;
@@ -3651,7 +3687,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         png_base64 = &#39;&#39;
         try:
             png_base64 = base64.b64encode(
-                self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
+                self.get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
         except LatexError as le:
             message = le.args[0]
             tikz_error = message.find(&#39;! &#39;)
@@ -3883,35 +3919,70 @@ SVG, the PDF is converted to SVG.</p>
         pix.writePNG(filename)
     elif ext.lower() == &#39;.svg&#39;:
         # convert PDF to SVG using PyMuPDF
-        doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        svg = page.getSVGimage()
+        svg = self.get_SVG()
         with open(filename, &#39;w&#39;) as f:
             f.write(svg)
     else:
         print(f&#39;format {ext[1:]} is not supported&#39;)</code></pre>
 </details>
 </dd>
-<dt id="tikz.Picture.show"><code class="name flex">
-<span>def <span class="ident">show</span></span>(<span>self, dpi=None)</span>
+<dt id="tikz.Picture.get_PDF"><code class="name flex">
+<span>def <span class="ident">get_PDF</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>show picture in the notebook</p>
-<p>The optional argument <code>dpi</code> can be used to override the default
-<a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi"><code>cfg.display_dpi</code></a>.</p></section>
+<section class="desc"><p>return PDF data of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a></p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def show(self, dpi=None):
-    &#34;&#34;&#34;
-    show picture in the notebook
-
-    The optional argument `dpi` can be used to override the default
-    `cfg.display_dpi`.
-    &#34;&#34;&#34;
-    IPython.display.display(
-        IPython.display.Image(data=self._repr_png_(dpi=dpi)))</code></pre>
+<pre><code class="python">def get_PDF(self):
+    &#34;return PDF data of `Picture`&#34;
+    self._create_pdf()
+    # convert PDF to SVG using PyMuPDF
+    with open(self.temp_pdf, &#39;rb&#39;) as f:
+        pdf = f.read()
+    return pdf</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.get_SVG"><code class="name flex">
+<span>def <span class="ident">get_SVG</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>return SVG data of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_SVG(self):
+    &#34;return SVG data of `Picture`&#34;
+    self._create_pdf()
+    # convert PDF to SVG using PyMuPDF
+    doc = fitz.open(self.temp_pdf)
+    page = doc.loadPage(0)
+    svg = page.getSVGimage()
+    return svg</code></pre>
+</details>
+</dd>
+<dt id="tikz.Picture.get_PNG"><code class="name flex">
+<span>def <span class="ident">get_PNG</span></span>(<span>self, dpi=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>return PNG data of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_PNG(self, dpi=None):
+    &#34;return PNG data of `Picture`&#34;
+    self._create_pdf()
+    if dpi is None:
+        dpi = cfg.display_dpi
+    # convert PDF to PNG using PyMuPDF
+    zoom = dpi / 72
+    doc = fitz.open(self.temp_pdf)
+    page = doc.loadPage(0)
+    pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
+    return pix.getPNGdata()</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.demo"><code class="name flex">
@@ -3943,7 +4014,7 @@ override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi
     png_base64 = &#39;&#39;
     try:
         png_base64 = base64.b64encode(
-            self._repr_png_(dpi=dpi)).decode(&#39;ascii&#39;)
+            self.get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
     except LatexError as le:
         message = le.args[0]
         tikz_error = message.find(&#39;! &#39;)
@@ -4320,7 +4391,9 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li><code><a title="tikz.Picture.code" href="#tikz.Picture.code">code</a></code></li>
 <li><code><a title="tikz.Picture.document_code" href="#tikz.Picture.document_code">document_code</a></code></li>
 <li><code><a title="tikz.Picture.write_image" href="#tikz.Picture.write_image">write_image</a></code></li>
-<li><code><a title="tikz.Picture.show" href="#tikz.Picture.show">show</a></code></li>
+<li><code><a title="tikz.Picture.get_PDF" href="#tikz.Picture.get_PDF">get_PDF</a></code></li>
+<li><code><a title="tikz.Picture.get_SVG" href="#tikz.Picture.get_SVG">get_SVG</a></code></li>
+<li><code><a title="tikz.Picture.get_PNG" href="#tikz.Picture.get_PNG">get_PNG</a></code></li>
 <li><code><a title="tikz.Picture.demo" href="#tikz.Picture.demo">demo</a></code></li>
 <li><code><a title="tikz.Picture.add_scope" href="#tikz.Picture.add_scope">add_scope</a></code></li>
 <li><code><a title="tikz.Picture.path" href="#tikz.Picture.path">path</a></code></li>
