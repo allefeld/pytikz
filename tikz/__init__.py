@@ -226,7 +226,7 @@ class Raw:
     def __init__(self, string):
         self.string = string
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         """
         returns TikZ code
 
@@ -250,7 +250,7 @@ class Operation:
 
     This is an abstract superclass that is not to be instantiated.
     """
-    def code(self):
+    def _code(self):
         "returns TikZ code"
         pass
 
@@ -267,7 +267,7 @@ class moveto(Operation):
         # normalize coordinates
         self.coords = _sequence(coords, accept_coordinate=True)
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         # put move-to operation before each coordinate,
         # for the first one implicitly
         return ' '.join(_coordinate_code(coord, trans)
@@ -290,7 +290,7 @@ class lineto(Operation):
         self.coords = _sequence(coords, accept_coordinate=True)
         self.op = op
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         # put line-to operation before each coordinate
         return f'{self.op} ' + f' {self.op} '.join(
             _coordinate_code(coord, trans) for coord in self.coords)
@@ -307,7 +307,7 @@ class line(Operation):
         self.coords = _sequence(coords)
         self.op = op
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         # put line-to operation between coordinates
         # (implicit move-to before first)
         return f' {self.op} '.join(
@@ -331,7 +331,7 @@ class curveto(Operation):
         else:
             self.control2 = None
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         code = '.. controls ' + _coordinate_code(self.control1, trans)
         if self.control2 is not None:
             code += ' and ' + _coordinate_code(self.control2, trans)
@@ -351,7 +351,7 @@ class rectangle(Operation):
         # normalize coordinate
         self.coord = _coordinate(coord)
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         return ('rectangle ' + _coordinate_code(self.coord, trans))
 
 
@@ -386,10 +386,11 @@ class circle(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
+        x_radius, y_radius = self.x_radius, self.y_radius
         if trans is not None:
-            x_radius, y_radius = trans(self.x_radius, self.y_radius)
+            x_radius, y_radius = trans(x_radius, y_radius)
         if x_radius == y_radius:
             kwoptions['radius'] = x_radius
         else:
@@ -423,10 +424,11 @@ class arc(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
+        x_radius, y_radius = self.x_radius, self.y_radius
         if trans is not None:
-            x_radius, y_radius = trans(self.x_radius, self.y_radius)
+            x_radius, y_radius = trans(x_radius, y_radius)
         if x_radius == y_radius:
             kwoptions['radius'] = x_radius
         else:
@@ -461,10 +463,11 @@ class grid(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
+        xstep, ystep = self.xstep, self.ystep
         if trans is not None:
-            xstep, ystep = trans(self.xstep, self.ystep)
+            xstep, ystep = trans(xstep, ystep)
         if xstep == ystep:
             kwoptions['step'] = xstep
         else:
@@ -492,7 +495,7 @@ class parabola(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         code = 'parabola' + _options_code(opt=self.opt, **self.kwoptions)
         if self.bend is not None:
             code += ' bend ' + _coordinate_code(self.bend, trans)
@@ -514,7 +517,7 @@ class sin(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         return ('sin' + _options_code(opt=self.opt, **self.kwoptions)
                 + ' ' + _coordinate_code(self.coord, trans))
 
@@ -533,7 +536,7 @@ class cos(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         return ('cos' + _options_code(opt=self.opt, **self.kwoptions)
                 + ' ' + _coordinate_code(self.coord, trans))
 
@@ -552,7 +555,7 @@ class topath(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         return ('to' + _options_code(opt=self.opt, **self.kwoptions)
                 + ' ' + _coordinate_code(self.coord, trans))
 
@@ -590,7 +593,7 @@ class node(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         if not self.headless:
             code = 'node'
         else:
@@ -634,7 +637,7 @@ class coordinate(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         if not self.headless:
             code = 'coordinate'
         else:
@@ -671,7 +674,7 @@ class plot(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         # TODO: Use the 'file' variant as an alternative to 'coordinates' when
         #   there are many points.
         if self.to:
@@ -735,11 +738,11 @@ class Action:
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         "returns TikZ code"
         return ('\\' + self.action_name
                 + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + ' '.join(op.code(trans) for op in self.spec) + ';')
+                + ' ' + ' '.join(op._code(trans) for op in self.spec) + ';')
 
 
 # environments
@@ -784,10 +787,10 @@ class Scope:
         self._append(s)
         return s
 
-    def code(self, trans=None):
+    def _code(self, trans=None):
         "returns TikZ code"
         code = r'\begin{scope}' + self.opt + '\n'
-        code += '\n'.join(el.code(trans) for el in self.elements) + '\n'
+        code += '\n'.join(el._code(trans) for el in self.elements) + '\n'
         code += r'\end{scope}'
         return code
 
@@ -1067,14 +1070,21 @@ class Picture(Scope):
         self.add_preamble(r'\setmathfont{Fira Math}[math-style=ISO,'
                           'bold-style=ISO,nabla=upright,partial=upright]')
 
-    def code(self):
-        "returns TikZ code"
-        return (r'\begin{tikzpicture}' + self.opt + '\n'
-                + '\n'.join(el.code() for el in self.elements) + '\n'
-                + r'\end{tikzpicture}')
+    # code / pdf creation: private
+    # private functions assume that code / pdf has already been created
 
-    def document_code(self):
-        "returns LaTeX/TikZ code for a complete compilable document"
+    def _update(self):
+        "ensure that up-to-date code & PDF file exists"
+
+        sep = os.path.sep
+
+        # create tikzpicture code
+        code = (r'\begin{tikzpicture}' + self.opt + '\n'
+                + '\n'.join(el._code() for el in self.elements) + '\n'
+                + r'\end{tikzpicture}')
+        self._code = code
+
+        # create document code
         # standard preamble
         codelines = [
             r'\documentclass{article}',
@@ -1086,14 +1096,10 @@ class Picture(Scope):
         # document body
         codelines += [
             r'\begin{document}',
-            self.code(),
+            self._code,
             r'\end{document}']
-        return '\n'.join(codelines)
-
-    def _create_pdf(self):
-        "ensure that an up-to-date PDF file exists"
-
-        sep = os.path.sep
+        code = '\n'.join(codelines)
+        self._document_code = code
 
         # We don't want a PDF file of the whole LaTeX document, but only of the
         # contents of the `tikzpicture` environment. This is achieved using
@@ -1101,9 +1107,6 @@ class Picture(Scope):
         # individual PDF files. To do so, in a normal pdflatex run TikZ calls
         # pdflatex again with special arguments. We use these special
         # arguments directly. See section 53 of the PGF/TikZ manual.
-
-        # create LaTeX code
-        code = self.document_code()
 
         # does the PDF file have to be created?
         #  This check is implemented by using the SHA1 digest of the LaTeX code
@@ -1134,6 +1137,38 @@ class Picture(Scope):
         # rename created PDF file
         os.rename(self.tempdir + sep + 'tikz-figure0.pdf', self.temp_pdf)
 
+    def _get_SVG(self):
+        "return SVG data of `Picture`"
+        # convert PDF to SVG using PyMuPDF
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        svg = page.getSVGimage()
+        return svg
+
+    def _get_PNG(self, dpi=None):
+        "return PNG data of `Picture`"
+        if dpi is None:
+            dpi = cfg.display_dpi
+        # convert PDF to PNG using PyMuPDF
+        zoom = dpi / 72
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
+        return pix.getPNGdata()
+
+    # code / pdf creation: public
+    # public functions make sure that code / pdf is created via `_update`
+
+    def code(self):
+        "returns TikZ code"
+        self._update()
+        return self._code
+
+    def document_code(self):
+        "returns LaTeX/TikZ code for a complete compilable document"
+        self._update()
+        return self._document_code
+
     def write_image(self, filename, dpi=None):
         """
         write picture to image file
@@ -1150,7 +1185,7 @@ class Picture(Scope):
         """
         if dpi is None:
             dpi = cfg.file_dpi
-        self._create_pdf()
+        self._update()
         # determine extension
         _, ext = os.path.splitext(filename)
         # if a PDF is requested,
@@ -1166,50 +1201,22 @@ class Picture(Scope):
             pix.writePNG(filename)
         elif ext.lower() == '.svg':
             # convert PDF to SVG using PyMuPDF
-            svg = self.get_SVG()
+            svg = self._get_SVG()
             with open(filename, 'w') as f:
                 f.write(svg)
         else:
             raise ValueError(f'format {ext[1:]} is not supported')
 
-    def get_PDF(self):
-        "return PDF data of `Picture`"
-        self._create_pdf()
-        # convert PDF to SVG using PyMuPDF
-        with open(self.temp_pdf, 'rb') as f:
-            pdf = f.read()
-        return pdf
-
-    def get_SVG(self):
-        "return SVG data of `Picture`"
-        self._create_pdf()
-        # convert PDF to SVG using PyMuPDF
-        doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        svg = page.getSVGimage()
-        return svg
-
-    def get_PNG(self, dpi=None):
-        "return PNG data of `Picture`"
-        self._create_pdf()
-        if dpi is None:
-            dpi = cfg.display_dpi
-        # convert PDF to PNG using PyMuPDF
-        zoom = dpi / 72
-        doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
-        return pix.getPNGdata()
-
     def _repr_mimebundle_(self, include, exclude, **kwargs):
         "display image in notebook"
         # For the "plot viewer" of vscode-python to be activated, apparently it
-        # is necessary to provide both a PNG and an SVG. Note that SVG
-        # rendering in the "plot viewer" is not entirely accurate, see
-        # https://github.com/microsoft/vscode-python/issues/13080
+        # is necessary to provide both a PNG and an SVG.
+        # Note that SVG rendering in the "plot viewer" is not entirely
+        # accurate, see https://github.com/microsoft/vscode-python/issues/13080
+        self._update()
         data = {
-            'image/png': self.get_PNG(),
-            'image/svg+xml': self.get_SVG()
+            'image/png': self._get_PNG(),
+            'image/svg+xml': self._get_SVG()
         }
         return data
 
@@ -1224,10 +1231,11 @@ class Picture(Scope):
         `cfg.demo_template`. The optional argument `dpi` can be used to
         override the default `cfg.display_dpi`.
         """
+        self._update()
         png_base64 = ''
         try:
             png_base64 = base64.b64encode(
-                self.get_PNG(dpi=dpi)).decode('ascii')
+                self._get_PNG(dpi=dpi)).decode('ascii')
         except LatexError as le:
             message = le.args[0]
             tikz_error = message.find('! ')
@@ -1235,7 +1243,7 @@ class Picture(Scope):
                 message = message[tikz_error:]
             print('LatexError: LaTeX has failed')
             print(message)
-        code_escaped = html.escape(self.code())
+        code_escaped = html.escape(self._code)
         IPython.display.display(
             IPython.display.HTML(
                 cfg.demo_template.format(png_base64, code_escaped)))

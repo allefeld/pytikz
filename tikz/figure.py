@@ -125,7 +125,7 @@ class Layout:
         self._compute()
         pic = Picture()
         self._draw(pic)
-        return pic.get_PNG(dpi=dpi)
+        return pic._get_PNG(dpi=dpi)
 
 
 class SimpleLayout(Layout):
@@ -407,7 +407,6 @@ class Axes(Scope):
         cxmax = (cfg.tex_maxdimen - x) / w * xrange + xmin
         cymin = (-cfg.tex_maxdimen - y) / h * yrange + ymin
         cymax = (cfg.tex_maxdimen - y) / h * yrange + ymin
-        print((cxmin, cxmax), (cymin, cymax))
 
         # Transformation which maps coordinates from the axis' ranges
         # onto [0, 1], to be passed to *`.code()` and `_coordinate_code`.
@@ -495,8 +494,8 @@ class Axes(Scope):
     # Axes options yaxis= 'left', 'right', None
     # privatize xaxis, yaxis?
 
-    def code(self):
+    def _code(self):
         "returns TikZ code"
-        code = (self.decorations.code() + '\n'
-                + super().code(self.trans))
+        code = (self.decorations._code() + '\n'
+                + super()._code(self.trans))
         return code
