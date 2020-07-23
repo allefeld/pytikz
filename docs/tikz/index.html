@@ -285,13 +285,15 @@ def _str_or_numeric_code(x):
         return &#39;{:.5f}&#39;.format(x).rstrip(&#39;0&#39;).rstrip(&#39;.&#39;)
 
 
-def _coordinate_code(coord):
+def _coordinate_code(coord, trans=None):
     &#34;returns TikZ code for coordinate&#34;
     # assumes the argument has already been normalized
     if _str(coord):
         # leave string as-is
         return coord
     else:
+        if trans is not None:
+            coord = trans(coord)
         return &#39;(&#39; + &#39;,&#39;.join(map(_str_or_numeric_code, coord)) + &#39;)&#39;
 
 
@@ -319,7 +321,7 @@ class Raw:
     def __init__(self, string):
         self.string = string
 
-    def code(self):
+    def _code(self, trans=None):
         &#34;&#34;&#34;
         returns TikZ code
 
@@ -343,7 +345,7 @@ class Operation:
 
     This is an abstract superclass that is not to be instantiated.
     &#34;&#34;&#34;
-    def code(self):
+    def _code(self):
         &#34;returns TikZ code&#34;
         pass
 
@@ -360,10 +362,11 @@ class moveto(Operation):
         # normalize coordinates
         self.coords = _sequence(coords, accept_coordinate=True)
 
-    def code(self):
+    def _code(self, trans=None):
         # put move-to operation before each coordinate,
         # for the first one implicitly
-        return &#39; &#39;.join(_coordinate_code(coord) for coord in self.coords)
+        return &#39; &#39;.join(_coordinate_code(coord, trans)
+                        for coord in self.coords)
 
 
 class lineto(Operation):
@@ -382,10 +385,10 @@ class lineto(Operation):
         self.coords = _sequence(coords, accept_coordinate=True)
         self.op = op
 
-    def code(self):
+    def _code(self, trans=None):
         # put line-to operation before each coordinate
         return f&#39;{self.op} &#39; + f&#39; {self.op} &#39;.join(
-            _coordinate_code(coord) for coord in self.coords)
+            _coordinate_code(coord, trans) for coord in self.coords)
 
 
 class line(Operation):
@@ -399,11 +402,11 @@ class line(Operation):
         self.coords = _sequence(coords)
         self.op = op
 
-    def code(self):
+    def _code(self, trans=None):
         # put line-to operation between coordinates
         # (implicit move-to before first)
         return f&#39; {self.op} &#39;.join(
-            _coordinate_code(coord) for coord in self.coords)
+            _coordinate_code(coord, trans) for coord in self.coords)
 
 
 class curveto(Operation):
@@ -423,11 +426,11 @@ class curveto(Operation):
         else:
             self.control2 = None
 
-    def code(self):
-        code = &#39;.. controls &#39; + _coordinate_code(self.control1)
+    def _code(self, trans=None):
+        code = &#39;.. controls &#39; + _coordinate_code(self.control1, trans)
         if self.control2 is not None:
-            code += &#39; and &#39; + _coordinate_code(self.control2)
-        code += &#39; ..&#39; + &#39; &#39; + _coordinate_code(self.coord)
+            code += &#39; and &#39; + _coordinate_code(self.control2, trans)
+        code += &#39; ..&#39; + &#39; &#39; + _coordinate_code(self.coord, trans)
         return code
 
 
@@ -443,8 +446,8 @@ class rectangle(Operation):
         # normalize coordinate
         self.coord = _coordinate(coord)
 
-    def code(self):
-        return (&#39;rectangle &#39; + _coordinate_code(self.coord))
+    def _code(self, trans=None):
+        return (&#39;rectangle &#39; + _coordinate_code(self.coord, trans))
 
 
 class circle(Operation):
@@ -478,15 +481,18 @@ class circle(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.x_radius == self.y_radius:
-            kwoptions[&#39;radius&#39;] = self.x_radius
+        x_radius, y_radius = self.x_radius, self.y_radius
+        if trans is not None:
+            x_radius, y_radius = trans(x_radius, y_radius)
+        if x_radius == y_radius:
+            kwoptions[&#39;radius&#39;] = x_radius
         else:
-            kwoptions[&#39;x_radius&#39;] = self.x_radius
-            kwoptions[&#39;y_radius&#39;] = self.y_radius
+            kwoptions[&#39;x_radius&#39;] = x_radius
+            kwoptions[&#39;y_radius&#39;] = y_radius
         if self.at is not None:
-            kwoptions[&#39;at&#39;] = _coordinate_code(self.at)
+            kwoptions[&#39;at&#39;] = _coordinate_code(self.at, None)
         return &#39;circle&#39; + _options_code(opt=self.opt, **self.kwoptions)
 
 
@@ -513,13 +519,16 @@ class arc(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.x_radius == self.y_radius:
-            kwoptions[&#39;radius&#39;] = self.x_radius
+        x_radius, y_radius = self.x_radius, self.y_radius
+        if trans is not None:
+            x_radius, y_radius = trans(x_radius, y_radius)
+        if x_radius == y_radius:
+            kwoptions[&#39;radius&#39;] = x_radius
         else:
-            kwoptions[&#39;x_radius&#39;] = self.x_radius
-            kwoptions[&#39;y_radius&#39;] = self.y_radius
+            kwoptions[&#39;x_radius&#39;] = x_radius
+            kwoptions[&#39;y_radius&#39;] = y_radius
         return &#39;arc&#39; + _options_code(opt=self.opt, **kwoptions)
 
 
@@ -549,15 +558,18 @@ class grid(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.xstep == self.ystep:
-            kwoptions[&#39;step&#39;] = self.xstep
+        xstep, ystep = self.xstep, self.ystep
+        if trans is not None:
+            xstep, ystep = trans(xstep, ystep)
+        if xstep == ystep:
+            kwoptions[&#39;step&#39;] = xstep
         else:
-            kwoptions[&#39;xstep&#39;] = self.xstep
-            kwoptions[&#39;ystep&#39;] = self.ystep
+            kwoptions[&#39;xstep&#39;] = xstep
+            kwoptions[&#39;ystep&#39;] = ystep
         return (&#39;grid&#39; + _options_code(opt=self.opt, **kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))
+                + &#39; &#39; + _coordinate_code(self.coord, trans))
 
 
 class parabola(Operation):
@@ -578,11 +590,11 @@ class parabola(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         code = &#39;parabola&#39; + _options_code(opt=self.opt, **self.kwoptions)
         if self.bend is not None:
-            code += &#39; bend &#39; + _coordinate_code(self.bend)
-        code += &#39; &#39; + _coordinate_code(self.coord)
+            code += &#39; bend &#39; + _coordinate_code(self.bend, trans)
+        code += &#39; &#39; + _coordinate_code(self.coord, trans)
         return code
 
 
@@ -600,9 +612,9 @@ class sin(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         return (&#39;sin&#39; + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))
+                + &#39; &#39; + _coordinate_code(self.coord, trans))
 
 
 class cos(Operation):
@@ -619,9 +631,9 @@ class cos(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         return (&#39;cos&#39; + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))
+                + &#39; &#39; + _coordinate_code(self.coord, trans))
 
 
 class topath(Operation):
@@ -638,9 +650,9 @@ class topath(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         return (&#39;to&#39; + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))
+                + &#39; &#39; + _coordinate_code(self.coord, trans))
 
 
 class node(Operation):
@@ -676,7 +688,7 @@ class node(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         if not self.headless:
             code = &#39;node&#39;
         else:
@@ -685,7 +697,7 @@ class node(Operation):
         if self.name is not None:
             code += f&#39; ({self.name})&#39;
         if self.at is not None:
-            code += &#39; at &#39; + _coordinate_code(self.at)
+            code += &#39; at &#39; + _coordinate_code(self.at, trans)
         code += &#39; {&#39; + self.contents + &#39;}&#39;
         if self.headless:
             code = code.lstrip()
@@ -720,7 +732,7 @@ class coordinate(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         if not self.headless:
             code = &#39;coordinate&#39;
         else:
@@ -728,7 +740,7 @@ class coordinate(Operation):
         code += _options_code(opt=self.opt, **self.kwoptions)
         code += f&#39; ({self.name})&#39;
         if self.at is not None:
-            code += &#39; at &#39; + _coordinate_code(self.at)
+            code += &#39; at &#39; + _coordinate_code(self.at, trans)
         if self.headless:
             code = code.lstrip()
         return code
@@ -757,16 +769,16 @@ class plot(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
-        # The &#39;file&#39; variant may be used in the future as an alternative to
-        # coordinates when there are many points.
+    def _code(self, trans=None):
+        # TODO: Use the &#39;file&#39; variant as an alternative to &#39;coordinates&#39; when
+        #   there are many points.
         if self.to:
             code = &#39;--plot&#39;
         else:
             code = &#39;plot&#39;
         code += _options_code(opt=self.opt, **self.kwoptions)
         code += &#39; coordinates {&#39; + &#39; &#39;.join(
-            _coordinate_code(coord) for coord in self.coords) + &#39;}&#39;
+            _coordinate_code(coord, trans) for coord in self.coords) + &#39;}&#39;
         return code
 
 
@@ -821,11 +833,11 @@ class Action:
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         &#34;returns TikZ code&#34;
         return (&#39;\\&#39; + self.action_name
                 + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + &#39; &#39;.join(op.code() for op in self.spec) + &#39;;&#39;)
+                + &#39; &#39; + &#39; &#39;.join(op._code(trans) for op in self.spec) + &#39;;&#39;)
 
 
 # environments
@@ -839,7 +851,7 @@ class Scope:
     that options can be applied to them in total.
 
     Do not instantiate this class, but use the
-    [&lt;code&gt;add_scope()&lt;/code&gt;](#tikz.Scope.addscope) method of `Picture` or
+    [&lt;code&gt;scope()&lt;/code&gt;](#tikz.Scope.addscope) method of `Picture` or
     another environment.
 
     see
@@ -860,7 +872,7 @@ class Scope:
         &#34;&#34;&#34;
         self.elements.append(el)
 
-    def add_scope(self, opt=None, **kwoptions):
+    def scope(self, opt=None, **kwoptions):
         &#34;&#34;&#34;
         create and add scope to the current environment
 
@@ -870,10 +882,10 @@ class Scope:
         self._append(s)
         return s
 
-    def code(self):
+    def _code(self, trans=None):
         &#34;returns TikZ code&#34;
         code = r&#39;\begin{scope}&#39; + self.opt + &#39;\n&#39;
-        code += &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
+        code += &#39;\n&#39;.join(el._code(trans) for el in self.elements) + &#39;\n&#39;
         code += r&#39;\end{scope}&#39;
         return code
 
@@ -1153,14 +1165,21 @@ class Picture(Scope):
         self.add_preamble(r&#39;\setmathfont{Fira Math}[math-style=ISO,&#39;
                           &#39;bold-style=ISO,nabla=upright,partial=upright]&#39;)
 
-    def code(self):
-        &#34;returns TikZ code&#34;
-        return (r&#39;\begin{tikzpicture}&#39; + self.opt + &#39;\n&#39;
-                + &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
-                + r&#39;\end{tikzpicture}&#39;)
+    # code / pdf creation: private
+    # private functions assume that code / pdf has already been created
 
-    def document_code(self):
-        &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
+    def _update(self):
+        &#34;ensure that up-to-date code &amp; PDF file exists&#34;
+
+        sep = os.path.sep
+
+        # create tikzpicture code
+        code = (r&#39;\begin{tikzpicture}&#39; + self.opt + &#39;\n&#39;
+                + &#39;\n&#39;.join(el._code() for el in self.elements) + &#39;\n&#39;
+                + r&#39;\end{tikzpicture}&#39;)
+        self._code = code
+
+        # create document code
         # standard preamble
         codelines = [
             r&#39;\documentclass{article}&#39;,
@@ -1172,14 +1191,10 @@ class Picture(Scope):
         # document body
         codelines += [
             r&#39;\begin{document}&#39;,
-            self.code(),
+            self._code,
             r&#39;\end{document}&#39;]
-        return &#39;\n&#39;.join(codelines)
-
-    def _create_pdf(self):
-        &#34;ensure that an up-to-date PDF file exists&#34;
-
-        sep = os.path.sep
+        code = &#39;\n&#39;.join(codelines)
+        self._document_code = code
 
         # We don&#39;t want a PDF file of the whole LaTeX document, but only of the
         # contents of the `tikzpicture` environment. This is achieved using
@@ -1187,9 +1202,6 @@ class Picture(Scope):
         # individual PDF files. To do so, in a normal pdflatex run TikZ calls
         # pdflatex again with special arguments. We use these special
         # arguments directly. See section 53 of the PGF/TikZ manual.
-
-        # create LaTeX code
-        code = self.document_code()
 
         # does the PDF file have to be created?
         #  This check is implemented by using the SHA1 digest of the LaTeX code
@@ -1220,6 +1232,38 @@ class Picture(Scope):
         # rename created PDF file
         os.rename(self.tempdir + sep + &#39;tikz-figure0.pdf&#39;, self.temp_pdf)
 
+    def _get_SVG(self):
+        &#34;return SVG data of `Picture`&#34;
+        # convert PDF to SVG using PyMuPDF
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        svg = page.getSVGimage()
+        return svg
+
+    def _get_PNG(self, dpi=None):
+        &#34;return PNG data of `Picture`&#34;
+        if dpi is None:
+            dpi = cfg.display_dpi
+        # convert PDF to PNG using PyMuPDF
+        zoom = dpi / 72
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
+        return pix.getPNGdata()
+
+    # code / pdf creation: public
+    # public functions make sure that code / pdf is created via `_update`
+
+    def code(self):
+        &#34;returns TikZ code&#34;
+        self._update()
+        return self._code
+
+    def document_code(self):
+        &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
+        self._update()
+        return self._document_code
+
     def write_image(self, filename, dpi=None):
         &#34;&#34;&#34;
         write picture to image file
@@ -1236,7 +1280,7 @@ class Picture(Scope):
         &#34;&#34;&#34;
         if dpi is None:
             dpi = cfg.file_dpi
-        self._create_pdf()
+        self._update()
         # determine extension
         _, ext = os.path.splitext(filename)
         # if a PDF is requested,
@@ -1252,50 +1296,22 @@ class Picture(Scope):
             pix.writePNG(filename)
         elif ext.lower() == &#39;.svg&#39;:
             # convert PDF to SVG using PyMuPDF
-            svg = self.get_SVG()
+            svg = self._get_SVG()
             with open(filename, &#39;w&#39;) as f:
                 f.write(svg)
         else:
-            print(f&#39;format {ext[1:]} is not supported&#39;)
-
-    def get_PDF(self):
-        &#34;return PDF data of `Picture`&#34;
-        self._create_pdf()
-        # convert PDF to SVG using PyMuPDF
-        with open(self.temp_pdf, &#39;rb&#39;) as f:
-            pdf = f.read()
-        return pdf
-
-    def get_SVG(self):
-        &#34;return SVG data of `Picture`&#34;
-        self._create_pdf()
-        # convert PDF to SVG using PyMuPDF
-        doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        svg = page.getSVGimage()
-        return svg
-
-    def get_PNG(self, dpi=None):
-        &#34;return PNG data of `Picture`&#34;
-        self._create_pdf()
-        if dpi is None:
-            dpi = cfg.display_dpi
-        # convert PDF to PNG using PyMuPDF
-        zoom = dpi / 72
-        doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
-        return pix.getPNGdata()
+            raise ValueError(f&#39;format {ext[1:]} is not supported&#39;)
 
     def _repr_mimebundle_(self, include, exclude, **kwargs):
         &#34;display image in notebook&#34;
         # For the &#34;plot viewer&#34; of vscode-python to be activated, apparently it
-        # is necessary to provide both a PNG and an SVG. Note that SVG
-        # rendering in the &#34;plot viewer&#34; is not entirely accurate, see
-        # https://github.com/microsoft/vscode-python/issues/13080
+        # is necessary to provide both a PNG and an SVG.
+        # Note that SVG rendering in the &#34;plot viewer&#34; is not entirely
+        # accurate, see https://github.com/microsoft/vscode-python/issues/13080
+        self._update()
         data = {
-            &#39;image/png&#39;: self.get_PNG(),
-            &#39;image/svg+xml&#39;: self.get_SVG()
+            &#39;image/png&#39;: self._get_PNG(),
+            &#39;image/svg+xml&#39;: self._get_SVG()
         }
         return data
 
@@ -1310,17 +1326,19 @@ class Picture(Scope):
         `cfg.demo_template`. The optional argument `dpi` can be used to
         override the default `cfg.display_dpi`.
         &#34;&#34;&#34;
+        self._update()
         png_base64 = &#39;&#39;
         try:
             png_base64 = base64.b64encode(
-                self.get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
+                self._get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
         except LatexError as le:
             message = le.args[0]
             tikz_error = message.find(&#39;! &#39;)
             if tikz_error != -1:
                 message = message[tikz_error:]
+            print(&#39;LatexError: LaTeX has failed&#39;)
             print(message)
-        code_escaped = html.escape(self.code())
+        code_escaped = html.escape(self._code)
         IPython.display.display(
             IPython.display.HTML(
                 cfg.demo_template.format(png_base64, code_escaped)))
@@ -1508,7 +1526,7 @@ objects internally.</p></section>
     def __init__(self, string):
         self.string = string
 
-    def code(self):
+    def _code(self, trans=None):
         &#34;&#34;&#34;
         returns TikZ code
 
@@ -1516,28 +1534,6 @@ objects internally.</p></section>
         &#34;&#34;&#34;
         return self.string</code></pre>
 </details>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.Raw.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>returns TikZ code</p>
-<p>Returns the stored string.</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    &#34;&#34;&#34;
-    returns TikZ code
-
-    Returns the stored string.
-    &#34;&#34;&#34;
-    return self.string</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.Operation"><code class="flex name class">
 <span>class <span class="ident">Operation</span></span>
@@ -1566,7 +1562,7 @@ be performed on their instances.</p>
 
     This is an abstract superclass that is not to be instantiated.
     &#34;&#34;&#34;
-    def code(self):
+    def _code(self):
         &#34;returns TikZ code&#34;
         pass</code></pre>
 </details>
@@ -1588,23 +1584,6 @@ be performed on their instances.</p>
 <li><a title="tikz.coordinate" href="#tikz.coordinate">coordinate</a></li>
 <li><a title="tikz.plot" href="#tikz.plot">plot</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.Operation.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    &#34;returns TikZ code&#34;
-    pass</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.moveto"><code class="flex name class">
 <span>class <span class="ident">moveto</span></span>
@@ -1630,37 +1609,16 @@ be performed on their instances.</p>
         # normalize coordinates
         self.coords = _sequence(coords, accept_coordinate=True)
 
-    def code(self):
+    def _code(self, trans=None):
         # put move-to operation before each coordinate,
         # for the first one implicitly
-        return &#39; &#39;.join(_coordinate_code(coord) for coord in self.coords)</code></pre>
+        return &#39; &#39;.join(_coordinate_code(coord, trans)
+                        for coord in self.coords)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.moveto.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    # put move-to operation before each coordinate,
-    # for the first one implicitly
-    return &#39; &#39;.join(_coordinate_code(coord) for coord in self.coords)</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.lineto"><code class="flex name class">
 <span>class <span class="ident">lineto</span></span>
@@ -1692,37 +1650,15 @@ horizontal, then vertical, or <code>'|-'</code> for first vertical, then horizon
         self.coords = _sequence(coords, accept_coordinate=True)
         self.op = op
 
-    def code(self):
+    def _code(self, trans=None):
         # put line-to operation before each coordinate
         return f&#39;{self.op} &#39; + f&#39; {self.op} &#39;.join(
-            _coordinate_code(coord) for coord in self.coords)</code></pre>
+            _coordinate_code(coord, trans) for coord in self.coords)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.lineto.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    # put line-to operation before each coordinate
-    return f&#39;{self.op} &#39; + f&#39; {self.op} &#39;.join(
-        _coordinate_code(coord) for coord in self.coords)</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.line"><code class="flex name class">
 <span>class <span class="ident">line</span></span>
@@ -1746,39 +1682,16 @@ horizontal, then vertical, or <code>'|-'</code> for first vertical, then horizon
         self.coords = _sequence(coords)
         self.op = op
 
-    def code(self):
+    def _code(self, trans=None):
         # put line-to operation between coordinates
         # (implicit move-to before first)
         return f&#39; {self.op} &#39;.join(
-            _coordinate_code(coord) for coord in self.coords)</code></pre>
+            _coordinate_code(coord, trans) for coord in self.coords)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.line.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    # put line-to operation between coordinates
-    # (implicit move-to before first)
-    return f&#39; {self.op} &#39;.join(
-        _coordinate_code(coord) for coord in self.coords)</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.curveto"><code class="flex name class">
 <span>class <span class="ident">curveto</span></span>
@@ -1809,41 +1722,17 @@ horizontal, then vertical, or <code>'|-'</code> for first vertical, then horizon
         else:
             self.control2 = None
 
-    def code(self):
-        code = &#39;.. controls &#39; + _coordinate_code(self.control1)
+    def _code(self, trans=None):
+        code = &#39;.. controls &#39; + _coordinate_code(self.control1, trans)
         if self.control2 is not None:
-            code += &#39; and &#39; + _coordinate_code(self.control2)
-        code += &#39; ..&#39; + &#39; &#39; + _coordinate_code(self.coord)
+            code += &#39; and &#39; + _coordinate_code(self.control2, trans)
+        code += &#39; ..&#39; + &#39; &#39; + _coordinate_code(self.coord, trans)
         return code</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.curveto.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    code = &#39;.. controls &#39; + _coordinate_code(self.control1)
-    if self.control2 is not None:
-        code += &#39; and &#39; + _coordinate_code(self.control2)
-    code += &#39; ..&#39; + &#39; &#39; + _coordinate_code(self.coord)
-    return code</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.rectangle"><code class="flex name class">
 <span>class <span class="ident">rectangle</span></span>
@@ -1869,33 +1758,13 @@ horizontal, then vertical, or <code>'|-'</code> for first vertical, then horizon
         # normalize coordinate
         self.coord = _coordinate(coord)
 
-    def code(self):
-        return (&#39;rectangle &#39; + _coordinate_code(self.coord))</code></pre>
+    def _code(self, trans=None):
+        return (&#39;rectangle &#39; + _coordinate_code(self.coord, trans))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.rectangle.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    return (&#39;rectangle &#39; + _coordinate_code(self.coord))</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.circle"><code class="flex name class">
 <span>class <span class="ident">circle</span></span>
@@ -1944,49 +1813,24 @@ is given as <code>at</code>.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.x_radius == self.y_radius:
-            kwoptions[&#39;radius&#39;] = self.x_radius
+        x_radius, y_radius = self.x_radius, self.y_radius
+        if trans is not None:
+            x_radius, y_radius = trans(x_radius, y_radius)
+        if x_radius == y_radius:
+            kwoptions[&#39;radius&#39;] = x_radius
         else:
-            kwoptions[&#39;x_radius&#39;] = self.x_radius
-            kwoptions[&#39;y_radius&#39;] = self.y_radius
+            kwoptions[&#39;x_radius&#39;] = x_radius
+            kwoptions[&#39;y_radius&#39;] = y_radius
         if self.at is not None:
-            kwoptions[&#39;at&#39;] = _coordinate_code(self.at)
+            kwoptions[&#39;at&#39;] = _coordinate_code(self.at, None)
         return &#39;circle&#39; + _options_code(opt=self.opt, **self.kwoptions)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.circle.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    kwoptions = self.kwoptions
-    if self.x_radius == self.y_radius:
-        kwoptions[&#39;radius&#39;] = self.x_radius
-    else:
-        kwoptions[&#39;x_radius&#39;] = self.x_radius
-        kwoptions[&#39;y_radius&#39;] = self.y_radius
-    if self.at is not None:
-        kwoptions[&#39;at&#39;] = _coordinate_code(self.at)
-    return &#39;circle&#39; + _options_code(opt=self.opt, **self.kwoptions)</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.arc"><code class="flex name class">
 <span>class <span class="ident">arc</span></span>
@@ -2025,45 +1869,22 @@ They can be numbers or a string containing a number and a dimension.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.x_radius == self.y_radius:
-            kwoptions[&#39;radius&#39;] = self.x_radius
+        x_radius, y_radius = self.x_radius, self.y_radius
+        if trans is not None:
+            x_radius, y_radius = trans(x_radius, y_radius)
+        if x_radius == y_radius:
+            kwoptions[&#39;radius&#39;] = x_radius
         else:
-            kwoptions[&#39;x_radius&#39;] = self.x_radius
-            kwoptions[&#39;y_radius&#39;] = self.y_radius
+            kwoptions[&#39;x_radius&#39;] = x_radius
+            kwoptions[&#39;y_radius&#39;] = y_radius
         return &#39;arc&#39; + _options_code(opt=self.opt, **kwoptions)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.arc.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    kwoptions = self.kwoptions
-    if self.x_radius == self.y_radius:
-        kwoptions[&#39;radius&#39;] = self.x_radius
-    else:
-        kwoptions[&#39;x_radius&#39;] = self.x_radius
-        kwoptions[&#39;y_radius&#39;] = self.y_radius
-    return &#39;arc&#39; + _options_code(opt=self.opt, **kwoptions)</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.grid"><code class="flex name class">
 <span>class <span class="ident">grid</span></span>
@@ -2106,47 +1927,23 @@ not supported, use <code>xstep</code> and <code>ystep</code> instead.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.xstep == self.ystep:
-            kwoptions[&#39;step&#39;] = self.xstep
+        xstep, ystep = self.xstep, self.ystep
+        if trans is not None:
+            xstep, ystep = trans(xstep, ystep)
+        if xstep == ystep:
+            kwoptions[&#39;step&#39;] = xstep
         else:
-            kwoptions[&#39;xstep&#39;] = self.xstep
-            kwoptions[&#39;ystep&#39;] = self.ystep
+            kwoptions[&#39;xstep&#39;] = xstep
+            kwoptions[&#39;ystep&#39;] = ystep
         return (&#39;grid&#39; + _options_code(opt=self.opt, **kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+                + &#39; &#39; + _coordinate_code(self.coord, trans))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.grid.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    kwoptions = self.kwoptions
-    if self.xstep == self.ystep:
-        kwoptions[&#39;step&#39;] = self.xstep
-    else:
-        kwoptions[&#39;xstep&#39;] = self.xstep
-        kwoptions[&#39;ystep&#39;] = self.ystep
-    return (&#39;grid&#39; + _options_code(opt=self.opt, **kwoptions)
-            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.parabola"><code class="flex name class">
 <span>class <span class="ident">parabola</span></span>
@@ -2178,41 +1975,17 @@ not supported, use <code>xstep</code> and <code>ystep</code> instead.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         code = &#39;parabola&#39; + _options_code(opt=self.opt, **self.kwoptions)
         if self.bend is not None:
-            code += &#39; bend &#39; + _coordinate_code(self.bend)
-        code += &#39; &#39; + _coordinate_code(self.coord)
+            code += &#39; bend &#39; + _coordinate_code(self.bend, trans)
+        code += &#39; &#39; + _coordinate_code(self.coord, trans)
         return code</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.parabola.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    code = &#39;parabola&#39; + _options_code(opt=self.opt, **self.kwoptions)
-    if self.bend is not None:
-        code += &#39; bend &#39; + _coordinate_code(self.bend)
-    code += &#39; &#39; + _coordinate_code(self.coord)
-    return code</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.sin"><code class="flex name class">
 <span>class <span class="ident">sin</span></span>
@@ -2240,35 +2013,14 @@ not supported, use <code>xstep</code> and <code>ystep</code> instead.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         return (&#39;sin&#39; + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+                + &#39; &#39; + _coordinate_code(self.coord, trans))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.sin.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    return (&#39;sin&#39; + _options_code(opt=self.opt, **self.kwoptions)
-            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.cos"><code class="flex name class">
 <span>class <span class="ident">cos</span></span>
@@ -2296,35 +2048,14 @@ not supported, use <code>xstep</code> and <code>ystep</code> instead.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         return (&#39;cos&#39; + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+                + &#39; &#39; + _coordinate_code(self.coord, trans))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.cos.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    return (&#39;cos&#39; + _options_code(opt=self.opt, **self.kwoptions)
-            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.topath"><code class="flex name class">
 <span>class <span class="ident">topath</span></span>
@@ -2352,35 +2083,14 @@ not supported, use <code>xstep</code> and <code>ystep</code> instead.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         return (&#39;to&#39; + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
+                + &#39; &#39; + _coordinate_code(self.coord, trans))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.topath.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    return (&#39;to&#39; + _options_code(opt=self.opt, **self.kwoptions)
-            + &#39; &#39; + _coordinate_code(self.coord))</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.node"><code class="flex name class">
 <span>class <span class="ident">node</span></span>
@@ -2435,7 +2145,7 @@ it can be replaced by a Python loop.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         if not self.headless:
             code = &#39;node&#39;
         else:
@@ -2444,7 +2154,7 @@ it can be replaced by a Python loop.</p>
         if self.name is not None:
             code += f&#39; ({self.name})&#39;
         if self.at is not None:
-            code += &#39; at &#39; + _coordinate_code(self.at)
+            code += &#39; at &#39; + _coordinate_code(self.at, trans)
         code += &#39; {&#39; + self.contents + &#39;}&#39;
         if self.headless:
             code = code.lstrip()
@@ -2454,38 +2164,6 @@ it can be replaced by a Python loop.</p>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.node.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    if not self.headless:
-        code = &#39;node&#39;
-    else:
-        code = &#39;&#39;
-    code += _options_code(opt=self.opt, **self.kwoptions)
-    if self.name is not None:
-        code += f&#39; ({self.name})&#39;
-    if self.at is not None:
-        code += &#39; at &#39; + _coordinate_code(self.at)
-    code += &#39; {&#39; + self.contents + &#39;}&#39;
-    if self.headless:
-        code = code.lstrip()
-    return code</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.coordinate"><code class="flex name class">
 <span>class <span class="ident">coordinate</span></span>
@@ -2534,7 +2212,7 @@ it can be replaced by a Python loop.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         if not self.headless:
             code = &#39;coordinate&#39;
         else:
@@ -2542,7 +2220,7 @@ it can be replaced by a Python loop.</p>
         code += _options_code(opt=self.opt, **self.kwoptions)
         code += f&#39; ({self.name})&#39;
         if self.at is not None:
-            code += &#39; at &#39; + _coordinate_code(self.at)
+            code += &#39; at &#39; + _coordinate_code(self.at, trans)
         if self.headless:
             code = code.lstrip()
         return code</code></pre>
@@ -2551,36 +2229,6 @@ it can be replaced by a Python loop.</p>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.coordinate.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    if not self.headless:
-        code = &#39;coordinate&#39;
-    else:
-        code = &#39;&#39;
-    code += _options_code(opt=self.opt, **self.kwoptions)
-    code += f&#39; ({self.name})&#39;
-    if self.at is not None:
-        code += &#39; at &#39; + _coordinate_code(self.at)
-    if self.headless:
-        code = code.lstrip()
-    return code</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.plot"><code class="flex name class">
 <span>class <span class="ident">plot</span></span>
@@ -2623,51 +2271,22 @@ gnuplot formulas are not supported.</p>
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
-        # The &#39;file&#39; variant may be used in the future as an alternative to
-        # coordinates when there are many points.
+    def _code(self, trans=None):
+        # TODO: Use the &#39;file&#39; variant as an alternative to &#39;coordinates&#39; when
+        #   there are many points.
         if self.to:
             code = &#39;--plot&#39;
         else:
             code = &#39;plot&#39;
         code += _options_code(opt=self.opt, **self.kwoptions)
         code += &#39; coordinates {&#39; + &#39; &#39;.join(
-            _coordinate_code(coord) for coord in self.coords) + &#39;}&#39;
+            _coordinate_code(coord, trans) for coord in self.coords) + &#39;}&#39;
         return code</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="tikz.Operation" href="#tikz.Operation">Operation</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.plot.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code>.<code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    # The &#39;file&#39; variant may be used in the future as an alternative to
-    # coordinates when there are many points.
-    if self.to:
-        code = &#39;--plot&#39;
-    else:
-        code = &#39;plot&#39;
-    code += _options_code(opt=self.opt, **self.kwoptions)
-    code += &#39; coordinates {&#39; + &#39; &#39;.join(
-        _coordinate_code(coord) for coord in self.coords) + &#39;}&#39;
-    return code</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.Action"><code class="flex name class">
 <span>class <span class="ident">Action</span></span>
@@ -2702,31 +2321,12 @@ created and added implicitly by environment methods like
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def _code(self, trans=None):
         &#34;returns TikZ code&#34;
         return (&#39;\\&#39; + self.action_name
                 + _options_code(opt=self.opt, **self.kwoptions)
-                + &#39; &#39; + &#39; &#39;.join(op.code() for op in self.spec) + &#39;;&#39;)</code></pre>
+                + &#39; &#39; + &#39; &#39;.join(op._code(trans) for op in self.spec) + &#39;;&#39;)</code></pre>
 </details>
-<h3>Methods</h3>
-<dl>
-<dt id="tikz.Action.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    &#34;returns TikZ code&#34;
-    return (&#39;\\&#39; + self.action_name
-            + _options_code(opt=self.opt, **self.kwoptions)
-            + &#39; &#39; + &#39; &#39;.join(op.code() for op in self.spec) + &#39;;&#39;)</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="tikz.Scope"><code class="flex name class">
 <span>class <span class="ident">Scope</span></span>
@@ -2737,7 +2337,7 @@ created and added implicitly by environment methods like
 <p>A scope can be used to group path actions and other commands together, so
 that options can be applied to them in total.</p>
 <p>Do not instantiate this class, but use the
-<a href="#tikz.Scope.addscope"><code>add_scope()</code></a> method of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a> or
+<a href="#tikz.Scope.addscope"><code>scope()</code></a> method of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a> or
 another environment.</p>
 <p>see
 <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1">§12.3.1</a></p></section>
@@ -2753,7 +2353,7 @@ another environment.</p>
     that options can be applied to them in total.
 
     Do not instantiate this class, but use the
-    [&lt;code&gt;add_scope()&lt;/code&gt;](#tikz.Scope.addscope) method of `Picture` or
+    [&lt;code&gt;scope()&lt;/code&gt;](#tikz.Scope.addscope) method of `Picture` or
     another environment.
 
     see
@@ -2774,7 +2374,7 @@ another environment.</p>
         &#34;&#34;&#34;
         self.elements.append(el)
 
-    def add_scope(self, opt=None, **kwoptions):
+    def scope(self, opt=None, **kwoptions):
         &#34;&#34;&#34;
         create and add scope to the current environment
 
@@ -2784,10 +2384,10 @@ another environment.</p>
         self._append(s)
         return s
 
-    def code(self):
+    def _code(self, trans=None):
         &#34;returns TikZ code&#34;
         code = r&#39;\begin{scope}&#39; + self.opt + &#39;\n&#39;
-        code += &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
+        code += &#39;\n&#39;.join(el._code(trans) for el in self.elements) + &#39;\n&#39;
         code += r&#39;\end{scope}&#39;
         return code
 
@@ -2991,11 +2591,12 @@ another environment.</p>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="tikz.Picture" href="#tikz.Picture">Picture</a></li>
+<li><a title="tikz.figure.Axes" href="figure.html#tikz.figure.Axes">Axes</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="tikz.Scope.add_scope"><code class="name flex">
-<span>def <span class="ident">add_scope</span></span>(<span>self, opt=None, **kwoptions)</span>
+<dt id="tikz.Scope.scope"><code class="name flex">
+<span>def <span class="ident">scope</span></span>(<span>self, opt=None, **kwoptions)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>create and add scope to the current environment</p>
@@ -3004,7 +2605,7 @@ another environment.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_scope(self, opt=None, **kwoptions):
+<pre><code class="python">def scope(self, opt=None, **kwoptions):
     &#34;&#34;&#34;
     create and add scope to the current environment
 
@@ -3013,23 +2614,6 @@ another environment.</p>
     s = Scope(opt=opt, **kwoptions)
     self._append(s)
     return s</code></pre>
-</details>
-</dd>
-<dt id="tikz.Scope.code"><code class="name flex">
-<span>def <span class="ident">code</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>returns TikZ code</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def code(self):
-    &#34;returns TikZ code&#34;
-    code = r&#39;\begin{scope}&#39; + self.opt + &#39;\n&#39;
-    code += &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
-    code += r&#39;\end{scope}&#39;
-    return code</code></pre>
 </details>
 </dd>
 <dt id="tikz.Scope.path"><code class="name flex">
@@ -3527,14 +3111,21 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         self.add_preamble(r&#39;\setmathfont{Fira Math}[math-style=ISO,&#39;
                           &#39;bold-style=ISO,nabla=upright,partial=upright]&#39;)
 
-    def code(self):
-        &#34;returns TikZ code&#34;
-        return (r&#39;\begin{tikzpicture}&#39; + self.opt + &#39;\n&#39;
-                + &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
-                + r&#39;\end{tikzpicture}&#39;)
+    # code / pdf creation: private
+    # private functions assume that code / pdf has already been created
 
-    def document_code(self):
-        &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
+    def _update(self):
+        &#34;ensure that up-to-date code &amp; PDF file exists&#34;
+
+        sep = os.path.sep
+
+        # create tikzpicture code
+        code = (r&#39;\begin{tikzpicture}&#39; + self.opt + &#39;\n&#39;
+                + &#39;\n&#39;.join(el._code() for el in self.elements) + &#39;\n&#39;
+                + r&#39;\end{tikzpicture}&#39;)
+        self._code = code
+
+        # create document code
         # standard preamble
         codelines = [
             r&#39;\documentclass{article}&#39;,
@@ -3546,14 +3137,10 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         # document body
         codelines += [
             r&#39;\begin{document}&#39;,
-            self.code(),
+            self._code,
             r&#39;\end{document}&#39;]
-        return &#39;\n&#39;.join(codelines)
-
-    def _create_pdf(self):
-        &#34;ensure that an up-to-date PDF file exists&#34;
-
-        sep = os.path.sep
+        code = &#39;\n&#39;.join(codelines)
+        self._document_code = code
 
         # We don&#39;t want a PDF file of the whole LaTeX document, but only of the
         # contents of the `tikzpicture` environment. This is achieved using
@@ -3561,9 +3148,6 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         # individual PDF files. To do so, in a normal pdflatex run TikZ calls
         # pdflatex again with special arguments. We use these special
         # arguments directly. See section 53 of the PGF/TikZ manual.
-
-        # create LaTeX code
-        code = self.document_code()
 
         # does the PDF file have to be created?
         #  This check is implemented by using the SHA1 digest of the LaTeX code
@@ -3594,6 +3178,38 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         # rename created PDF file
         os.rename(self.tempdir + sep + &#39;tikz-figure0.pdf&#39;, self.temp_pdf)
 
+    def _get_SVG(self):
+        &#34;return SVG data of `Picture`&#34;
+        # convert PDF to SVG using PyMuPDF
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        svg = page.getSVGimage()
+        return svg
+
+    def _get_PNG(self, dpi=None):
+        &#34;return PNG data of `Picture`&#34;
+        if dpi is None:
+            dpi = cfg.display_dpi
+        # convert PDF to PNG using PyMuPDF
+        zoom = dpi / 72
+        doc = fitz.open(self.temp_pdf)
+        page = doc.loadPage(0)
+        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
+        return pix.getPNGdata()
+
+    # code / pdf creation: public
+    # public functions make sure that code / pdf is created via `_update`
+
+    def code(self):
+        &#34;returns TikZ code&#34;
+        self._update()
+        return self._code
+
+    def document_code(self):
+        &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
+        self._update()
+        return self._document_code
+
     def write_image(self, filename, dpi=None):
         &#34;&#34;&#34;
         write picture to image file
@@ -3610,7 +3226,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         &#34;&#34;&#34;
         if dpi is None:
             dpi = cfg.file_dpi
-        self._create_pdf()
+        self._update()
         # determine extension
         _, ext = os.path.splitext(filename)
         # if a PDF is requested,
@@ -3626,50 +3242,22 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
             pix.writePNG(filename)
         elif ext.lower() == &#39;.svg&#39;:
             # convert PDF to SVG using PyMuPDF
-            svg = self.get_SVG()
+            svg = self._get_SVG()
             with open(filename, &#39;w&#39;) as f:
                 f.write(svg)
         else:
-            print(f&#39;format {ext[1:]} is not supported&#39;)
-
-    def get_PDF(self):
-        &#34;return PDF data of `Picture`&#34;
-        self._create_pdf()
-        # convert PDF to SVG using PyMuPDF
-        with open(self.temp_pdf, &#39;rb&#39;) as f:
-            pdf = f.read()
-        return pdf
-
-    def get_SVG(self):
-        &#34;return SVG data of `Picture`&#34;
-        self._create_pdf()
-        # convert PDF to SVG using PyMuPDF
-        doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        svg = page.getSVGimage()
-        return svg
-
-    def get_PNG(self, dpi=None):
-        &#34;return PNG data of `Picture`&#34;
-        self._create_pdf()
-        if dpi is None:
-            dpi = cfg.display_dpi
-        # convert PDF to PNG using PyMuPDF
-        zoom = dpi / 72
-        doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
-        return pix.getPNGdata()
+            raise ValueError(f&#39;format {ext[1:]} is not supported&#39;)
 
     def _repr_mimebundle_(self, include, exclude, **kwargs):
         &#34;display image in notebook&#34;
         # For the &#34;plot viewer&#34; of vscode-python to be activated, apparently it
-        # is necessary to provide both a PNG and an SVG. Note that SVG
-        # rendering in the &#34;plot viewer&#34; is not entirely accurate, see
-        # https://github.com/microsoft/vscode-python/issues/13080
+        # is necessary to provide both a PNG and an SVG.
+        # Note that SVG rendering in the &#34;plot viewer&#34; is not entirely
+        # accurate, see https://github.com/microsoft/vscode-python/issues/13080
+        self._update()
         data = {
-            &#39;image/png&#39;: self.get_PNG(),
-            &#39;image/svg+xml&#39;: self.get_SVG()
+            &#39;image/png&#39;: self._get_PNG(),
+            &#39;image/svg+xml&#39;: self._get_SVG()
         }
         return data
 
@@ -3684,17 +3272,19 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         `cfg.demo_template`. The optional argument `dpi` can be used to
         override the default `cfg.display_dpi`.
         &#34;&#34;&#34;
+        self._update()
         png_base64 = &#39;&#39;
         try:
             png_base64 = base64.b64encode(
-                self.get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
+                self._get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
         except LatexError as le:
             message = le.args[0]
             tikz_error = message.find(&#39;! &#39;)
             if tikz_error != -1:
                 message = message[tikz_error:]
+            print(&#39;LatexError: LaTeX has failed&#39;)
             print(message)
-        code_escaped = html.escape(self.code())
+        code_escaped = html.escape(self._code)
         IPython.display.display(
             IPython.display.HTML(
                 cfg.demo_template.format(png_base64, code_escaped)))</code></pre>
@@ -3827,20 +3417,15 @@ arguments, only one such command is added.</p></section>
 <span>def <span class="ident">code</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.code" href="#tikz.Scope.code">code</a></code>
-</p>
-<section class="desc inherited"><p>returns TikZ code</p></section>
+<section class="desc"><p>returns TikZ code</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def code(self):
     &#34;returns TikZ code&#34;
-    return (r&#39;\begin{tikzpicture}&#39; + self.opt + &#39;\n&#39;
-            + &#39;\n&#39;.join(el.code() for el in self.elements) + &#39;\n&#39;
-            + r&#39;\end{tikzpicture}&#39;)</code></pre>
+    self._update()
+    return self._code</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.document_code"><code class="name flex">
@@ -3854,20 +3439,8 @@ arguments, only one such command is added.</p></section>
 </summary>
 <pre><code class="python">def document_code(self):
     &#34;returns LaTeX/TikZ code for a complete compilable document&#34;
-    # standard preamble
-    codelines = [
-        r&#39;\documentclass{article}&#39;,
-        r&#39;\usepackage{tikz}&#39;,
-        r&#39;\usetikzlibrary{external}&#39;,
-        r&#39;\tikzexternalize&#39;]
-    # user-added preamble
-    codelines += self.preamble
-    # document body
-    codelines += [
-        r&#39;\begin{document}&#39;,
-        self.code(),
-        r&#39;\end{document}&#39;]
-    return &#39;\n&#39;.join(codelines)</code></pre>
+    self._update()
+    return self._document_code</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.write_image"><code class="name flex">
@@ -3903,7 +3476,7 @@ SVG, the PDF is converted to SVG.</p>
     &#34;&#34;&#34;
     if dpi is None:
         dpi = cfg.file_dpi
-    self._create_pdf()
+    self._update()
     # determine extension
     _, ext = os.path.splitext(filename)
     # if a PDF is requested,
@@ -3919,70 +3492,11 @@ SVG, the PDF is converted to SVG.</p>
         pix.writePNG(filename)
     elif ext.lower() == &#39;.svg&#39;:
         # convert PDF to SVG using PyMuPDF
-        svg = self.get_SVG()
+        svg = self._get_SVG()
         with open(filename, &#39;w&#39;) as f:
             f.write(svg)
     else:
-        print(f&#39;format {ext[1:]} is not supported&#39;)</code></pre>
-</details>
-</dd>
-<dt id="tikz.Picture.get_PDF"><code class="name flex">
-<span>def <span class="ident">get_PDF</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>return PDF data of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a></p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_PDF(self):
-    &#34;return PDF data of `Picture`&#34;
-    self._create_pdf()
-    # convert PDF to SVG using PyMuPDF
-    with open(self.temp_pdf, &#39;rb&#39;) as f:
-        pdf = f.read()
-    return pdf</code></pre>
-</details>
-</dd>
-<dt id="tikz.Picture.get_SVG"><code class="name flex">
-<span>def <span class="ident">get_SVG</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>return SVG data of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a></p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_SVG(self):
-    &#34;return SVG data of `Picture`&#34;
-    self._create_pdf()
-    # convert PDF to SVG using PyMuPDF
-    doc = fitz.open(self.temp_pdf)
-    page = doc.loadPage(0)
-    svg = page.getSVGimage()
-    return svg</code></pre>
-</details>
-</dd>
-<dt id="tikz.Picture.get_PNG"><code class="name flex">
-<span>def <span class="ident">get_PNG</span></span>(<span>self, dpi=None)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>return PNG data of <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a></p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_PNG(self, dpi=None):
-    &#34;return PNG data of `Picture`&#34;
-    self._create_pdf()
-    if dpi is None:
-        dpi = cfg.display_dpi
-    # convert PDF to PNG using PyMuPDF
-    zoom = dpi / 72
-    doc = fitz.open(self.temp_pdf)
-    page = doc.loadPage(0)
-    pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
-    return pix.getPNGdata()</code></pre>
+        raise ValueError(f&#39;format {ext[1:]} is not supported&#39;)</code></pre>
 </details>
 </dd>
 <dt id="tikz.Picture.demo"><code class="name flex">
@@ -4011,29 +3525,31 @@ override the default <a title="tikz.cfg.display_dpi" href="#tikz.cfg.display_dpi
     `cfg.demo_template`. The optional argument `dpi` can be used to
     override the default `cfg.display_dpi`.
     &#34;&#34;&#34;
+    self._update()
     png_base64 = &#39;&#39;
     try:
         png_base64 = base64.b64encode(
-            self.get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
+            self._get_PNG(dpi=dpi)).decode(&#39;ascii&#39;)
     except LatexError as le:
         message = le.args[0]
         tikz_error = message.find(&#39;! &#39;)
         if tikz_error != -1:
             message = message[tikz_error:]
+        print(&#39;LatexError: LaTeX has failed&#39;)
         print(message)
-    code_escaped = html.escape(self.code())
+    code_escaped = html.escape(self._code)
     IPython.display.display(
         IPython.display.HTML(
             cfg.demo_template.format(png_base64, code_escaped)))</code></pre>
 </details>
 </dd>
-<dt id="tikz.Picture.add_scope"><code class="name flex">
-<span>def <span class="ident">add_scope</span></span>(<span>self, opt=None, **kwoptions)</span>
+<dt id="tikz.Picture.scope"><code class="name flex">
+<span>def <span class="ident">scope</span></span>(<span>self, opt=None, **kwoptions)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
 <em>Inherited from:</em>
-<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.add_scope" href="#tikz.Scope.add_scope">add_scope</a></code>
+<code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.scope" href="#tikz.Scope.scope">scope</a></code>
 </p>
 <section class="desc inherited"><p>create and add scope to the current environment …</p></section>
 </dd>
@@ -4253,117 +3769,62 @@ style="width:100%;padding-left:40px;padding-right:40px">
 </li>
 <li>
 <h4><code><a title="tikz.Raw" href="#tikz.Raw">Raw</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.Raw.code" href="#tikz.Raw.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.Operation" href="#tikz.Operation">Operation</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.Operation.code" href="#tikz.Operation.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.moveto" href="#tikz.moveto">moveto</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.moveto.code" href="#tikz.moveto.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.lineto" href="#tikz.lineto">lineto</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.lineto.code" href="#tikz.lineto.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.line" href="#tikz.line">line</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.line.code" href="#tikz.line.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.curveto" href="#tikz.curveto">curveto</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.curveto.code" href="#tikz.curveto.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.rectangle" href="#tikz.rectangle">rectangle</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.rectangle.code" href="#tikz.rectangle.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.circle" href="#tikz.circle">circle</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.circle.code" href="#tikz.circle.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.arc" href="#tikz.arc">arc</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.arc.code" href="#tikz.arc.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.grid" href="#tikz.grid">grid</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.grid.code" href="#tikz.grid.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.parabola" href="#tikz.parabola">parabola</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.parabola.code" href="#tikz.parabola.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.sin" href="#tikz.sin">sin</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.sin.code" href="#tikz.sin.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.cos" href="#tikz.cos">cos</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.cos.code" href="#tikz.cos.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.topath" href="#tikz.topath">topath</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.topath.code" href="#tikz.topath.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.node" href="#tikz.node">node</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.node.code" href="#tikz.node.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.coordinate" href="#tikz.coordinate">coordinate</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.coordinate.code" href="#tikz.coordinate.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.plot" href="#tikz.plot">plot</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.plot.code" href="#tikz.plot.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.Action" href="#tikz.Action">Action</a></code></h4>
-<ul class="">
-<li><code><a title="tikz.Action.code" href="#tikz.Action.code">code</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="tikz.Scope" href="#tikz.Scope">Scope</a></code></h4>
 <ul class="two-column">
-<li><code><a title="tikz.Scope.add_scope" href="#tikz.Scope.add_scope">add_scope</a></code></li>
-<li><code><a title="tikz.Scope.code" href="#tikz.Scope.code">code</a></code></li>
+<li><code><a title="tikz.Scope.scope" href="#tikz.Scope.scope">scope</a></code></li>
 <li><code><a title="tikz.Scope.path" href="#tikz.Scope.path">path</a></code></li>
 <li><code><a title="tikz.Scope.draw" href="#tikz.Scope.draw">draw</a></code></li>
 <li><code><a title="tikz.Scope.fill" href="#tikz.Scope.fill">fill</a></code></li>
@@ -4391,11 +3852,8 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li><code><a title="tikz.Picture.code" href="#tikz.Picture.code">code</a></code></li>
 <li><code><a title="tikz.Picture.document_code" href="#tikz.Picture.document_code">document_code</a></code></li>
 <li><code><a title="tikz.Picture.write_image" href="#tikz.Picture.write_image">write_image</a></code></li>
-<li><code><a title="tikz.Picture.get_PDF" href="#tikz.Picture.get_PDF">get_PDF</a></code></li>
-<li><code><a title="tikz.Picture.get_SVG" href="#tikz.Picture.get_SVG">get_SVG</a></code></li>
-<li><code><a title="tikz.Picture.get_PNG" href="#tikz.Picture.get_PNG">get_PNG</a></code></li>
 <li><code><a title="tikz.Picture.demo" href="#tikz.Picture.demo">demo</a></code></li>
-<li><code><a title="tikz.Picture.add_scope" href="#tikz.Picture.add_scope">add_scope</a></code></li>
+<li><code><a title="tikz.Picture.scope" href="#tikz.Picture.scope">scope</a></code></li>
 <li><code><a title="tikz.Picture.path" href="#tikz.Picture.path">path</a></code></li>
 <li><code><a title="tikz.Picture.draw" href="#tikz.Picture.draw">draw</a></code></li>
 <li><code><a title="tikz.Picture.fill" href="#tikz.Picture.fill">fill</a></code></li>

@@ -54,7 +54,7 @@ column widths
 row heights
 -
 &hellip;</p>
-<p>all lengths in cm, or whatever the <code>xy</code> coordinate system has been set to</p>
+<p>all lengths in cm</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -80,14 +80,16 @@ results:
 -   row heights
 -   ...
 
-all lengths in cm, or whatever the `xy` coordinate system has been set to
+all lengths in cm
 &#34;&#34;&#34;
 
 # Copyright (C) 2020 Carsten Allefeld
 
 import numpy as np
 import collections
-from tikz import Picture, rectangle, options
+import math
+from tikz import Picture, Scope, rectangle, options, lineto, node
+from tikz.extended_wilkinson import TicksGenerator
 
 
 class cfg:
@@ -111,6 +113,11 @@ class cfg:
     &#34;bottom view padding, default 1&#34;
     padding_top = 0.5
     &#34;top view padding, default 0.5&#34;
+
+    clip_padding = 0.07
+    axis_offset = 0.14
+    tick_length = 0.1
+    tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54
 
 
 class Box:
@@ -179,7 +186,7 @@ class Layout:
         self._compute()
         pic = Picture()
         self._draw(pic)
-        return pic.get_PNG(dpi=dpi)
+        return pic._get_PNG(dpi=dpi)
 
 
 class SimpleLayout(Layout):
@@ -196,6 +203,9 @@ class SimpleLayout(Layout):
         pb = parameters.get(&#39;padding_bottom&#39;, cfg.padding_bottom)
         pt = parameters.get(&#39;padding_top&#39;, cfg.padding_top)
         ar = parameters.get(&#39;aspect_ratio&#39;, 4/3)
+        # check width
+        if self.width &lt;= 2 * mh + pl + pr:
+            raise LayoutError(f&#39;width {self.width} is too small&#39;)
         # compute
         iw = self.width - 2 * mh - pl - pr
         ih = iw / ar
@@ -252,6 +262,10 @@ class FlexibleGridLayout(Layout):
         # create &amp; store empty View object
         v = View()
         self.views.append(v)
+        # check width
+        if self.width &lt;= (2 * self.mh + self.pl + self.pr
+                          + self.gh * max(self.ct)):
+            raise LayoutError(f&#39;width {self.width} too small&#39;)
 
     def _compute(self):
         # What we have to compute are the outer and inner box of each view. To
@@ -352,29 +366,48 @@ class FlexibleGridLayout(Layout):
                 print(f&#39;Warning: View {i} aspect ratio is {iw / ih}.&#39;)
 
 
+class LayoutError(Exception):
+    &#34;&#34;&#34;
+    error in computing Layout
+    &#34;&#34;&#34;
+    pass
+
+
 class Figure(Picture):
-    def __init__(self, layout=None, opt=None, **kwoptions):
-        super().__init__(opt=opt, **kwoptions)
+    def __init__(self, layout=None, opt=None, **parameters):
+        super().__init__(opt=opt)
+        # process layout
         if layout is None:
-            layout = SimpleLayout()
+            layout = SimpleLayout(**parameters)
         self.layout = layout
-        # ensure minimum bounding box of figure
         self.width, self.height = layout.get_dimensions()
+        self.views = layout.get_views()
+        # ensure minimum bounding box of figure
         self.path((0, 0), (self.width, self.height))
         # use font Fira
         self.fira()
-        # TODO: create `TicksGenerator`, with Fira metrics
+        font_metrics = {
+            &#39;offset&#39;: 0.1, &#39;-&#39;: 0.4, &#39;1&#39;: 0.56, &#39;2&#39;: 0.56, &#39;3&#39;: 0.56,
+            &#39;4&#39;: 0.56, &#39;5&#39;: 0.56, &#39;6&#39;: 0.56, &#39;7&#39;: 0.56, &#39;8&#39;: 0.56, &#39;9&#39;: 0.56,
+            &#39;0&#39;: 0.56, &#39;.&#39;: 0.24, &#39;height&#39;: 0.723}
+        # TODO: general mechanism to register fonts?
+        #   or at least keep font activation code and font_metrics together?
+        # create `TicksGenerator`
+        self.ticks_generator = TicksGenerator(
+            [8, 9], 1 / 1.5, font_metrics=font_metrics)
+        # TODO: `cfg`urize font sizes and target density
 
     def draw_layout(self):
         &#34;draw layout&#34;
-        scope = self.add_scope(color=&#39;red&#39;)
+        scope = self.scope(color=&#39;red&#39;)
         self.layout._draw(scope)
 
     def title(self, label, margin_vertical=None):
         # TODO: use another parameter name, and corresponding cfg?
+        #   spaces are off as they are
         if margin_vertical is None:
             margin_vertical = cfg.margin_vertical
-        scope = self.add_scope()
+        scope = self.scope()
         # position title such that descenders touch Layout
         scope.node(label, at=(self.width / 2, self.height),
                    anchor=&#39;base&#39;, yshift=&#39;depth(&#34;gjpqy&#34;)&#39;, name=&#39;title&#39;,
@@ -386,7 +419,147 @@ class Figure(Picture):
         # Alternatively, one could set the height and depth of the node,
         # see https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.4.4
         # Also, predefine this height and depth for ease of use? – No, because
-        # it depends on the font size. But maybe define macros.</code></pre>
+        # it depends on the font size. But maybe define macros.
+
+    def axes(self, xlim, ylim, view_no=0, xaxis=True, yaxis=True):
+        a = Axes(self.views[view_no], xlim, ylim, self.ticks_generator,
+                 xaxis=xaxis, yaxis=yaxis)
+        self._append(a)
+        return a
+
+
+class Axes(Scope):
+    def __init__(self, view, xlim, ylim, ticks_generator, xaxis, yaxis):
+        super().__init__()
+        self.inner = view.inner
+        self.outer = view.outer
+        self.xticks = ticks_generator.ticks(*xlim, self.inner.w, True)
+        self.yticks = ticks_generator.ticks(*ylim, self.inner.h, False)
+
+        xmin = self.xticks.amin
+        xrange = self.xticks.amax - xmin
+        ymin = self.yticks.amin
+        yrange = self.yticks.amax - ymin
+
+        # Sub-scope for axes decoration in which the origin remains in the
+        # lower left corner of the figure, and xy remains at its 1 cm default.
+        # Moreover, coordinates are not subject to transformation and drawing
+        # is not clipped.
+        self.decorations = Scope()
+
+        # convenience
+        x, y, w, h = self.inner.x, self.inner.y, self.inner.w, self.inner.h
+
+        # Drawing is clipped to the inner box, with a bit of padding.
+        pad = cfg.clip_padding
+        self.clip(f&#39;({x - pad}cm,{y - pad}cm)&#39;,
+                  rectangle(f&#39;({x + w + pad}cm, {y + h + pad}cm)&#39;))
+
+        # The Axes scope itself sets an origin in the left bottom corner of
+        # the inner box, and xy set up such that [0, 1] covers the whole inner
+        # width / height.
+        self.tikzset(xshift=f&#39;{x}cm&#39;,
+                     yshift=f&#39;{y}cm&#39;,
+                     x=f&#39;{w}cm&#39;,
+                     y=f&#39;{h}cm&#39;)
+
+        # coordinate limits from cfg.tex_maxdimen
+        cxmin = (-cfg.tex_maxdimen - x) / w * xrange + xmin
+        cxmax = (cfg.tex_maxdimen - x) / w * xrange + xmin
+        cymin = (-cfg.tex_maxdimen - y) / h * yrange + ymin
+        cymax = (cfg.tex_maxdimen - y) / h * yrange + ymin
+
+        # Transformation which maps coordinates from the axis&#39; ranges
+        # onto [0, 1], to be passed to *`.code()` and `_coordinate_code`.
+        def transformation(coord):
+            cx, cy = coord
+            if not isinstance(cx, str):
+                # check too large
+                if cx &lt; cxmin:
+                    print(f&#39;Warning: x coordinate {cx} clipped to {cxmin}.&#39;)
+                    cx = cxmin
+                if cx &gt; cxmax:
+                    print(f&#39;Warning: x coordinate {cx} clipped to {cxmax}.&#39;)
+                    cx = cxmax
+                # transform x
+                cx = (cx - xmin) / xrange
+            if not isinstance(cy, str):
+                # check too large
+                if cy &lt; cymin:
+                    print(f&#39;Warning: y coordinate {cy} clipped to {cymin}.&#39;)
+                    cy = cymin
+                if cy &gt; cymax:
+                    print(f&#39;Warning: x coordinate {cy} clipped to {cymax}.&#39;)
+                    cy = cymax
+                # transform y
+                cy = (cy - ymin) / yrange
+            return cx, cy
+        self.trans = transformation
+
+        if xaxis:
+            self.xaxis()
+        if yaxis:
+            self.yaxis()
+
+    def xaxis(self):
+        d = self.decorations
+        i = self.inner
+        o = cfg.axis_offset
+        tl = cfg.tick_length
+        t = self.xticks
+        # TODO: interface to select fontsize
+        #   as option font= / as standalone command
+        #   default font size for figure decorations
+        font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+        rotate = None if t.horizontal else 90
+        d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
+               line_cap=&#39;round&#39;)
+        for v, l in zip(t.values, t.labels):
+            x = i.x + (v - t.amin) / (t.amax - t.amin) * i.w
+            if t.horizontal:
+                n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                         anchor=&#39;north&#39;)
+            else:
+                n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                         anchor=&#39;east&#39;)
+            d.draw((x, i.y - o), lineto((x, i.y - o - tl)), n)
+        if t.plabel is not None:
+            d.draw((i.x + i.w, i.y), node(f&#39;$10^{{{t.plabel}}}$&#39;),
+                   anchor=&#39;west&#39;)
+        # TODO: standardize / `cfg`urize label and plabel padding
+
+    def yaxis(self):
+        d = self.decorations
+        i = self.inner
+        o = cfg.axis_offset
+        tl = cfg.tick_length
+        t = self.yticks
+        font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+        rotate = None if t.horizontal else 90
+        d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
+               line_cap=&#39;round&#39;)
+        for v, l in zip(t.values, t.labels):
+            y = i.y + (v - t.amin) / (t.amax - t.amin) * i.h
+            if t.horizontal:
+                n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                         anchor=&#39;east&#39;)
+            else:
+                n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                         anchor=&#39;south&#39;)
+            d.draw((i.x - o, y), lineto((i.x - o - tl, y)), n)
+        if t.plabel is not None:
+            d.draw((i.x, i.y + i.h), node(f&#39;$10^{{{t.plabel}}}$&#39;),
+                   anchor=&#39;south&#39;)
+
+    # TODO: yaxis_right, maybe xaxis_top
+    # Axes options yaxis= &#39;left&#39;, &#39;right&#39;, None
+    # privatize xaxis, yaxis?
+
+    def _code(self):
+        &#34;returns TikZ code&#34;
+        code = (self.decorations._code() + &#39;\n&#39;
+                + super()._code(self.trans))
+        return code</code></pre>
 </details>
 </section>
 <section>
@@ -428,7 +601,12 @@ class Figure(Picture):
     padding_bottom = 1
     &#34;bottom view padding, default 1&#34;
     padding_top = 0.5
-    &#34;top view padding, default 0.5&#34;</code></pre>
+    &#34;top view padding, default 0.5&#34;
+
+    clip_padding = 0.07
+    axis_offset = 0.14
+    tick_length = 0.1
+    tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -467,6 +645,22 @@ class Figure(Picture):
 <dt id="tikz.figure.cfg.padding_top"><code class="name">var <span class="ident">padding_top</span></code></dt>
 <dd>
 <section class="desc"><p>top view padding, default 0.5</p></section>
+</dd>
+<dt id="tikz.figure.cfg.clip_padding"><code class="name">var <span class="ident">clip_padding</span></code></dt>
+<dd>
+<section class="desc"><p>Convert a string or number to a floating point number, if possible.</p></section>
+</dd>
+<dt id="tikz.figure.cfg.axis_offset"><code class="name">var <span class="ident">axis_offset</span></code></dt>
+<dd>
+<section class="desc"><p>Convert a string or number to a floating point number, if possible.</p></section>
+</dd>
+<dt id="tikz.figure.cfg.tick_length"><code class="name">var <span class="ident">tick_length</span></code></dt>
+<dd>
+<section class="desc"><p>Convert a string or number to a floating point number, if possible.</p></section>
+</dd>
+<dt id="tikz.figure.cfg.tex_maxdimen"><code class="name">var <span class="ident">tex_maxdimen</span></code></dt>
+<dd>
+<section class="desc"><p>Convert a string or number to a floating point number, if possible.</p></section>
 </dd>
 </dl>
 </dd>
@@ -588,7 +782,7 @@ they are implemented in a method overriding <code>_compute</code>.</p></section>
         self._compute()
         pic = Picture()
         self._draw(pic)
-        return pic.get_PNG(dpi=dpi)</code></pre>
+        return pic._get_PNG(dpi=dpi)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -651,6 +845,9 @@ they are implemented in a method overriding <code>_compute</code>.</p></section>
         pb = parameters.get(&#39;padding_bottom&#39;, cfg.padding_bottom)
         pt = parameters.get(&#39;padding_top&#39;, cfg.padding_top)
         ar = parameters.get(&#39;aspect_ratio&#39;, 4/3)
+        # check width
+        if self.width &lt;= 2 * mh + pl + pr:
+            raise LayoutError(f&#39;width {self.width} is too small&#39;)
         # compute
         iw = self.width - 2 * mh - pl - pr
         ih = iw / ar
@@ -721,6 +918,10 @@ they are implemented in a method overriding <code>_compute</code>.</p></section>
         # create &amp; store empty View object
         v = View()
         self.views.append(v)
+        # check width
+        if self.width &lt;= (2 * self.mh + self.pl + self.pr
+                          + self.gh * max(self.ct)):
+            raise LayoutError(f&#39;width {self.width} too small&#39;)
 
     def _compute(self):
         # What we have to compute are the outer and inner box of each view. To
@@ -849,14 +1050,40 @@ they are implemented in a method overriding <code>_compute</code>.</p></section>
     self.ar.append(aspect_ratio)
     # create &amp; store empty View object
     v = View()
-    self.views.append(v)</code></pre>
+    self.views.append(v)
+    # check width
+    if self.width &lt;= (2 * self.mh + self.pl + self.pr
+                      + self.gh * max(self.ct)):
+        raise LayoutError(f&#39;width {self.width} too small&#39;)</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
+<dt id="tikz.figure.LayoutError"><code class="flex name class">
+<span>class <span class="ident">LayoutError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>error in computing Layout</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayoutError(Exception):
+    &#34;&#34;&#34;
+    error in computing Layout
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
 <dt id="tikz.figure.Figure"><code class="flex name class">
 <span>class <span class="ident">Figure</span></span>
-<span>(</span><span>layout=None, opt=None, **kwoptions)</span>
+<span>(</span><span>layout=None, opt=None, **parameters)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>tikzpicture environment</p>
@@ -870,28 +1097,40 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Figure(Picture):
-    def __init__(self, layout=None, opt=None, **kwoptions):
-        super().__init__(opt=opt, **kwoptions)
+    def __init__(self, layout=None, opt=None, **parameters):
+        super().__init__(opt=opt)
+        # process layout
         if layout is None:
-            layout = SimpleLayout()
+            layout = SimpleLayout(**parameters)
         self.layout = layout
-        # ensure minimum bounding box of figure
         self.width, self.height = layout.get_dimensions()
+        self.views = layout.get_views()
+        # ensure minimum bounding box of figure
         self.path((0, 0), (self.width, self.height))
         # use font Fira
         self.fira()
-        # TODO: create `TicksGenerator`, with Fira metrics
+        font_metrics = {
+            &#39;offset&#39;: 0.1, &#39;-&#39;: 0.4, &#39;1&#39;: 0.56, &#39;2&#39;: 0.56, &#39;3&#39;: 0.56,
+            &#39;4&#39;: 0.56, &#39;5&#39;: 0.56, &#39;6&#39;: 0.56, &#39;7&#39;: 0.56, &#39;8&#39;: 0.56, &#39;9&#39;: 0.56,
+            &#39;0&#39;: 0.56, &#39;.&#39;: 0.24, &#39;height&#39;: 0.723}
+        # TODO: general mechanism to register fonts?
+        #   or at least keep font activation code and font_metrics together?
+        # create `TicksGenerator`
+        self.ticks_generator = TicksGenerator(
+            [8, 9], 1 / 1.5, font_metrics=font_metrics)
+        # TODO: `cfg`urize font sizes and target density
 
     def draw_layout(self):
         &#34;draw layout&#34;
-        scope = self.add_scope(color=&#39;red&#39;)
+        scope = self.scope(color=&#39;red&#39;)
         self.layout._draw(scope)
 
     def title(self, label, margin_vertical=None):
         # TODO: use another parameter name, and corresponding cfg?
+        #   spaces are off as they are
         if margin_vertical is None:
             margin_vertical = cfg.margin_vertical
-        scope = self.add_scope()
+        scope = self.scope()
         # position title such that descenders touch Layout
         scope.node(label, at=(self.width / 2, self.height),
                    anchor=&#39;base&#39;, yshift=&#39;depth(&#34;gjpqy&#34;)&#39;, name=&#39;title&#39;,
@@ -899,7 +1138,17 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         # extend bounding box such that there is space above capital letters
         # and ascenders
         scope.path(&#39;(title.base)&#39;, options(yshift=&#39;height(&#34;HAbdfhk&#34;)&#39;),
-                   f&#39;+(0,{margin_vertical})&#39;)</code></pre>
+                   f&#39;+(0,{margin_vertical})&#39;)
+        # Alternatively, one could set the height and depth of the node,
+        # see https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.4.4
+        # Also, predefine this height and depth for ease of use? – No, because
+        # it depends on the font size. But maybe define macros.
+
+    def axes(self, xlim, ylim, view_no=0, xaxis=True, yaxis=True):
+        a = Axes(self.views[view_no], xlim, ylim, self.ticks_generator,
+                 xaxis=xaxis, yaxis=yaxis)
+        self._append(a)
+        return a</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -919,7 +1168,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 </summary>
 <pre><code class="python">def draw_layout(self):
     &#34;draw layout&#34;
-    scope = self.add_scope(color=&#39;red&#39;)
+    scope = self.scope(color=&#39;red&#39;)
     self.layout._draw(scope)</code></pre>
 </details>
 </dd>
@@ -934,9 +1183,10 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 </summary>
 <pre><code class="python">def title(self, label, margin_vertical=None):
     # TODO: use another parameter name, and corresponding cfg?
+    #   spaces are off as they are
     if margin_vertical is None:
         margin_vertical = cfg.margin_vertical
-    scope = self.add_scope()
+    scope = self.scope()
     # position title such that descenders touch Layout
     scope.node(label, at=(self.width / 2, self.height),
                anchor=&#39;base&#39;, yshift=&#39;depth(&#34;gjpqy&#34;)&#39;, name=&#39;title&#39;,
@@ -945,6 +1195,22 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
     # and ascenders
     scope.path(&#39;(title.base)&#39;, options(yshift=&#39;height(&#34;HAbdfhk&#34;)&#39;),
                f&#39;+(0,{margin_vertical})&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.figure.Figure.axes"><code class="name flex">
+<span>def <span class="ident">axes</span></span>(<span>self, xlim, ylim, view_no=0, xaxis=True, yaxis=True)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def axes(self, xlim, ylim, view_no=0, xaxis=True, yaxis=True):
+    a = Axes(self.views[view_no], xlim, ylim, self.ticks_generator,
+             xaxis=xaxis, yaxis=yaxis)
+    self._append(a)
+    return a</code></pre>
 </details>
 </dd>
 <dt id="tikz.figure.Figure.add_preamble"><code class="name flex">
@@ -1017,36 +1283,6 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 </p>
 <section class="desc inherited"><p>write picture to image file …</p></section>
 </dd>
-<dt id="tikz.figure.Figure.get_PDF"><code class="name flex">
-<span>def <span class="ident">get_PDF</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.get_PDF" href="index.html#tikz.Picture.get_PDF">get_PDF</a></code>
-</p>
-<section class="desc inherited"><p>return PDF data of <code>Picture</code></p></section>
-</dd>
-<dt id="tikz.figure.Figure.get_SVG"><code class="name flex">
-<span>def <span class="ident">get_SVG</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.get_SVG" href="index.html#tikz.Picture.get_SVG">get_SVG</a></code>
-</p>
-<section class="desc inherited"><p>return SVG data of <code>Picture</code></p></section>
-</dd>
-<dt id="tikz.figure.Figure.get_PNG"><code class="name flex">
-<span>def <span class="ident">get_PNG</span></span>(<span>self, dpi=None)</span>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.get_PNG" href="index.html#tikz.Picture.get_PNG">get_PNG</a></code>
-</p>
-<section class="desc inherited"><p>return PNG data of <code>Picture</code></p></section>
-</dd>
 <dt id="tikz.figure.Figure.demo"><code class="name flex">
 <span>def <span class="ident">demo</span></span>(<span>self, dpi=None)</span>
 </code></dt>
@@ -1057,13 +1293,13 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 </p>
 <section class="desc inherited"><p>show picture and code in the notebook …</p></section>
 </dd>
-<dt id="tikz.figure.Figure.add_scope"><code class="name flex">
-<span>def <span class="ident">add_scope</span></span>(<span>self, opt=None, **kwoptions)</span>
+<dt id="tikz.figure.Figure.scope"><code class="name flex">
+<span>def <span class="ident">scope</span></span>(<span>self, opt=None, **kwoptions)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
 <em>Inherited from:</em>
-<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.add_scope" href="index.html#tikz.Picture.add_scope">add_scope</a></code>
+<code><a title="tikz.Picture" href="index.html#tikz.Picture">Picture</a></code>.<code><a title="tikz.Picture.scope" href="index.html#tikz.Picture.scope">scope</a></code>
 </p>
 <section class="desc inherited"><p>create and add scope to the current environment …</p></section>
 </dd>
@@ -1219,6 +1455,393 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 </dd>
 </dl>
 </dd>
+<dt id="tikz.figure.Axes"><code class="flex name class">
+<span>class <span class="ident">Axes</span></span>
+<span>(</span><span>view, xlim, ylim, ticks_generator, xaxis, yaxis)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>scope environment</p>
+<p>A scope can be used to group path actions and other commands together, so
+that options can be applied to them in total.</p>
+<p>Do not instantiate this class, but use the
+<a href="#tikz.Scope.addscope"><code>scope()</code></a> method of <code>Picture</code> or
+another environment.</p>
+<p>see
+<a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.3.1">§12.3.1</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Axes(Scope):
+    def __init__(self, view, xlim, ylim, ticks_generator, xaxis, yaxis):
+        super().__init__()
+        self.inner = view.inner
+        self.outer = view.outer
+        self.xticks = ticks_generator.ticks(*xlim, self.inner.w, True)
+        self.yticks = ticks_generator.ticks(*ylim, self.inner.h, False)
+
+        xmin = self.xticks.amin
+        xrange = self.xticks.amax - xmin
+        ymin = self.yticks.amin
+        yrange = self.yticks.amax - ymin
+
+        # Sub-scope for axes decoration in which the origin remains in the
+        # lower left corner of the figure, and xy remains at its 1 cm default.
+        # Moreover, coordinates are not subject to transformation and drawing
+        # is not clipped.
+        self.decorations = Scope()
+
+        # convenience
+        x, y, w, h = self.inner.x, self.inner.y, self.inner.w, self.inner.h
+
+        # Drawing is clipped to the inner box, with a bit of padding.
+        pad = cfg.clip_padding
+        self.clip(f&#39;({x - pad}cm,{y - pad}cm)&#39;,
+                  rectangle(f&#39;({x + w + pad}cm, {y + h + pad}cm)&#39;))
+
+        # The Axes scope itself sets an origin in the left bottom corner of
+        # the inner box, and xy set up such that [0, 1] covers the whole inner
+        # width / height.
+        self.tikzset(xshift=f&#39;{x}cm&#39;,
+                     yshift=f&#39;{y}cm&#39;,
+                     x=f&#39;{w}cm&#39;,
+                     y=f&#39;{h}cm&#39;)
+
+        # coordinate limits from cfg.tex_maxdimen
+        cxmin = (-cfg.tex_maxdimen - x) / w * xrange + xmin
+        cxmax = (cfg.tex_maxdimen - x) / w * xrange + xmin
+        cymin = (-cfg.tex_maxdimen - y) / h * yrange + ymin
+        cymax = (cfg.tex_maxdimen - y) / h * yrange + ymin
+
+        # Transformation which maps coordinates from the axis&#39; ranges
+        # onto [0, 1], to be passed to *`.code()` and `_coordinate_code`.
+        def transformation(coord):
+            cx, cy = coord
+            if not isinstance(cx, str):
+                # check too large
+                if cx &lt; cxmin:
+                    print(f&#39;Warning: x coordinate {cx} clipped to {cxmin}.&#39;)
+                    cx = cxmin
+                if cx &gt; cxmax:
+                    print(f&#39;Warning: x coordinate {cx} clipped to {cxmax}.&#39;)
+                    cx = cxmax
+                # transform x
+                cx = (cx - xmin) / xrange
+            if not isinstance(cy, str):
+                # check too large
+                if cy &lt; cymin:
+                    print(f&#39;Warning: y coordinate {cy} clipped to {cymin}.&#39;)
+                    cy = cymin
+                if cy &gt; cymax:
+                    print(f&#39;Warning: x coordinate {cy} clipped to {cymax}.&#39;)
+                    cy = cymax
+                # transform y
+                cy = (cy - ymin) / yrange
+            return cx, cy
+        self.trans = transformation
+
+        if xaxis:
+            self.xaxis()
+        if yaxis:
+            self.yaxis()
+
+    def xaxis(self):
+        d = self.decorations
+        i = self.inner
+        o = cfg.axis_offset
+        tl = cfg.tick_length
+        t = self.xticks
+        # TODO: interface to select fontsize
+        #   as option font= / as standalone command
+        #   default font size for figure decorations
+        font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+        rotate = None if t.horizontal else 90
+        d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
+               line_cap=&#39;round&#39;)
+        for v, l in zip(t.values, t.labels):
+            x = i.x + (v - t.amin) / (t.amax - t.amin) * i.w
+            if t.horizontal:
+                n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                         anchor=&#39;north&#39;)
+            else:
+                n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                         anchor=&#39;east&#39;)
+            d.draw((x, i.y - o), lineto((x, i.y - o - tl)), n)
+        if t.plabel is not None:
+            d.draw((i.x + i.w, i.y), node(f&#39;$10^{{{t.plabel}}}$&#39;),
+                   anchor=&#39;west&#39;)
+        # TODO: standardize / `cfg`urize label and plabel padding
+
+    def yaxis(self):
+        d = self.decorations
+        i = self.inner
+        o = cfg.axis_offset
+        tl = cfg.tick_length
+        t = self.yticks
+        font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+        rotate = None if t.horizontal else 90
+        d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
+               line_cap=&#39;round&#39;)
+        for v, l in zip(t.values, t.labels):
+            y = i.y + (v - t.amin) / (t.amax - t.amin) * i.h
+            if t.horizontal:
+                n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                         anchor=&#39;east&#39;)
+            else:
+                n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                         anchor=&#39;south&#39;)
+            d.draw((i.x - o, y), lineto((i.x - o - tl, y)), n)
+        if t.plabel is not None:
+            d.draw((i.x, i.y + i.h), node(f&#39;$10^{{{t.plabel}}}$&#39;),
+                   anchor=&#39;south&#39;)
+
+    # TODO: yaxis_right, maybe xaxis_top
+    # Axes options yaxis= &#39;left&#39;, &#39;right&#39;, None
+    # privatize xaxis, yaxis?
+
+    def _code(self):
+        &#34;returns TikZ code&#34;
+        code = (self.decorations._code() + &#39;\n&#39;
+                + super()._code(self.trans))
+        return code</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tikz.figure.Axes.xaxis"><code class="name flex">
+<span>def <span class="ident">xaxis</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def xaxis(self):
+    d = self.decorations
+    i = self.inner
+    o = cfg.axis_offset
+    tl = cfg.tick_length
+    t = self.xticks
+    # TODO: interface to select fontsize
+    #   as option font= / as standalone command
+    #   default font size for figure decorations
+    font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+    rotate = None if t.horizontal else 90
+    d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
+           line_cap=&#39;round&#39;)
+    for v, l in zip(t.values, t.labels):
+        x = i.x + (v - t.amin) / (t.amax - t.amin) * i.w
+        if t.horizontal:
+            n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                     anchor=&#39;north&#39;)
+        else:
+            n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                     anchor=&#39;east&#39;)
+        d.draw((x, i.y - o), lineto((x, i.y - o - tl)), n)
+    if t.plabel is not None:
+        d.draw((i.x + i.w, i.y), node(f&#39;$10^{{{t.plabel}}}$&#39;),
+               anchor=&#39;west&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.figure.Axes.yaxis"><code class="name flex">
+<span>def <span class="ident">yaxis</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def yaxis(self):
+    d = self.decorations
+    i = self.inner
+    o = cfg.axis_offset
+    tl = cfg.tick_length
+    t = self.yticks
+    font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+    rotate = None if t.horizontal else 90
+    d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
+           line_cap=&#39;round&#39;)
+    for v, l in zip(t.values, t.labels):
+        y = i.y + (v - t.amin) / (t.amax - t.amin) * i.h
+        if t.horizontal:
+            n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                     anchor=&#39;east&#39;)
+        else:
+            n = node(f&#39;${l}$&#39;, font=font, rotate=rotate,
+                     anchor=&#39;south&#39;)
+        d.draw((i.x - o, y), lineto((i.x - o - tl, y)), n)
+    if t.plabel is not None:
+        d.draw((i.x, i.y + i.h), node(f&#39;$10^{{{t.plabel}}}$&#39;),
+               anchor=&#39;south&#39;)</code></pre>
+</details>
+</dd>
+<dt id="tikz.figure.Axes.scope"><code class="name flex">
+<span>def <span class="ident">scope</span></span>(<span>self, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.scope" href="index.html#tikz.Scope.scope">scope</a></code>
+</p>
+<section class="desc inherited"><p>create and add scope to the current environment …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.path"><code class="name flex">
+<span>def <span class="ident">path</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.path" href="index.html#tikz.Scope.path">path</a></code>
+</p>
+<section class="desc inherited"><p>path action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.draw" href="index.html#tikz.Scope.draw">draw</a></code>
+</p>
+<section class="desc inherited"><p>draw action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.fill"><code class="name flex">
+<span>def <span class="ident">fill</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.fill" href="index.html#tikz.Scope.fill">fill</a></code>
+</p>
+<section class="desc inherited"><p>fill action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.filldraw"><code class="name flex">
+<span>def <span class="ident">filldraw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.filldraw" href="index.html#tikz.Scope.filldraw">filldraw</a></code>
+</p>
+<section class="desc inherited"><p>filldraw action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.pattern"><code class="name flex">
+<span>def <span class="ident">pattern</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.pattern" href="index.html#tikz.Scope.pattern">pattern</a></code>
+</p>
+<section class="desc inherited"><p>pattern action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.shade"><code class="name flex">
+<span>def <span class="ident">shade</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.shade" href="index.html#tikz.Scope.shade">shade</a></code>
+</p>
+<section class="desc inherited"><p>shade action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.shadedraw"><code class="name flex">
+<span>def <span class="ident">shadedraw</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.shadedraw" href="index.html#tikz.Scope.shadedraw">shadedraw</a></code>
+</p>
+<section class="desc inherited"><p>shadedraw action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.clip"><code class="name flex">
+<span>def <span class="ident">clip</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.clip" href="index.html#tikz.Scope.clip">clip</a></code>
+</p>
+<section class="desc inherited"><p>clip action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.useasboundingbox"><code class="name flex">
+<span>def <span class="ident">useasboundingbox</span></span>(<span>self, *spec, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.useasboundingbox" href="index.html#tikz.Scope.useasboundingbox">useasboundingbox</a></code>
+</p>
+<section class="desc inherited"><p>useasboundingbox action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.node"><code class="name flex">
+<span>def <span class="ident">node</span></span>(<span>self, contents, name=None, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.node" href="index.html#tikz.Scope.node">node</a></code>
+</p>
+<section class="desc inherited"><p>node action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.coordinate"><code class="name flex">
+<span>def <span class="ident">coordinate</span></span>(<span>self, name, at=None, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.coordinate" href="index.html#tikz.Scope.coordinate">coordinate</a></code>
+</p>
+<section class="desc inherited"><p>coordinate action …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.definecolor"><code class="name flex">
+<span>def <span class="ident">definecolor</span></span>(<span>self, name, colormodel, colorspec)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.definecolor" href="index.html#tikz.Scope.definecolor">definecolor</a></code>
+</p>
+<section class="desc inherited"><p>define a new color from a color specification …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.colorlet"><code class="name flex">
+<span>def <span class="ident">colorlet</span></span>(<span>self, name, colorexpr)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.colorlet" href="index.html#tikz.Scope.colorlet">colorlet</a></code>
+</p>
+<section class="desc inherited"><p>define a new color from a color expression …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.tikzset"><code class="name flex">
+<span>def <span class="ident">tikzset</span></span>(<span>self, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.tikzset" href="index.html#tikz.Scope.tikzset">tikzset</a></code>
+</p>
+<section class="desc inherited"><p>set options that apply for the rest of the current environment …</p></section>
+</dd>
+<dt id="tikz.figure.Axes.style"><code class="name flex">
+<span>def <span class="ident">style</span></span>(<span>self, name, opt=None, **kwoptions)</span>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="tikz.Scope" href="index.html#tikz.Scope">Scope</a></code>.<code><a title="tikz.Scope.style" href="index.html#tikz.Scope.style">style</a></code>
+</p>
+<section class="desc inherited"><p>define style …</p></section>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -1251,6 +1874,10 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li><code><a title="tikz.figure.cfg.padding_right" href="#tikz.figure.cfg.padding_right">padding_right</a></code></li>
 <li><code><a title="tikz.figure.cfg.padding_bottom" href="#tikz.figure.cfg.padding_bottom">padding_bottom</a></code></li>
 <li><code><a title="tikz.figure.cfg.padding_top" href="#tikz.figure.cfg.padding_top">padding_top</a></code></li>
+<li><code><a title="tikz.figure.cfg.clip_padding" href="#tikz.figure.cfg.clip_padding">clip_padding</a></code></li>
+<li><code><a title="tikz.figure.cfg.axis_offset" href="#tikz.figure.cfg.axis_offset">axis_offset</a></code></li>
+<li><code><a title="tikz.figure.cfg.tick_length" href="#tikz.figure.cfg.tick_length">tick_length</a></code></li>
+<li><code><a title="tikz.figure.cfg.tex_maxdimen" href="#tikz.figure.cfg.tex_maxdimen">tex_maxdimen</a></code></li>
 </ul>
 </li>
 <li>
@@ -1279,10 +1906,14 @@ style="width:100%;padding-left:40px;padding-right:40px">
 </ul>
 </li>
 <li>
+<h4><code><a title="tikz.figure.LayoutError" href="#tikz.figure.LayoutError">LayoutError</a></code></h4>
+</li>
+<li>
 <h4><code><a title="tikz.figure.Figure" href="#tikz.figure.Figure">Figure</a></code></h4>
 <ul class="two-column">
 <li><code><a title="tikz.figure.Figure.draw_layout" href="#tikz.figure.Figure.draw_layout">draw_layout</a></code></li>
 <li><code><a title="tikz.figure.Figure.title" href="#tikz.figure.Figure.title">title</a></code></li>
+<li><code><a title="tikz.figure.Figure.axes" href="#tikz.figure.Figure.axes">axes</a></code></li>
 <li><code><a title="tikz.figure.Figure.add_preamble" href="index.html#tikz.figure.Figure.add_preamble">add_preamble</a></code></li>
 <li><code><a title="tikz.figure.Figure.usetikzlibrary" href="index.html#tikz.figure.Figure.usetikzlibrary">usetikzlibrary</a></code></li>
 <li><code><a title="tikz.figure.Figure.usepackage" href="index.html#tikz.figure.Figure.usepackage">usepackage</a></code></li>
@@ -1290,11 +1921,8 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li><code><a title="tikz.figure.Figure.code" href="index.html#tikz.figure.Figure.code">code</a></code></li>
 <li><code><a title="tikz.figure.Figure.document_code" href="index.html#tikz.figure.Figure.document_code">document_code</a></code></li>
 <li><code><a title="tikz.figure.Figure.write_image" href="index.html#tikz.figure.Figure.write_image">write_image</a></code></li>
-<li><code><a title="tikz.figure.Figure.get_PDF" href="index.html#tikz.figure.Figure.get_PDF">get_PDF</a></code></li>
-<li><code><a title="tikz.figure.Figure.get_SVG" href="index.html#tikz.figure.Figure.get_SVG">get_SVG</a></code></li>
-<li><code><a title="tikz.figure.Figure.get_PNG" href="index.html#tikz.figure.Figure.get_PNG">get_PNG</a></code></li>
 <li><code><a title="tikz.figure.Figure.demo" href="index.html#tikz.figure.Figure.demo">demo</a></code></li>
-<li><code><a title="tikz.figure.Figure.add_scope" href="index.html#tikz.figure.Figure.add_scope">add_scope</a></code></li>
+<li><code><a title="tikz.figure.Figure.scope" href="index.html#tikz.figure.Figure.scope">scope</a></code></li>
 <li><code><a title="tikz.figure.Figure.path" href="index.html#tikz.figure.Figure.path">path</a></code></li>
 <li><code><a title="tikz.figure.Figure.draw" href="index.html#tikz.figure.Figure.draw">draw</a></code></li>
 <li><code><a title="tikz.figure.Figure.fill" href="index.html#tikz.figure.Figure.fill">fill</a></code></li>
@@ -1310,6 +1938,29 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li><code><a title="tikz.figure.Figure.colorlet" href="index.html#tikz.figure.Figure.colorlet">colorlet</a></code></li>
 <li><code><a title="tikz.figure.Figure.tikzset" href="index.html#tikz.figure.Figure.tikzset">tikzset</a></code></li>
 <li><code><a title="tikz.figure.Figure.style" href="index.html#tikz.figure.Figure.style">style</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tikz.figure.Axes" href="#tikz.figure.Axes">Axes</a></code></h4>
+<ul class="two-column">
+<li><code><a title="tikz.figure.Axes.xaxis" href="#tikz.figure.Axes.xaxis">xaxis</a></code></li>
+<li><code><a title="tikz.figure.Axes.yaxis" href="#tikz.figure.Axes.yaxis">yaxis</a></code></li>
+<li><code><a title="tikz.figure.Axes.scope" href="index.html#tikz.figure.Axes.scope">scope</a></code></li>
+<li><code><a title="tikz.figure.Axes.path" href="index.html#tikz.figure.Axes.path">path</a></code></li>
+<li><code><a title="tikz.figure.Axes.draw" href="index.html#tikz.figure.Axes.draw">draw</a></code></li>
+<li><code><a title="tikz.figure.Axes.fill" href="index.html#tikz.figure.Axes.fill">fill</a></code></li>
+<li><code><a title="tikz.figure.Axes.filldraw" href="index.html#tikz.figure.Axes.filldraw">filldraw</a></code></li>
+<li><code><a title="tikz.figure.Axes.pattern" href="index.html#tikz.figure.Axes.pattern">pattern</a></code></li>
+<li><code><a title="tikz.figure.Axes.shade" href="index.html#tikz.figure.Axes.shade">shade</a></code></li>
+<li><code><a title="tikz.figure.Axes.shadedraw" href="index.html#tikz.figure.Axes.shadedraw">shadedraw</a></code></li>
+<li><code><a title="tikz.figure.Axes.clip" href="index.html#tikz.figure.Axes.clip">clip</a></code></li>
+<li><code><a title="tikz.figure.Axes.useasboundingbox" href="index.html#tikz.figure.Axes.useasboundingbox">useasboundingbox</a></code></li>
+<li><code><a title="tikz.figure.Axes.node" href="index.html#tikz.figure.Axes.node">node</a></code></li>
+<li><code><a title="tikz.figure.Axes.coordinate" href="index.html#tikz.figure.Axes.coordinate">coordinate</a></code></li>
+<li><code><a title="tikz.figure.Axes.definecolor" href="index.html#tikz.figure.Axes.definecolor">definecolor</a></code></li>
+<li><code><a title="tikz.figure.Axes.colorlet" href="index.html#tikz.figure.Axes.colorlet">colorlet</a></code></li>
+<li><code><a title="tikz.figure.Axes.tikzset" href="index.html#tikz.figure.Axes.tikzset">tikzset</a></code></li>
+<li><code><a title="tikz.figure.Axes.style" href="index.html#tikz.figure.Axes.style">style</a></code></li>
 </ul>
 </li>
 </ul>
