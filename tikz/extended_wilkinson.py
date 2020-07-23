@@ -192,6 +192,7 @@ class TicksGenerator:
             dmin, dmax = dmax, dmin
 
         # threshold for optimization
+        ticks = None
         best_score = -2
 
         # We combine the j and q loops into one to enable breaking out of both
@@ -275,6 +276,14 @@ class TicksGenerator:
                         if score > best_score:
                             best_score = score
 
+        if ticks is None:
+            # no solution found: no ticks
+            print('Warning: Could not determine ticks.')
+            ticks = Ticks(
+                amin=dmin,
+                amax=dmax,
+                decimal_values=[],
+                labels=[])
         return ticks
 
 
@@ -374,7 +383,7 @@ class Ticks:
                 step = (
                     (values[1] - values[0])         # numerical
                     / (self.amax - self.amin)       # relative to axis
-                    * axis_length                        # physical, in cm
+                    * axis_length                   # physical, in cm
                     /
                     (fs / 72.27 * 2.54)             # font size, in cm
                     )
