@@ -19,14 +19,16 @@ results:
 -   row heights
 -   ...
 
-all lengths in cm, or whatever the `xy` coordinate system has been set to
+all lengths in cm
 """
 
 # Copyright (C) 2020 Carsten Allefeld
 
 import numpy as np
 import collections
-from tikz import Picture, rectangle, options
+import math
+from tikz import Picture, Scope, rectangle, options, lineto, node
+from tikz.extended_wilkinson import TicksGenerator
 
 
 class cfg:
@@ -50,6 +52,11 @@ class cfg:
     "bottom view padding, default 1"
     padding_top = 0.5
     "top view padding, default 0.5"
+
+    clip_padding = 0.07
+    axis_offset = 0.14
+    tick_length = 0.1
+    tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54
 
 
 class Box:
@@ -135,6 +142,9 @@ class SimpleLayout(Layout):
         pb = parameters.get('padding_bottom', cfg.padding_bottom)
         pt = parameters.get('padding_top', cfg.padding_top)
         ar = parameters.get('aspect_ratio', 4/3)
+        # check width
+        if self.width <= 2 * mh + pl + pr:
+            raise LayoutError(f'width {self.width} is too small')
         # compute
         iw = self.width - 2 * mh - pl - pr
         ih = iw / ar
@@ -191,6 +201,10 @@ class FlexibleGridLayout(Layout):
         # create & store empty View object
         v = View()
         self.views.append(v)
+        # check width
+        if self.width <= (2 * self.mh + self.pl + self.pr
+                          + self.gh * max(self.ct)):
+            raise LayoutError(f'width {self.width} too small')
 
     def _compute(self):
         # What we have to compute are the outer and inner box of each view. To
@@ -291,29 +305,48 @@ class FlexibleGridLayout(Layout):
                 print(f'Warning: View {i} aspect ratio is {iw / ih}.')
 
 
+class LayoutError(Exception):
+    """
+    error in computing Layout
+    """
+    pass
+
+
 class Figure(Picture):
-    def __init__(self, layout=None, opt=None, **kwoptions):
-        super().__init__(opt=opt, **kwoptions)
+    def __init__(self, layout=None, opt=None, **parameters):
+        super().__init__(opt=opt)
+        # process layout
         if layout is None:
-            layout = SimpleLayout()
+            layout = SimpleLayout(**parameters)
         self.layout = layout
-        # ensure minimum bounding box of figure
         self.width, self.height = layout.get_dimensions()
+        self.views = layout.get_views()
+        # ensure minimum bounding box of figure
         self.path((0, 0), (self.width, self.height))
         # use font Fira
         self.fira()
-        # TODO: create `TicksGenerator`, with Fira metrics
+        font_metrics = {
+            'offset': 0.1, '-': 0.4, '1': 0.56, '2': 0.56, '3': 0.56,
+            '4': 0.56, '5': 0.56, '6': 0.56, '7': 0.56, '8': 0.56, '9': 0.56,
+            '0': 0.56, '.': 0.24, 'height': 0.723}
+        # TODO: general mechanism to register fonts?
+        #   or at least keep font activation code and font_metrics together?
+        # create `TicksGenerator`
+        self.ticks_generator = TicksGenerator(
+            [8, 9], 1 / 1.5, font_metrics=font_metrics)
+        # TODO: `cfg`urize font sizes and target density
 
     def draw_layout(self):
         "draw layout"
-        scope = self.add_scope(color='red')
+        scope = self.scope(color='red')
         self.layout._draw(scope)
 
     def title(self, label, margin_vertical=None):
         # TODO: use another parameter name, and corresponding cfg?
+        #   spaces are off as they are
         if margin_vertical is None:
             margin_vertical = cfg.margin_vertical
-        scope = self.add_scope()
+        scope = self.scope()
         # position title such that descenders touch Layout
         scope.node(label, at=(self.width / 2, self.height),
                    anchor='base', yshift='depth("gjpqy")', name='title',
@@ -326,3 +359,144 @@ class Figure(Picture):
         # see https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.4.4
         # Also, predefine this height and depth for ease of use? – No, because
         # it depends on the font size. But maybe define macros.
+
+    def axes(self, xlim, ylim, view_no=0, xaxis=True, yaxis=True):
+        a = Axes(self.views[view_no], xlim, ylim, self.ticks_generator,
+                 xaxis=xaxis, yaxis=yaxis)
+        self._append(a)
+        return a
+
+
+class Axes(Scope):
+    def __init__(self, view, xlim, ylim, ticks_generator, xaxis, yaxis):
+        super().__init__()
+        self.inner = view.inner
+        self.outer = view.outer
+        self.xticks = ticks_generator.ticks(*xlim, self.inner.w, True)
+        self.yticks = ticks_generator.ticks(*ylim, self.inner.h, False)
+
+        xmin = self.xticks.amin
+        xrange = self.xticks.amax - xmin
+        ymin = self.yticks.amin
+        yrange = self.yticks.amax - ymin
+
+        # Sub-scope for axes decoration in which the origin remains in the
+        # lower left corner of the figure, and xy remains at its 1 cm default.
+        # Moreover, coordinates are not subject to transformation and drawing
+        # is not clipped.
+        self.decorations = Scope()
+
+        # convenience
+        x, y, w, h = self.inner.x, self.inner.y, self.inner.w, self.inner.h
+
+        # Drawing is clipped to the inner box, with a bit of padding.
+        pad = cfg.clip_padding
+        self.clip(f'({x - pad}cm,{y - pad}cm)',
+                  rectangle(f'({x + w + pad}cm, {y + h + pad}cm)'))
+
+        # The Axes scope itself sets an origin in the left bottom corner of
+        # the inner box, and xy set up such that [0, 1] covers the whole inner
+        # width / height.
+        self.tikzset(xshift=f'{x}cm',
+                     yshift=f'{y}cm',
+                     x=f'{w}cm',
+                     y=f'{h}cm')
+
+        # coordinate limits from cfg.tex_maxdimen
+        cxmin = (-cfg.tex_maxdimen - x) / w * xrange + xmin
+        cxmax = (cfg.tex_maxdimen - x) / w * xrange + xmin
+        cymin = (-cfg.tex_maxdimen - y) / h * yrange + ymin
+        cymax = (cfg.tex_maxdimen - y) / h * yrange + ymin
+        print((cxmin, cxmax), (cymin, cymax))
+
+        # Transformation which maps coordinates from the axis' ranges
+        # onto [0, 1], to be passed to *`.code()` and `_coordinate_code`.
+        def transformation(coord):
+            cx, cy = coord
+            if not isinstance(cx, str):
+                # check too large
+                if cx < cxmin:
+                    print(f'Warning: x coordinate {cx} clipped to {cxmin}.')
+                    cx = cxmin
+                if cx > cxmax:
+                    print(f'Warning: x coordinate {cx} clipped to {cxmax}.')
+                    cx = cxmax
+                # transform x
+                cx = (cx - xmin) / xrange
+            if not isinstance(cy, str):
+                # check too large
+                if cy < cymin:
+                    print(f'Warning: y coordinate {cy} clipped to {cymin}.')
+                    cy = cymin
+                if cy > cymax:
+                    print(f'Warning: x coordinate {cy} clipped to {cymax}.')
+                    cy = cymax
+                # transform y
+                cy = (cy - ymin) / yrange
+            return cx, cy
+        self.trans = transformation
+
+        if xaxis:
+            self.xaxis()
+        if yaxis:
+            self.yaxis()
+
+    def xaxis(self):
+        d = self.decorations
+        i = self.inner
+        o = cfg.axis_offset
+        tl = cfg.tick_length
+        t = self.xticks
+        # TODO: interface to select fontsize
+        #   as option font= / as standalone command
+        #   default font size for figure decorations
+        font = f'\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont'
+        rotate = None if t.horizontal else 90
+        d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
+               line_cap='round')
+        for v, l in zip(t.values, t.labels):
+            x = i.x + (v - t.amin) / (t.amax - t.amin) * i.w
+            if t.horizontal:
+                n = node(f'${l}$', font=font, rotate=rotate,
+                         anchor='north')
+            else:
+                n = node(f'${l}$', font=font, rotate=rotate,
+                         anchor='east')
+            d.draw((x, i.y - o), lineto((x, i.y - o - tl)), n)
+        if t.plabel is not None:
+            d.draw((i.x + i.w, i.y), node(f'$10^{{{t.plabel}}}$'),
+                   anchor='west')
+        # TODO: standardize / `cfg`urize label and plabel padding
+
+    def yaxis(self):
+        d = self.decorations
+        i = self.inner
+        o = cfg.axis_offset
+        tl = cfg.tick_length
+        t = self.yticks
+        font = f'\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont'
+        rotate = None if t.horizontal else 90
+        d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
+               line_cap='round')
+        for v, l in zip(t.values, t.labels):
+            y = i.y + (v - t.amin) / (t.amax - t.amin) * i.h
+            if t.horizontal:
+                n = node(f'${l}$', font=font, rotate=rotate,
+                         anchor='east')
+            else:
+                n = node(f'${l}$', font=font, rotate=rotate,
+                         anchor='south')
+            d.draw((i.x - o, y), lineto((i.x - o - tl, y)), n)
+        if t.plabel is not None:
+            d.draw((i.x, i.y + i.h), node(f'$10^{{{t.plabel}}}$'),
+                   anchor='south')
+
+    # TODO: yaxis_right, maybe xaxis_top
+    # Axes options yaxis= 'left', 'right', None
+    # privatize xaxis, yaxis?
+
+    def code(self):
+        "returns TikZ code"
+        code = (self.decorations.code() + '\n'
+                + super().code(self.trans))
+        return code

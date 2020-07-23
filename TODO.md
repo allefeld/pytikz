@@ -29,9 +29,9 @@
   - simple GridLayout (like Matlab's subplot)
   - function to split existing View into grid (similar to Matlab's plotmatrix)  – is that compatible with automatic spacing? Yes, parameters just need to be interpreted consistently.
 
-- Axis should provide a method to insert another axis (an inset), based on an independent View (not bound to a Figure / managed by a Layout). Boxes of such a view should either be specified in data coordinates or in local coordinates relative to the Axis' inner Box.
+- Axes should provide a method to insert another axes (an inset), based on an independent View (not bound to a Figure / managed by a Layout). Boxes of such a view should either be specified in data coordinates or in local coordinates relative to the Axes' inner Box.
 
-- An Axis is always based on a View, but a View can used for several Axis', e.g. a second y-scale.
+- An Axes is always based on a View, but a View can used for several Axes', for example for a second y-scale.
 
 
 
