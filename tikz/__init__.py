@@ -190,13 +190,15 @@ def _str_or_numeric_code(x):
         return '{:.5f}'.format(x).rstrip('0').rstrip('.')
 
 
-def _coordinate_code(coord):
+def _coordinate_code(coord, trans=None):
     "returns TikZ code for coordinate"
     # assumes the argument has already been normalized
     if _str(coord):
         # leave string as-is
         return coord
     else:
+        if trans is not None:
+            coord = trans(coord)
         return '(' + ','.join(map(_str_or_numeric_code, coord)) + ')'
 
 
@@ -224,7 +226,7 @@ class Raw:
     def __init__(self, string):
         self.string = string
 
-    def code(self):
+    def code(self, trans=None):
         """
         returns TikZ code
 
@@ -265,10 +267,11 @@ class moveto(Operation):
         # normalize coordinates
         self.coords = _sequence(coords, accept_coordinate=True)
 
-    def code(self):
+    def code(self, trans=None):
         # put move-to operation before each coordinate,
         # for the first one implicitly
-        return ' '.join(_coordinate_code(coord) for coord in self.coords)
+        return ' '.join(_coordinate_code(coord, trans)
+                        for coord in self.coords)
 
 
 class lineto(Operation):
@@ -287,10 +290,10 @@ class lineto(Operation):
         self.coords = _sequence(coords, accept_coordinate=True)
         self.op = op
 
-    def code(self):
+    def code(self, trans=None):
         # put line-to operation before each coordinate
         return f'{self.op} ' + f' {self.op} '.join(
-            _coordinate_code(coord) for coord in self.coords)
+            _coordinate_code(coord, trans) for coord in self.coords)
 
 
 class line(Operation):
@@ -304,11 +307,11 @@ class line(Operation):
         self.coords = _sequence(coords)
         self.op = op
 
-    def code(self):
+    def code(self, trans=None):
         # put line-to operation between coordinates
         # (implicit move-to before first)
         return f' {self.op} '.join(
-            _coordinate_code(coord) for coord in self.coords)
+            _coordinate_code(coord, trans) for coord in self.coords)
 
 
 class curveto(Operation):
@@ -328,11 +331,11 @@ class curveto(Operation):
         else:
             self.control2 = None
 
-    def code(self):
-        code = '.. controls ' + _coordinate_code(self.control1)
+    def code(self, trans=None):
+        code = '.. controls ' + _coordinate_code(self.control1, trans)
         if self.control2 is not None:
-            code += ' and ' + _coordinate_code(self.control2)
-        code += ' ..' + ' ' + _coordinate_code(self.coord)
+            code += ' and ' + _coordinate_code(self.control2, trans)
+        code += ' ..' + ' ' + _coordinate_code(self.coord, trans)
         return code
 
 
@@ -348,8 +351,8 @@ class rectangle(Operation):
         # normalize coordinate
         self.coord = _coordinate(coord)
 
-    def code(self):
-        return ('rectangle ' + _coordinate_code(self.coord))
+    def code(self, trans=None):
+        return ('rectangle ' + _coordinate_code(self.coord, trans))
 
 
 class circle(Operation):
@@ -383,15 +386,17 @@ class circle(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.x_radius == self.y_radius:
-            kwoptions['radius'] = self.x_radius
+        if trans is not None:
+            x_radius, y_radius = trans(self.x_radius, self.y_radius)
+        if x_radius == y_radius:
+            kwoptions['radius'] = x_radius
         else:
-            kwoptions['x_radius'] = self.x_radius
-            kwoptions['y_radius'] = self.y_radius
+            kwoptions['x_radius'] = x_radius
+            kwoptions['y_radius'] = y_radius
         if self.at is not None:
-            kwoptions['at'] = _coordinate_code(self.at)
+            kwoptions['at'] = _coordinate_code(self.at, None)
         return 'circle' + _options_code(opt=self.opt, **self.kwoptions)
 
 
@@ -418,13 +423,15 @@ class arc(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.x_radius == self.y_radius:
-            kwoptions['radius'] = self.x_radius
+        if trans is not None:
+            x_radius, y_radius = trans(self.x_radius, self.y_radius)
+        if x_radius == y_radius:
+            kwoptions['radius'] = x_radius
         else:
-            kwoptions['x_radius'] = self.x_radius
-            kwoptions['y_radius'] = self.y_radius
+            kwoptions['x_radius'] = x_radius
+            kwoptions['y_radius'] = y_radius
         return 'arc' + _options_code(opt=self.opt, **kwoptions)
 
 
@@ -454,15 +461,17 @@ class grid(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         kwoptions = self.kwoptions
-        if self.xstep == self.ystep:
-            kwoptions['step'] = self.xstep
+        if trans is not None:
+            xstep, ystep = trans(self.xstep, self.ystep)
+        if xstep == ystep:
+            kwoptions['step'] = xstep
         else:
-            kwoptions['xstep'] = self.xstep
-            kwoptions['ystep'] = self.ystep
+            kwoptions['xstep'] = xstep
+            kwoptions['ystep'] = ystep
         return ('grid' + _options_code(opt=self.opt, **kwoptions)
-                + ' ' + _coordinate_code(self.coord))
+                + ' ' + _coordinate_code(self.coord, trans))
 
 
 class parabola(Operation):
@@ -483,11 +492,11 @@ class parabola(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         code = 'parabola' + _options_code(opt=self.opt, **self.kwoptions)
         if self.bend is not None:
-            code += ' bend ' + _coordinate_code(self.bend)
-        code += ' ' + _coordinate_code(self.coord)
+            code += ' bend ' + _coordinate_code(self.bend, trans)
+        code += ' ' + _coordinate_code(self.coord, trans)
         return code
 
 
@@ -505,9 +514,9 @@ class sin(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         return ('sin' + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + _coordinate_code(self.coord))
+                + ' ' + _coordinate_code(self.coord, trans))
 
 
 class cos(Operation):
@@ -524,9 +533,9 @@ class cos(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         return ('cos' + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + _coordinate_code(self.coord))
+                + ' ' + _coordinate_code(self.coord, trans))
 
 
 class topath(Operation):
@@ -543,9 +552,9 @@ class topath(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         return ('to' + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + _coordinate_code(self.coord))
+                + ' ' + _coordinate_code(self.coord, trans))
 
 
 class node(Operation):
@@ -581,7 +590,7 @@ class node(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         if not self.headless:
             code = 'node'
         else:
@@ -590,7 +599,7 @@ class node(Operation):
         if self.name is not None:
             code += f' ({self.name})'
         if self.at is not None:
-            code += ' at ' + _coordinate_code(self.at)
+            code += ' at ' + _coordinate_code(self.at, trans)
         code += ' {' + self.contents + '}'
         if self.headless:
             code = code.lstrip()
@@ -625,7 +634,7 @@ class coordinate(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         if not self.headless:
             code = 'coordinate'
         else:
@@ -633,7 +642,7 @@ class coordinate(Operation):
         code += _options_code(opt=self.opt, **self.kwoptions)
         code += f' ({self.name})'
         if self.at is not None:
-            code += ' at ' + _coordinate_code(self.at)
+            code += ' at ' + _coordinate_code(self.at, trans)
         if self.headless:
             code = code.lstrip()
         return code
@@ -662,16 +671,16 @@ class plot(Operation):
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
-        # The 'file' variant may be used in the future as an alternative to
-        # coordinates when there are many points.
+    def code(self, trans=None):
+        # TODO: Use the 'file' variant as an alternative to 'coordinates' when
+        #   there are many points.
         if self.to:
             code = '--plot'
         else:
             code = 'plot'
         code += _options_code(opt=self.opt, **self.kwoptions)
         code += ' coordinates {' + ' '.join(
-            _coordinate_code(coord) for coord in self.coords) + '}'
+            _coordinate_code(coord, trans) for coord in self.coords) + '}'
         return code
 
 
@@ -726,11 +735,11 @@ class Action:
         self.opt = opt
         self.kwoptions = kwoptions
 
-    def code(self):
+    def code(self, trans=None):
         "returns TikZ code"
         return ('\\' + self.action_name
                 + _options_code(opt=self.opt, **self.kwoptions)
-                + ' ' + ' '.join(op.code() for op in self.spec) + ';')
+                + ' ' + ' '.join(op.code(trans) for op in self.spec) + ';')
 
 
 # environments
@@ -744,7 +753,7 @@ class Scope:
     that options can be applied to them in total.
 
     Do not instantiate this class, but use the
-    [<code>add_scope()</code>](#tikz.Scope.addscope) method of `Picture` or
+    [<code>scope()</code>](#tikz.Scope.addscope) method of `Picture` or
     another environment.
 
     see
@@ -765,7 +774,7 @@ class Scope:
         """
         self.elements.append(el)
 
-    def add_scope(self, opt=None, **kwoptions):
+    def scope(self, opt=None, **kwoptions):
         """
         create and add scope to the current environment
 
@@ -775,10 +784,10 @@ class Scope:
         self._append(s)
         return s
 
-    def code(self):
+    def code(self, trans=None):
         "returns TikZ code"
         code = r'\begin{scope}' + self.opt + '\n'
-        code += '\n'.join(el.code() for el in self.elements) + '\n'
+        code += '\n'.join(el.code(trans) for el in self.elements) + '\n'
         code += r'\end{scope}'
         return code
 
@@ -1161,7 +1170,7 @@ class Picture(Scope):
             with open(filename, 'w') as f:
                 f.write(svg)
         else:
-            print(f'format {ext[1:]} is not supported')
+            raise ValueError(f'format {ext[1:]} is not supported')
 
     def get_PDF(self):
         "return PDF data of `Picture`"
@@ -1224,6 +1233,7 @@ class Picture(Scope):
             tikz_error = message.find('! ')
             if tikz_error != -1:
                 message = message[tikz_error:]
+            print('LatexError: LaTeX has failed')
             print(message)
         code_escaped = html.escape(self.code())
         IPython.display.display(
