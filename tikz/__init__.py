@@ -1017,7 +1017,7 @@ class Picture(Scope):
             # make sure it gets deleted
             atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
         else:
-            self.tempdir=temdir
+            self.tempdir=tempdir
 
     def add_preamble(self, code):
         """
