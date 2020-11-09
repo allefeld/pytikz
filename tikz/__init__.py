@@ -1004,20 +1004,20 @@ class Picture(Scope):
     [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
     """
 
-    def __init__(self, opt=None, useTemp='', noCache=False, **kwoptions):
-        # permit user to select "temp" directory for LaTeX processing.
-        # set noCache to `True` to always rebuild
+    def __init__(self, opt=None, tempdir='', cache=True, **kwoptions):
+        # tempdir: permit user to select "temp" directory for LaTeX processing.
+        # set cache to `False` to rebuild even if the tikz code is unchanged.
         super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
-        self.noCache = noCache
+        self.cache = cache
         # create temporary directory for pdflatex etc.
-        if not useTemp:
+        if not tempdir:
             self.tempdir = tempfile.mkdtemp(prefix='tikz-')
             # make sure it gets deleted
             atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
         else:
-            self.tempdir=useTemp
+            self.tempdir=temdir
 
     def add_preamble(self, code):
         """
@@ -1119,7 +1119,7 @@ class Picture(Scope):
         # in the PDF filename, and to skip creation if that file exists.
         hash = hashlib.sha1(code.encode()).hexdigest()
         self.temp_pdf = self.tempdir + sep + 'tikz-' + hash + '.pdf'
-        if not self.noCache and os.path.isfile(self.temp_pdf):
+        if self.cache and os.path.isfile(self.temp_pdf):
             return
 
         # create LaTeX file
