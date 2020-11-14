@@ -337,13 +337,20 @@ class LayoutError(Exception):
 
 
 class Figure(Picture):
-    def __init__(self, layout=None, opt=None, **parameters):
+    def __init__(self, layout=None, tempdir=None, cache=True, font=None,
+                 opt=None, **layout_parameters):
+        if font is None:
+            font = fontsize(cfg.figure_fontsize)
+        else:
+            font = fontsize(cfg.figure_fontsize) + font
         super().__init__(
-            font=fontsize(cfg.figure_fontsize),
-            opt=opt)
+            tempdir=tempdir,
+            cache=cache,
+            opt=opt,
+            font=font)
         # process layout
         if layout is None:
-            layout = SimpleLayout(**parameters)
+            layout = SimpleLayout(**layout_parameters)
         self.layout = layout
         self.width, self.height = layout.get_dimensions()
         self.views = layout.get_views()

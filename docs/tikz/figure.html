@@ -398,13 +398,20 @@ class LayoutError(Exception):
 
 
 class Figure(Picture):
-    def __init__(self, layout=None, opt=None, **parameters):
+    def __init__(self, layout=None, tempdir=None, cache=True, font=None,
+                 opt=None, **layout_parameters):
+        if font is None:
+            font = fontsize(cfg.figure_fontsize)
+        else:
+            font = fontsize(cfg.figure_fontsize) + font
         super().__init__(
-            font=fontsize(cfg.figure_fontsize),
-            opt=opt)
+            tempdir=tempdir,
+            cache=cache,
+            opt=opt,
+            font=font)
         # process layout
         if layout is None:
-            layout = SimpleLayout(**parameters)
+            layout = SimpleLayout(**layout_parameters)
         self.layout = layout
         self.width, self.height = layout.get_dimensions()
         self.views = layout.get_views()
@@ -1160,7 +1167,7 @@ they are implemented in a method overriding <code>_compute</code>.</p></section>
 </dd>
 <dt id="tikz.figure.Figure"><code class="flex name class">
 <span>class <span class="ident">Figure</span></span>
-<span>(</span><span>layout=None, opt=None, **parameters)</span>
+<span>(</span><span>layout=None, tempdir=None, cache=True, font=None, opt=None, **layout_parameters)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>tikzpicture environment</p>
@@ -1177,13 +1184,20 @@ generated even though the TikZ code has not changed.</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Figure(Picture):
-    def __init__(self, layout=None, opt=None, **parameters):
+    def __init__(self, layout=None, tempdir=None, cache=True, font=None,
+                 opt=None, **layout_parameters):
+        if font is None:
+            font = fontsize(cfg.figure_fontsize)
+        else:
+            font = fontsize(cfg.figure_fontsize) + font
         super().__init__(
-            font=fontsize(cfg.figure_fontsize),
-            opt=opt)
+            tempdir=tempdir,
+            cache=cache,
+            opt=opt,
+            font=font)
         # process layout
         if layout is None:
-            layout = SimpleLayout(**parameters)
+            layout = SimpleLayout(**layout_parameters)
         self.layout = layout
         self.width, self.height = layout.get_dimensions()
         self.views = layout.get_views()
