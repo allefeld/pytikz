@@ -699,6 +699,18 @@ def options(opt=None, **kwoptions):
     return _options_code(opt=opt, **kwoptions)
 
 
+def fontsize(size, skip=None):
+    """
+    code for LaTeX command to change the font size
+
+    Can be specified e.g. as the value of a `font=` option.
+    """
+    if skip is None:
+        # 20% leading
+        skip = round(1.2 * size, 2)
+    return f'\\fontsize{{{size}}}{{{skip}}}\\selectfont'
+
+
 # actions on paths
 
 def _operation(op):
