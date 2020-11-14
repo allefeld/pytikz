@@ -74,7 +74,7 @@ Option
 
     For embedding options within a path specification, the function `options` can be used.
 
-    Classes, methods or functions that accept options contain opt=None, **kwoptions in their signature.
+    Classes, methods or functions that accept options contain `opt=None, **kwoptions` in their signature.
 
 
 ## Color

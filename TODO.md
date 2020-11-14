@@ -17,6 +17,8 @@
 
 ## tikz.figure
 
+- Polish and document.
+
 - Implement 'normalization'. Keep vertical alignment e.g. by `\phantom`izing the trailing decimal point and '0's.
 
 - If x- and y-axis have the save `dmin, dmax, alen`, just use the horizontal labeling for the vertical, too, but without rotation.

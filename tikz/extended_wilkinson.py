@@ -341,9 +341,9 @@ class Ticks:
         # tick values
         values = self.values
         # minimum font size
-        fs_min = font_sizes[0]
+        fs_min = min(font_sizes)
         # target font size
-        fs_t = font_sizes[-1]
+        fs_t = max(font_sizes)
 
         # optimization
         self.opt_legibility = float('-inf')

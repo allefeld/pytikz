@@ -26,9 +26,13 @@ all lengths in cm
 
 import numpy as np
 import collections
-import math
-from tikz import Picture, Scope, rectangle, options, lineto, node
+from tikz import Picture, Scope, rectangle, options, lineto, node, fontsize
 from tikz.extended_wilkinson import TicksGenerator
+
+tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54
+"maximum length that can be processed by TeX"
+# theoretical: 575.8317415420323
+# TODO: -575.831685 is too large!
 
 
 class cfg:
@@ -53,10 +57,30 @@ class cfg:
     padding_top = 0.5
     "top view padding, default 0.5"
 
-    clip_padding = 0.07
-    axis_offset = 0.14
+    figure_fontsize = 10
+    """
+    default font size within figure, default 10 pt
+
+    This font size applies to the figure title, axes titles and labels, as well
+    as to user-created text nodes unless overridden.
+    """
+    decorations_fontsize = 9
+    "font size for axes decorations, default 9 pt"
+    ticks_fontsizes = [8, 9]
+    """
+    list of font sizes for tick labels
+
+    The largest font size is the default, smaller sizes are used if there is
+    not enough space.
+    """
+    tick_density = 0.75
+    "target number of ticks per cm, default 0.75"
+    clip_margin = 0.8 / 72.27 * 2.54
+    "width by which the clip region is larger than the axes, default 0.8 pt"
+    axis_offset = 0.1
+    "offset of axis lines from axes region, default 1 mm"
     tick_length = 0.1
-    tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54
+    "length of tick lines, default 1 mm"
 
 
 class Box:
@@ -314,15 +338,17 @@ class LayoutError(Exception):
 
 class Figure(Picture):
     def __init__(self, layout=None, opt=None, **parameters):
-        super().__init__(opt=opt)
+        super().__init__(
+            font=fontsize(cfg.figure_fontsize),
+            opt=opt)
         # process layout
         if layout is None:
             layout = SimpleLayout(**parameters)
         self.layout = layout
         self.width, self.height = layout.get_dimensions()
         self.views = layout.get_views()
-        # ensure minimum bounding box of figure
-        self.path((0, 0), (self.width, self.height))
+        # ensure bounding box of figure
+        self.clip((0, 0), rectangle((self.width, self.height)))
         # use font Fira
         self.fira()
         font_metrics = {
@@ -333,8 +359,9 @@ class Figure(Picture):
         #   or at least keep font activation code and font_metrics together?
         # create `TicksGenerator`
         self.ticks_generator = TicksGenerator(
-            [8, 9], 1 / 1.5, font_metrics=font_metrics)
-        # TODO: `cfg`urize font sizes and target density
+            cfg.ticks_fontsizes,
+            cfg.tick_density,
+            font_metrics=font_metrics)
 
     def draw_layout(self):
         "draw layout"
@@ -344,6 +371,8 @@ class Figure(Picture):
     def title(self, label, margin_vertical=None):
         # TODO: use another parameter name, and corresponding cfg?
         #   spaces are off as they are
+        # Make this a layout option, overridden when creating the layout,
+        # and read from the layout here.
         if margin_vertical is None:
             margin_vertical = cfg.margin_vertical
         scope = self.scope()
@@ -380,17 +409,17 @@ class Axes(Scope):
         ymin = self.yticks.amin
         yrange = self.yticks.amax - ymin
 
-        # Sub-scope for axes decoration in which the origin remains in the
+        # Sub-scope for axes decorations in which the origin remains in the
         # lower left corner of the figure, and xy remains at its 1 cm default.
         # Moreover, coordinates are not subject to transformation and drawing
         # is not clipped.
-        self.decorations = Scope()
+        self.decorations = Scope(font=fontsize(cfg.decorations_fontsize))
 
         # convenience
         x, y, w, h = self.inner.x, self.inner.y, self.inner.w, self.inner.h
 
         # Drawing is clipped to the inner box, with a bit of padding.
-        pad = cfg.clip_padding
+        pad = cfg.clip_margin
         self.clip(f'({x - pad}cm,{y - pad}cm)',
                   rectangle(f'({x + w + pad}cm, {y + h + pad}cm)'))
 
@@ -402,11 +431,11 @@ class Axes(Scope):
                      x=f'{w}cm',
                      y=f'{h}cm')
 
-        # coordinate limits from cfg.tex_maxdimen
-        cxmin = (-cfg.tex_maxdimen - x) / w * xrange + xmin
-        cxmax = (cfg.tex_maxdimen - x) / w * xrange + xmin
-        cymin = (-cfg.tex_maxdimen - y) / h * yrange + ymin
-        cymax = (cfg.tex_maxdimen - y) / h * yrange + ymin
+        # coordinate limits from tex_maxdimen
+        cxmin = (-tex_maxdimen - x) / w * xrange + xmin
+        cxmax = (tex_maxdimen - x) / w * xrange + xmin
+        cymin = (-tex_maxdimen - y) / h * yrange + ymin
+        cymax = (tex_maxdimen - y) / h * yrange + ymin
 
         # Transformation which maps coordinates from the axis' ranges
         # onto [0, 1], to be passed to *`.code()` and `_coordinate_code`.
@@ -435,6 +464,8 @@ class Axes(Scope):
             return cx, cy
         self.trans = transformation
 
+        # TODO: postpone to allow modification?
+        #   or let specify Ticks instead of xlim, ylim?
         if xaxis:
             self.xaxis()
         if yaxis:
@@ -446,10 +477,10 @@ class Axes(Scope):
         o = cfg.axis_offset
         tl = cfg.tick_length
         t = self.xticks
-        # TODO: interface to select fontsize
-        #   as option font= / as standalone command
-        #   default font size for figure decorations
-        font = f'\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont'
+        if t.font_size != cfg.decorations_fontsize:
+            font = fontsize(t.font_size)
+        else:
+            font = None
         rotate = None if t.horizontal else 90
         d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
                line_cap='round')
@@ -473,7 +504,10 @@ class Axes(Scope):
         o = cfg.axis_offset
         tl = cfg.tick_length
         t = self.yticks
-        font = f'\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont'
+        if t.font_size != cfg.decorations_fontsize:
+            font = fontsize(t.font_size)
+        else:
+            font = None
         rotate = None if t.horizontal else 90
         d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
                line_cap='round')
