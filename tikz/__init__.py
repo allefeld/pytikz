@@ -1020,14 +1020,14 @@ class Picture(Scope):
     [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
     """
 
-    def __init__(self, opt=None, tempdir=None, cache=True, **kwoptions):
+    def __init__(self, tempdir=None, cache=True, opt=None, **kwoptions):
         super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
         # should the created PDF be cached?
         self.cache = cache
         # create temporary directory for pdflatex etc.
-        if tempdir is not None:
+        if tempdir is None:
             self.tempdir = tempfile.mkdtemp(prefix='tikz-')
             # make sure it gets deleted
             atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)

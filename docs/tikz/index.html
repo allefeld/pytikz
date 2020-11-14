@@ -1115,14 +1115,14 @@ class Picture(Scope):
     [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
     &#34;&#34;&#34;
 
-    def __init__(self, opt=None, tempdir=None, cache=True, **kwoptions):
+    def __init__(self, tempdir=None, cache=True, opt=None, **kwoptions):
         super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
         # should the created PDF be cached?
         self.cache = cache
         # create temporary directory for pdflatex etc.
-        if tempdir is not None:
+        if tempdir is None:
             self.tempdir = tempfile.mkdtemp(prefix=&#39;tikz-&#39;)
             # make sure it gets deleted
             atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
@@ -3063,7 +3063,7 @@ TikZ' default styles like the default draw style.</p>
 </dd>
 <dt id="tikz.Picture"><code class="flex name class">
 <span>class <span class="ident">Picture</span></span>
-<span>(</span><span>opt=None, tempdir=None, cache=True, **kwoptions)</span>
+<span>(</span><span>tempdir=None, cache=True, opt=None, **kwoptions)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>tikzpicture environment</p>
@@ -3095,14 +3095,14 @@ generated even though the TikZ code has not changed.</p>
     [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
     &#34;&#34;&#34;
 
-    def __init__(self, opt=None, tempdir=None, cache=True, **kwoptions):
+    def __init__(self, tempdir=None, cache=True, opt=None, **kwoptions):
         super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
         # should the created PDF be cached?
         self.cache = cache
         # create temporary directory for pdflatex etc.
-        if tempdir is not None:
+        if tempdir is None:
             self.tempdir = tempfile.mkdtemp(prefix=&#39;tikz-&#39;)
             # make sure it gets deleted
             atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
