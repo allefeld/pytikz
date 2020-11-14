@@ -80,7 +80,7 @@ notebook seamless.</p>
 <dd>
 <p>An option is specified as a keyword argument (<code>**kwoptions</code>) and/or as a string (<code>opt</code>); the string is included as-is in the TikZ-formatted option string. TikZ keys that contain spaces are specified with an underscore <code>_</code> in their place. TikZ keys that do not take a value are specified with the value <code>True</code>. Keys with the value <code>None</code> are not passed to TikZ.</p>
 <p>For embedding options within a path specification, the function <a title="tikz.options" href="#tikz.options"><code>options()</code></a> can be used.</p>
-<p>Classes, methods or functions that accept options contain opt=None, **kwoptions in their signature.</p>
+<p>Classes, methods or functions that accept options contain <code>opt=None, **kwoptions</code> in their signature.</p>
 </dd>
 </dl>
 <h2 id="color">Color</h2>
@@ -794,6 +794,18 @@ def options(opt=None, **kwoptions):
     return _options_code(opt=opt, **kwoptions)
 
 
+def fontsize(size, skip=None):
+    &#34;&#34;&#34;
+    code for LaTeX command to change the font size
+
+    Can be specified e.g. as the value of a `font=` option.
+    &#34;&#34;&#34;
+    if skip is None:
+        # 20% leading
+        skip = round(1.2 * size, 2)
+    return f&#39;\\fontsize{{{size}}}{{{skip}}}\\selectfont&#39;
+
+
 # actions on paths
 
 def _operation(op):
@@ -1095,18 +1107,27 @@ class Picture(Scope):
     instantiating `Picture` and calling its methods. The object represents both
     the whole LaTeX document and its single `tikzpicture` environment.
 
+    Set `tempdir` to use a specific directory for temporary files instead of an
+    automatically created one. Set `cache` to `False` if the picture should be
+    generated even though the TikZ code has not changed.
+
     see
     [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
     &#34;&#34;&#34;
 
-    def __init__(self, opt=None, **kwoptions):
+    def __init__(self, opt=None, tempdir=None, cache=True, **kwoptions):
         super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
+        # should the created PDF be cached?
+        self.cache = cache
         # create temporary directory for pdflatex etc.
-        self.tempdir = tempfile.mkdtemp(prefix=&#39;tikz-&#39;)
-        # make sure it gets deleted
-        atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
+        if tempdir is not None:
+            self.tempdir = tempfile.mkdtemp(prefix=&#39;tikz-&#39;)
+            # make sure it gets deleted
+            atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
+        else:
+            self.tempdir = tempdir
 
     def add_preamble(self, code):
         &#34;&#34;&#34;
@@ -1208,7 +1229,7 @@ class Picture(Scope):
         # in the PDF filename, and to skip creation if that file exists.
         hash = hashlib.sha1(code.encode()).hexdigest()
         self.temp_pdf = self.tempdir + sep + &#39;tikz-&#39; + hash + &#39;.pdf&#39;
-        if os.path.isfile(self.temp_pdf):
+        if self.cache and os.path.isfile(self.temp_pdf):
             return
 
         # create LaTeX file
@@ -1411,6 +1432,28 @@ path (unless they are path-global).</p></section>
     &#34;&#34;&#34;
     # just a wrapper around _options_code
     return _options_code(opt=opt, **kwoptions)</code></pre>
+</details>
+</dd>
+<dt id="tikz.fontsize"><code class="name flex">
+<span>def <span class="ident">fontsize</span></span>(<span>size, skip=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>code for LaTeX command to change the font size</p>
+<p>Can be specified e.g. as the value of a <code>font=</code> option.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fontsize(size, skip=None):
+    &#34;&#34;&#34;
+    code for LaTeX command to change the font size
+
+    Can be specified e.g. as the value of a `font=` option.
+    &#34;&#34;&#34;
+    if skip is None:
+        # 20% leading
+        skip = round(1.2 * size, 2)
+    return f&#39;\\fontsize{{{size}}}{{{skip}}}\\selectfont&#39;</code></pre>
 </details>
 </dd>
 </dl>
@@ -3020,13 +3063,16 @@ TikZ' default styles like the default draw style.</p>
 </dd>
 <dt id="tikz.Picture"><code class="flex name class">
 <span>class <span class="ident">Picture</span></span>
-<span>(</span><span>opt=None, **kwoptions)</span>
+<span>(</span><span>opt=None, tempdir=None, cache=True, **kwoptions)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>tikzpicture environment</p>
 <p>This is the central class of the module. A picture is created by
 instantiating <a title="tikz.Picture" href="#tikz.Picture"><code>Picture</code></a> and calling its methods. The object represents both
 the whole LaTeX document and its single <code>tikzpicture</code> environment.</p>
+<p>Set <code>tempdir</code> to use a specific directory for temporary files instead of an
+automatically created one. Set <code>cache</code> to <code>False</code> if the picture should be
+generated even though the TikZ code has not changed.</p>
 <p>see
 <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1">§12.2.1</a></p></section>
 <details class="source">
@@ -3041,18 +3087,27 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
     instantiating `Picture` and calling its methods. The object represents both
     the whole LaTeX document and its single `tikzpicture` environment.
 
+    Set `tempdir` to use a specific directory for temporary files instead of an
+    automatically created one. Set `cache` to `False` if the picture should be
+    generated even though the TikZ code has not changed.
+
     see
     [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
     &#34;&#34;&#34;
 
-    def __init__(self, opt=None, **kwoptions):
+    def __init__(self, opt=None, tempdir=None, cache=True, **kwoptions):
         super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
+        # should the created PDF be cached?
+        self.cache = cache
         # create temporary directory for pdflatex etc.
-        self.tempdir = tempfile.mkdtemp(prefix=&#39;tikz-&#39;)
-        # make sure it gets deleted
-        atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
+        if tempdir is not None:
+            self.tempdir = tempfile.mkdtemp(prefix=&#39;tikz-&#39;)
+            # make sure it gets deleted
+            atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
+        else:
+            self.tempdir = tempdir
 
     def add_preamble(self, code):
         &#34;&#34;&#34;
@@ -3154,7 +3209,7 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         # in the PDF filename, and to skip creation if that file exists.
         hash = hashlib.sha1(code.encode()).hexdigest()
         self.temp_pdf = self.tempdir + sep + &#39;tikz-&#39; + hash + &#39;.pdf&#39;
-        if os.path.isfile(self.temp_pdf):
+        if self.cache and os.path.isfile(self.temp_pdf):
             return
 
         # create LaTeX file
@@ -3754,6 +3809,7 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <ul class="">
 <li><code><a title="tikz.cycle" href="#tikz.cycle">cycle</a></code></li>
 <li><code><a title="tikz.options" href="#tikz.options">options</a></code></li>
+<li><code><a title="tikz.fontsize" href="#tikz.fontsize">fontsize</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

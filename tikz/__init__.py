@@ -1012,24 +1012,27 @@ class Picture(Scope):
     instantiating `Picture` and calling its methods. The object represents both
     the whole LaTeX document and its single `tikzpicture` environment.
 
+    Set `tempdir` to use a specific directory for temporary files instead of an
+    automatically created one. Set `cache` to `False` if the picture should be
+    generated even though the TikZ code has not changed.
+
     see
     [§12.2.1](https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1)
     """
 
-    def __init__(self, opt=None, tempdir='', cache=True, **kwoptions):
-        # tempdir: permit user to select "temp" directory for LaTeX processing.
-        # set cache to `False` to rebuild even if the tikz code is unchanged.
+    def __init__(self, opt=None, tempdir=None, cache=True, **kwoptions):
         super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
+        # should the created PDF be cached?
         self.cache = cache
         # create temporary directory for pdflatex etc.
-        if not tempdir:
+        if tempdir is not None:
             self.tempdir = tempfile.mkdtemp(prefix='tikz-')
             # make sure it gets deleted
             atexit.register(shutil.rmtree, self.tempdir, ignore_errors=True)
         else:
-            self.tempdir=tempdir
+            self.tempdir = tempdir
 
     def add_preamble(self, code):
         """

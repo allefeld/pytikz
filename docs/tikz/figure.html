@@ -87,9 +87,13 @@ all lengths in cm
 
 import numpy as np
 import collections
-import math
-from tikz import Picture, Scope, rectangle, options, lineto, node
+from tikz import Picture, Scope, rectangle, options, lineto, node, fontsize
 from tikz.extended_wilkinson import TicksGenerator
+
+tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54
+&#34;maximum length that can be processed by TeX&#34;
+# theoretical: 575.8317415420323
+# TODO: -575.831685 is too large!
 
 
 class cfg:
@@ -114,10 +118,30 @@ class cfg:
     padding_top = 0.5
     &#34;top view padding, default 0.5&#34;
 
-    clip_padding = 0.07
-    axis_offset = 0.14
+    figure_fontsize = 10
+    &#34;&#34;&#34;
+    default font size within figure, default 10 pt
+
+    This font size applies to the figure title, axes titles and labels, as well
+    as to user-created text nodes unless overridden.
+    &#34;&#34;&#34;
+    decorations_fontsize = 9
+    &#34;font size for axes decorations, default 9 pt&#34;
+    ticks_fontsizes = [8, 9]
+    &#34;&#34;&#34;
+    list of font sizes for tick labels
+
+    The largest font size is the default, smaller sizes are used if there is
+    not enough space.
+    &#34;&#34;&#34;
+    tick_density = 0.75
+    &#34;target number of ticks per cm, default 0.75&#34;
+    clip_margin = 0.8 / 72.27 * 2.54
+    &#34;width by which the clip region is larger than the axes, default 0.8 pt&#34;
+    axis_offset = 0.1
+    &#34;offset of axis lines from axes region, default 1 mm&#34;
     tick_length = 0.1
-    tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54
+    &#34;length of tick lines, default 1 mm&#34;
 
 
 class Box:
@@ -375,15 +399,17 @@ class LayoutError(Exception):
 
 class Figure(Picture):
     def __init__(self, layout=None, opt=None, **parameters):
-        super().__init__(opt=opt)
+        super().__init__(
+            font=fontsize(cfg.figure_fontsize),
+            opt=opt)
         # process layout
         if layout is None:
             layout = SimpleLayout(**parameters)
         self.layout = layout
         self.width, self.height = layout.get_dimensions()
         self.views = layout.get_views()
-        # ensure minimum bounding box of figure
-        self.path((0, 0), (self.width, self.height))
+        # ensure bounding box of figure
+        self.clip((0, 0), rectangle((self.width, self.height)))
         # use font Fira
         self.fira()
         font_metrics = {
@@ -394,8 +420,9 @@ class Figure(Picture):
         #   or at least keep font activation code and font_metrics together?
         # create `TicksGenerator`
         self.ticks_generator = TicksGenerator(
-            [8, 9], 1 / 1.5, font_metrics=font_metrics)
-        # TODO: `cfg`urize font sizes and target density
+            cfg.ticks_fontsizes,
+            cfg.tick_density,
+            font_metrics=font_metrics)
 
     def draw_layout(self):
         &#34;draw layout&#34;
@@ -405,6 +432,8 @@ class Figure(Picture):
     def title(self, label, margin_vertical=None):
         # TODO: use another parameter name, and corresponding cfg?
         #   spaces are off as they are
+        # Make this a layout option, overridden when creating the layout,
+        # and read from the layout here.
         if margin_vertical is None:
             margin_vertical = cfg.margin_vertical
         scope = self.scope()
@@ -441,17 +470,17 @@ class Axes(Scope):
         ymin = self.yticks.amin
         yrange = self.yticks.amax - ymin
 
-        # Sub-scope for axes decoration in which the origin remains in the
+        # Sub-scope for axes decorations in which the origin remains in the
         # lower left corner of the figure, and xy remains at its 1 cm default.
         # Moreover, coordinates are not subject to transformation and drawing
         # is not clipped.
-        self.decorations = Scope()
+        self.decorations = Scope(font=fontsize(cfg.decorations_fontsize))
 
         # convenience
         x, y, w, h = self.inner.x, self.inner.y, self.inner.w, self.inner.h
 
         # Drawing is clipped to the inner box, with a bit of padding.
-        pad = cfg.clip_padding
+        pad = cfg.clip_margin
         self.clip(f&#39;({x - pad}cm,{y - pad}cm)&#39;,
                   rectangle(f&#39;({x + w + pad}cm, {y + h + pad}cm)&#39;))
 
@@ -463,11 +492,11 @@ class Axes(Scope):
                      x=f&#39;{w}cm&#39;,
                      y=f&#39;{h}cm&#39;)
 
-        # coordinate limits from cfg.tex_maxdimen
-        cxmin = (-cfg.tex_maxdimen - x) / w * xrange + xmin
-        cxmax = (cfg.tex_maxdimen - x) / w * xrange + xmin
-        cymin = (-cfg.tex_maxdimen - y) / h * yrange + ymin
-        cymax = (cfg.tex_maxdimen - y) / h * yrange + ymin
+        # coordinate limits from tex_maxdimen
+        cxmin = (-tex_maxdimen - x) / w * xrange + xmin
+        cxmax = (tex_maxdimen - x) / w * xrange + xmin
+        cymin = (-tex_maxdimen - y) / h * yrange + ymin
+        cymax = (tex_maxdimen - y) / h * yrange + ymin
 
         # Transformation which maps coordinates from the axis&#39; ranges
         # onto [0, 1], to be passed to *`.code()` and `_coordinate_code`.
@@ -496,6 +525,8 @@ class Axes(Scope):
             return cx, cy
         self.trans = transformation
 
+        # TODO: postpone to allow modification?
+        #   or let specify Ticks instead of xlim, ylim?
         if xaxis:
             self.xaxis()
         if yaxis:
@@ -507,10 +538,10 @@ class Axes(Scope):
         o = cfg.axis_offset
         tl = cfg.tick_length
         t = self.xticks
-        # TODO: interface to select fontsize
-        #   as option font= / as standalone command
-        #   default font size for figure decorations
-        font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+        if t.font_size != cfg.decorations_fontsize:
+            font = fontsize(t.font_size)
+        else:
+            font = None
         rotate = None if t.horizontal else 90
         d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
                line_cap=&#39;round&#39;)
@@ -534,7 +565,10 @@ class Axes(Scope):
         o = cfg.axis_offset
         tl = cfg.tick_length
         t = self.yticks
-        font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+        if t.font_size != cfg.decorations_fontsize:
+            font = fontsize(t.font_size)
+        else:
+            font = None
         rotate = None if t.horizontal else 90
         d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
                line_cap=&#39;round&#39;)
@@ -565,6 +599,13 @@ class Axes(Scope):
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-variables">Global variables</h2>
+<dl>
+<dt id="tikz.figure.tex_maxdimen"><code class="name">var <span class="ident">tex_maxdimen</span></code></dt>
+<dd>
+<section class="desc"><p>maximum length that can be processed by TeX</p></section>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -603,10 +644,30 @@ class Axes(Scope):
     padding_top = 0.5
     &#34;top view padding, default 0.5&#34;
 
-    clip_padding = 0.07
-    axis_offset = 0.14
+    figure_fontsize = 10
+    &#34;&#34;&#34;
+    default font size within figure, default 10 pt
+
+    This font size applies to the figure title, axes titles and labels, as well
+    as to user-created text nodes unless overridden.
+    &#34;&#34;&#34;
+    decorations_fontsize = 9
+    &#34;font size for axes decorations, default 9 pt&#34;
+    ticks_fontsizes = [8, 9]
+    &#34;&#34;&#34;
+    list of font sizes for tick labels
+
+    The largest font size is the default, smaller sizes are used if there is
+    not enough space.
+    &#34;&#34;&#34;
+    tick_density = 0.75
+    &#34;target number of ticks per cm, default 0.75&#34;
+    clip_margin = 0.8 / 72.27 * 2.54
+    &#34;width by which the clip region is larger than the axes, default 0.8 pt&#34;
+    axis_offset = 0.1
+    &#34;offset of axis lines from axes region, default 1 mm&#34;
     tick_length = 0.1
-    tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54</code></pre>
+    &#34;length of tick lines, default 1 mm&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -646,21 +707,37 @@ class Axes(Scope):
 <dd>
 <section class="desc"><p>top view padding, default 0.5</p></section>
 </dd>
-<dt id="tikz.figure.cfg.clip_padding"><code class="name">var <span class="ident">clip_padding</span></code></dt>
+<dt id="tikz.figure.cfg.figure_fontsize"><code class="name">var <span class="ident">figure_fontsize</span></code></dt>
 <dd>
-<section class="desc"><p>Convert a string or number to a floating point number, if possible.</p></section>
+<section class="desc"><p>default font size within figure, default 10 pt</p>
+<p>This font size applies to the figure title, axes titles and labels, as well
+as to user-created text nodes unless overridden.</p></section>
+</dd>
+<dt id="tikz.figure.cfg.decorations_fontsize"><code class="name">var <span class="ident">decorations_fontsize</span></code></dt>
+<dd>
+<section class="desc"><p>font size for axes decorations, default 9 pt</p></section>
+</dd>
+<dt id="tikz.figure.cfg.ticks_fontsizes"><code class="name">var <span class="ident">ticks_fontsizes</span></code></dt>
+<dd>
+<section class="desc"><p>list of font sizes for tick labels</p>
+<p>The largest font size is the default, smaller sizes are used if there is
+not enough space.</p></section>
+</dd>
+<dt id="tikz.figure.cfg.tick_density"><code class="name">var <span class="ident">tick_density</span></code></dt>
+<dd>
+<section class="desc"><p>target number of ticks per cm, default 0.75</p></section>
+</dd>
+<dt id="tikz.figure.cfg.clip_margin"><code class="name">var <span class="ident">clip_margin</span></code></dt>
+<dd>
+<section class="desc"><p>width by which the clip region is larger than the axes, default 0.8 pt</p></section>
 </dd>
 <dt id="tikz.figure.cfg.axis_offset"><code class="name">var <span class="ident">axis_offset</span></code></dt>
 <dd>
-<section class="desc"><p>Convert a string or number to a floating point number, if possible.</p></section>
+<section class="desc"><p>offset of axis lines from axes region, default 1 mm</p></section>
 </dd>
 <dt id="tikz.figure.cfg.tick_length"><code class="name">var <span class="ident">tick_length</span></code></dt>
 <dd>
-<section class="desc"><p>Convert a string or number to a floating point number, if possible.</p></section>
-</dd>
-<dt id="tikz.figure.cfg.tex_maxdimen"><code class="name">var <span class="ident">tex_maxdimen</span></code></dt>
-<dd>
-<section class="desc"><p>Convert a string or number to a floating point number, if possible.</p></section>
+<section class="desc"><p>length of tick lines, default 1 mm</p></section>
 </dd>
 </dl>
 </dd>
@@ -1090,6 +1167,9 @@ they are implemented in a method overriding <code>_compute</code>.</p></section>
 <p>This is the central class of the module. A picture is created by
 instantiating <code>Picture</code> and calling its methods. The object represents both
 the whole LaTeX document and its single <code>tikzpicture</code> environment.</p>
+<p>Set <code>tempdir</code> to use a specific directory for temporary files instead of an
+automatically created one. Set <code>cache</code> to <code>False</code> if the picture should be
+generated even though the TikZ code has not changed.</p>
 <p>see
 <a href="https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.12.2.1">§12.2.1</a></p></section>
 <details class="source">
@@ -1098,15 +1178,17 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 </summary>
 <pre><code class="python">class Figure(Picture):
     def __init__(self, layout=None, opt=None, **parameters):
-        super().__init__(opt=opt)
+        super().__init__(
+            font=fontsize(cfg.figure_fontsize),
+            opt=opt)
         # process layout
         if layout is None:
             layout = SimpleLayout(**parameters)
         self.layout = layout
         self.width, self.height = layout.get_dimensions()
         self.views = layout.get_views()
-        # ensure minimum bounding box of figure
-        self.path((0, 0), (self.width, self.height))
+        # ensure bounding box of figure
+        self.clip((0, 0), rectangle((self.width, self.height)))
         # use font Fira
         self.fira()
         font_metrics = {
@@ -1117,8 +1199,9 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
         #   or at least keep font activation code and font_metrics together?
         # create `TicksGenerator`
         self.ticks_generator = TicksGenerator(
-            [8, 9], 1 / 1.5, font_metrics=font_metrics)
-        # TODO: `cfg`urize font sizes and target density
+            cfg.ticks_fontsizes,
+            cfg.tick_density,
+            font_metrics=font_metrics)
 
     def draw_layout(self):
         &#34;draw layout&#34;
@@ -1128,6 +1211,8 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
     def title(self, label, margin_vertical=None):
         # TODO: use another parameter name, and corresponding cfg?
         #   spaces are off as they are
+        # Make this a layout option, overridden when creating the layout,
+        # and read from the layout here.
         if margin_vertical is None:
             margin_vertical = cfg.margin_vertical
         scope = self.scope()
@@ -1184,6 +1269,8 @@ the whole LaTeX document and its single <code>tikzpicture</code> environment.</p
 <pre><code class="python">def title(self, label, margin_vertical=None):
     # TODO: use another parameter name, and corresponding cfg?
     #   spaces are off as they are
+    # Make this a layout option, overridden when creating the layout,
+    # and read from the layout here.
     if margin_vertical is None:
         margin_vertical = cfg.margin_vertical
     scope = self.scope()
@@ -1485,17 +1572,17 @@ another environment.</p>
         ymin = self.yticks.amin
         yrange = self.yticks.amax - ymin
 
-        # Sub-scope for axes decoration in which the origin remains in the
+        # Sub-scope for axes decorations in which the origin remains in the
         # lower left corner of the figure, and xy remains at its 1 cm default.
         # Moreover, coordinates are not subject to transformation and drawing
         # is not clipped.
-        self.decorations = Scope()
+        self.decorations = Scope(font=fontsize(cfg.decorations_fontsize))
 
         # convenience
         x, y, w, h = self.inner.x, self.inner.y, self.inner.w, self.inner.h
 
         # Drawing is clipped to the inner box, with a bit of padding.
-        pad = cfg.clip_padding
+        pad = cfg.clip_margin
         self.clip(f&#39;({x - pad}cm,{y - pad}cm)&#39;,
                   rectangle(f&#39;({x + w + pad}cm, {y + h + pad}cm)&#39;))
 
@@ -1507,11 +1594,11 @@ another environment.</p>
                      x=f&#39;{w}cm&#39;,
                      y=f&#39;{h}cm&#39;)
 
-        # coordinate limits from cfg.tex_maxdimen
-        cxmin = (-cfg.tex_maxdimen - x) / w * xrange + xmin
-        cxmax = (cfg.tex_maxdimen - x) / w * xrange + xmin
-        cymin = (-cfg.tex_maxdimen - y) / h * yrange + ymin
-        cymax = (cfg.tex_maxdimen - y) / h * yrange + ymin
+        # coordinate limits from tex_maxdimen
+        cxmin = (-tex_maxdimen - x) / w * xrange + xmin
+        cxmax = (tex_maxdimen - x) / w * xrange + xmin
+        cymin = (-tex_maxdimen - y) / h * yrange + ymin
+        cymax = (tex_maxdimen - y) / h * yrange + ymin
 
         # Transformation which maps coordinates from the axis&#39; ranges
         # onto [0, 1], to be passed to *`.code()` and `_coordinate_code`.
@@ -1540,6 +1627,8 @@ another environment.</p>
             return cx, cy
         self.trans = transformation
 
+        # TODO: postpone to allow modification?
+        #   or let specify Ticks instead of xlim, ylim?
         if xaxis:
             self.xaxis()
         if yaxis:
@@ -1551,10 +1640,10 @@ another environment.</p>
         o = cfg.axis_offset
         tl = cfg.tick_length
         t = self.xticks
-        # TODO: interface to select fontsize
-        #   as option font= / as standalone command
-        #   default font size for figure decorations
-        font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+        if t.font_size != cfg.decorations_fontsize:
+            font = fontsize(t.font_size)
+        else:
+            font = None
         rotate = None if t.horizontal else 90
         d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
                line_cap=&#39;round&#39;)
@@ -1578,7 +1667,10 @@ another environment.</p>
         o = cfg.axis_offset
         tl = cfg.tick_length
         t = self.yticks
-        font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+        if t.font_size != cfg.decorations_fontsize:
+            font = fontsize(t.font_size)
+        else:
+            font = None
         rotate = None if t.horizontal else 90
         d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
                line_cap=&#39;round&#39;)
@@ -1626,10 +1718,10 @@ another environment.</p>
     o = cfg.axis_offset
     tl = cfg.tick_length
     t = self.xticks
-    # TODO: interface to select fontsize
-    #   as option font= / as standalone command
-    #   default font size for figure decorations
-    font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+    if t.font_size != cfg.decorations_fontsize:
+        font = fontsize(t.font_size)
+    else:
+        font = None
     rotate = None if t.horizontal else 90
     d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
            line_cap=&#39;round&#39;)
@@ -1662,7 +1754,10 @@ another environment.</p>
     o = cfg.axis_offset
     tl = cfg.tick_length
     t = self.yticks
-    font = f&#39;\\fontsize{{{t.font_size}}}{{{t.font_size}}}\\selectfont&#39;
+    if t.font_size != cfg.decorations_fontsize:
+        font = fontsize(t.font_size)
+    else:
+        font = None
     rotate = None if t.horizontal else 90
     d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
            line_cap=&#39;round&#39;)
@@ -1860,11 +1955,16 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li><code><a title="tikz" href="index.html">tikz</a></code></li>
 </ul>
 </li>
+<li><h3><a href="#header-variables">Global variables</a></h3>
+<ul class="">
+<li><code><a title="tikz.figure.tex_maxdimen" href="#tikz.figure.tex_maxdimen">tex_maxdimen</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
 <h4><code><a title="tikz.figure.cfg" href="#tikz.figure.cfg">cfg</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="tikz.figure.cfg.width" href="#tikz.figure.cfg.width">width</a></code></li>
 <li><code><a title="tikz.figure.cfg.margin_horizontal" href="#tikz.figure.cfg.margin_horizontal">margin_horizontal</a></code></li>
 <li><code><a title="tikz.figure.cfg.margin_vertical" href="#tikz.figure.cfg.margin_vertical">margin_vertical</a></code></li>
@@ -1874,10 +1974,13 @@ style="width:100%;padding-left:40px;padding-right:40px">
 <li><code><a title="tikz.figure.cfg.padding_right" href="#tikz.figure.cfg.padding_right">padding_right</a></code></li>
 <li><code><a title="tikz.figure.cfg.padding_bottom" href="#tikz.figure.cfg.padding_bottom">padding_bottom</a></code></li>
 <li><code><a title="tikz.figure.cfg.padding_top" href="#tikz.figure.cfg.padding_top">padding_top</a></code></li>
-<li><code><a title="tikz.figure.cfg.clip_padding" href="#tikz.figure.cfg.clip_padding">clip_padding</a></code></li>
+<li><code><a title="tikz.figure.cfg.figure_fontsize" href="#tikz.figure.cfg.figure_fontsize">figure_fontsize</a></code></li>
+<li><code><a title="tikz.figure.cfg.decorations_fontsize" href="#tikz.figure.cfg.decorations_fontsize">decorations_fontsize</a></code></li>
+<li><code><a title="tikz.figure.cfg.ticks_fontsizes" href="#tikz.figure.cfg.ticks_fontsizes">ticks_fontsizes</a></code></li>
+<li><code><a title="tikz.figure.cfg.tick_density" href="#tikz.figure.cfg.tick_density">tick_density</a></code></li>
+<li><code><a title="tikz.figure.cfg.clip_margin" href="#tikz.figure.cfg.clip_margin">clip_margin</a></code></li>
 <li><code><a title="tikz.figure.cfg.axis_offset" href="#tikz.figure.cfg.axis_offset">axis_offset</a></code></li>
 <li><code><a title="tikz.figure.cfg.tick_length" href="#tikz.figure.cfg.tick_length">tick_length</a></code></li>
-<li><code><a title="tikz.figure.cfg.tex_maxdimen" href="#tikz.figure.cfg.tex_maxdimen">tex_maxdimen</a></code></li>
 </ul>
 </li>
 <li>
