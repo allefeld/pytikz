@@ -13,6 +13,7 @@ classifiers = [
     'Operating System :: OS Independent',
     ]
 python_requires = '>=3.6'
+install_requires = ['PyMuPDF','ipython','numpy']
 
 if __name__ == '__main__':
     with open('README.md', 'r') as fh:
@@ -30,4 +31,5 @@ if __name__ == '__main__':
         packages=setuptools.find_packages(),
         classifiers=classifiers,
         python_requires=python_requires,
+        install_requires=install_requires,
     )
