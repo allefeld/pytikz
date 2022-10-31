@@ -1162,8 +1162,8 @@ class Picture(Scope):
         "return SVG data of `Picture`"
         # convert PDF to SVG using PyMuPDF
         doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        svg = page.getSVGimage()
+        page = doc.load_page(0)
+        svg = page.get_svg_image()
         return svg
 
     def _get_PNG(self, dpi=None):
@@ -1173,9 +1173,9 @@ class Picture(Scope):
         # convert PDF to PNG using PyMuPDF
         zoom = dpi / 72
         doc = fitz.open(self.temp_pdf)
-        page = doc.loadPage(0)
-        pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom))
-        return pix.getPNGdata()
+        page = doc.load_page(0)
+        pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom))
+        return pix.tobytes()
 
     # code / pdf creation: public
     # public functions make sure that code / pdf is created via `_update`
@@ -1217,9 +1217,9 @@ class Picture(Scope):
             # render PDF as PNG using PyMuPDF
             zoom = dpi / 72
             doc = fitz.open(self.temp_pdf)
-            page = doc.loadPage(0)
-            pix = page.getPixmap(matrix=fitz.Matrix(zoom, zoom), alpha=True)
-            pix.writePNG(filename)
+            page = doc.load_page(0)
+            pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=True)
+            pix.save(filename)
         elif ext.lower() == '.svg':
             # convert PDF to SVG using PyMuPDF
             svg = self._get_SVG()
