@@ -1094,7 +1094,7 @@ class Picture(Scope):
     # code / pdf creation: private
     # private functions assume that code / pdf has already been created
 
-    def _update(self):
+    def _update(self, build=True):
         "ensure that up-to-date code & PDF file exists"
 
         sep = os.path.sep
@@ -1121,6 +1121,8 @@ class Picture(Scope):
             r'\end{document}']
         code = '\n'.join(codelines)
         self._document_code = code
+        if not build:
+            return
 
         # We don't want a PDF file of the whole LaTeX document, but only of the
         # contents of the `tikzpicture` environment. This is achieved using
@@ -1182,12 +1184,12 @@ class Picture(Scope):
 
     def code(self):
         "returns TikZ code"
-        self._update()
+        self._update(build=False)
         return self._code
 
     def document_code(self):
         "returns LaTeX/TikZ code for a complete compilable document"
-        self._update()
+        self._update(build=False)
         return self._document_code
 
     def write_image(self, filename, dpi=None):
