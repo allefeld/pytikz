@@ -808,6 +808,12 @@ class Scope:
 
     # add actions on paths (§15)
 
+    def raw(self, *args):
+        """
+        Add arbitary raw code.
+        """
+        self._append(Raw(*args))
+
     def path(self, *spec, opt=None, **kwoptions):
         """
         path action
@@ -1241,6 +1247,25 @@ class Picture(Scope):
         }
         return data
 
+    def safe_get_png(self, dpi):
+        """
+        This function either returns an encoded PNG string, or None. It will not throw.
+        """
+        try:
+           return self._get_PNG(dpi=dpi)
+        except LatexError as le:
+            message = le.args[0]
+            tikz_error = message.find('! ')
+            if tikz_error != -1:
+                message = message[tikz_error:]
+            print('LatexError: LaTeX has failed')
+            print(message)
+        return None
+
+    def show(self, dpi=None):
+        self._update()
+        return IPython.display.Image(self.safe_get_png(dpi=dpi))
+
     def demo(self, dpi=None):
         """
         show picture and code in the notebook
@@ -1253,17 +1278,11 @@ class Picture(Scope):
         override the default `cfg.display_dpi`.
         """
         self._update()
-        png_base64 = ''
-        try:
-            png_base64 = base64.b64encode(
-                self._get_PNG(dpi=dpi)).decode('ascii')
-        except LatexError as le:
-            message = le.args[0]
-            tikz_error = message.find('! ')
-            if tikz_error != -1:
-                message = message[tikz_error:]
-            print('LatexError: LaTeX has failed')
-            print(message)
+        _png_data = self.safe_get_png(dpi=dpi)
+        if _png_data is None:
+            png_base64 = ""
+        else:
+            png_base64 = base64.b64encode(_png_data).decode('ascii')
         code_escaped = html.escape(self._code)
         IPython.display.display(
             IPython.display.HTML(
