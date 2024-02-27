@@ -1024,6 +1024,7 @@ class Picture(Scope):
         super().__init__(opt=opt, **kwoptions)
         # additional preamble entries
         self.preamble = []
+        self.document_codes = []
         # should the created PDF be cached?
         self.cache = cache
         # create temporary directory for pdflatex etc.
@@ -1080,6 +1081,9 @@ class Picture(Scope):
         code += '{' + name + '}'
         self.add_preamble(code)
 
+    def add_document_code(self, code):
+        self.document_codes.append(code)
+
     def fira(self):
         """
         set font to Fira, also for math
@@ -1117,6 +1121,7 @@ class Picture(Scope):
         # document body
         codelines += [
             r'\begin{document}',
+            "\n".join(self.document_codes),
             self._code,
             r'\end{document}']
         code = '\n'.join(codelines)
